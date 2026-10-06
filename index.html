@@ -739,6 +739,60 @@ input::placeholder,textarea::placeholder{color:#a3a1ad!important;font-weight:400
 
 .qb-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}.qb-bar .qb-tabs{margin:0}
 .lp-foot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}.lp-staff{opacity:.45;font-size:12px}.lp-staff a{color:inherit;text-decoration:none}.lp-staff a:hover{text-decoration:underline;opacity:1}
+
+/* landing v2 */
+main#main:has(> .lp){max-width:none;margin:0;padding:0}
+body:has(.lp){background:#030f1f}
+.lp-wide{max-width:60ch}
+.lp-sec{max-width:1440px;margin:clamp(64px,8vw,110px) auto 0;padding:0 clamp(18px,4vw,64px)}
+.lp-h2{font:700 clamp(32px,4.6vw,64px)/1.06 "Montserrat",sans-serif;letter-spacing:-.03em;color:#f4f6fb;margin:0}
+.lp-who{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:28px}
+.lp-card{background:#061830;border:1px solid #16263d;border-top:3px solid var(--ac);border-radius:20px;padding:32px 30px 38px}
+.lp-cardtop{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.lp-tag{font:400 11px "Space Mono",monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--ac);border:1px solid var(--ac);border-radius:999px;padding:6px 12px;opacity:.9}
+.lp-card h3{font:700 clamp(21px,1.8vw,26px)/1.3 "Montserrat",sans-serif;letter-spacing:-.01em;color:#f4f6fb;margin:24px 0 12px}
+.lp-card p{margin:0;color:#a9b4c4;font-size:16px;line-height:1.7}
+.lp-pay{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:clamp(20px,4vw,64px);align-items:center;background:#061830;border:1px solid color-mix(in srgb,var(--ac) 40%,#16263d);border-radius:24px;padding:clamp(28px,4vw,56px);margin-top:20px}
+.lp-amt{font:800 clamp(64px,8vw,120px)/1 "Montserrat",sans-serif;letter-spacing:-.03em;color:var(--ac)}
+.lp-pay h3{font:700 clamp(21px,2vw,30px)/1.25 "Montserrat",sans-serif;color:#f4f6fb;margin:16px 0 0;max-width:22ch}
+.lp-pay p{margin:0;color:#a9b4c4;font-size:clamp(16px,1.3vw,18px);line-height:1.75}
+.lp-perks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:20px}
+.lp-perk{border:1px solid #16263d;border-radius:18px;padding:26px 28px}
+.lp-perk b{display:block;font:700 18px "Montserrat",sans-serif;color:#f4f6fb;margin-bottom:8px}
+.lp-perk p{margin:0;color:#a9b4c4;font-size:15.5px;line-height:1.65}
+.lp-check{list-style:none;padding:0;margin:28px 0 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.lp-check li{border:1px solid #16263d;border-radius:14px;padding:18px 20px;color:#eef2f8;font-size:16px;line-height:1.5;display:flex;gap:12px}
+.lp-check li::before{content:"✓";color:#8fd14f;font-weight:700}
+.lp-close{text-align:center}
+@media (max-width:1100px){.lp-check{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:860px){.lp-who,.lp-perks,.lp-check{grid-template-columns:1fr}.lp-pay{grid-template-columns:1fr}}
+.ap-how{list-style:none;counter-reset:h;padding:0;margin:26px 0 28px;display:grid;gap:14px}.ap-how li{counter-increment:h;display:grid;grid-template-columns:36px 1fr;column-gap:14px;align-items:start}.ap-how li::before{content:counter(h);grid-row:span 2;width:32px;height:32px;border-radius:50%;background:var(--accent,#2a6db5);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:15px}.ap-how b{font-size:16px}.ap-how span{color:var(--mute,#667);font-size:14.5px;line-height:1.5}
+
+.lp-check li,.lp-perk p,.lp-card p,.lp-pay p,.lp-sub{font-family:"Montserrat",var(--body)}
+
+.lp-float{display:none}
+@media (max-width:860px){
+ .lp-float{display:flex;position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:50;min-height:56px;font-size:17px;box-shadow:0 10px 30px rgba(0,0,0,.45);transform:translateY(140%);transition:transform .25s ease}
+ body.lp-scrolled .lp-float{transform:none}
+ .lp-foot{padding-bottom:110px}
+}
+
+.route li.sel .lbl{text-decoration:underline;text-underline-offset:4px}
+.ap-pass .ap-check{background:var(--go,#1f8a4c)}
+.tr-btns{display:grid;gap:10px;margin-top:22px}
+
+.tc-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.tc-grid{grid-template-columns:1fr}}
+.tc-cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.tc-wd{font-size:12px;color:var(--mute);text-align:center;padding:4px 0}
+.tc-d{position:relative;min-height:62px;border:1px solid var(--line);border-radius:10px;background:var(--panel);display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;padding:6px 8px;cursor:pointer;font:inherit;color:inherit;text-align:left}
+.tc-d small{font-size:12px;color:var(--mute)}
+.tc-d.open{border-color:#9cc3ea;background:#eef5fc}
+.tc-d.open small{color:#1d5f9e;font-weight:600}
+.tc-d.closed{background:#fbeceb;border-color:#e6b4ae}.tc-d.closed small{color:#a33}
+.tc-d.past{opacity:.5}.tc-d.today b{text-decoration:underline}
+.tc-d.sel{outline:2px solid #1d5f9e;outline-offset:1px}
+.tc-d i{position:absolute;top:4px;right:7px;font-style:normal;color:#1d5f9e}
 </style>
 </head>
 <body>
@@ -762,11 +816,12 @@ input::placeholder,textarea::placeholder{color:#a3a1ad!important;font-weight:400
 /* ============ constants ============ */
 const ROLES={admin:"Admin",marketing:"Marketing",verifier:"Document check",orientation:"Orientation",interviewer:"Interviewer",tester:"Driving tester",trainer:"OJT trainer",hr:"HR offers"};
 const DEFAULT_SETTINGS={interviewPass:70,drivePass:80,highRiskBlocks:true,redFlagBlocks:true,ojtDays:5,ojtMinPass:5,medicalMaxMonths:6,requirePro:true,
-  campaigns:["Facebook – Manila","Facebook – Cebu","Referral","Walk-in"],position:"Delivery Driver (EV)",company:"Mober Technology",idleMinutes:15,hubAddress:"Hub (set the address in Rules & data)",
-  reminderText:"Hi {first}! This is Mober. Reminder: your driver interview is on {date} at {time}, {address}. Please bring your NBI clearance, latest medical certificate and driver's licence. Reply YES to confirm. Salamat!"};
+  campaigns:["Facebook – Manila","Facebook – Cebu","Referral","Walk-in"],position:"Delivery Driver (EV)",company:"",idleMinutes:15,hubAddress:"Hub (set the address in Rules & data)",
+  reminderText:"DRAYBERFLX: Paalala {first}, interview mo sa {date}, {time}, {address}. Code: {code}. Dalhin ang original NBI, medical cert at driver's license. Salamat!"};
 const DIMS={absenteeism:"Absenteeism",safety:"Road safety",integrity:"Integrity",customer:"Customer handling",retention:"Commitment & retention"};
 const CATS={situational:"Situational",behavioural:"Behavioural",background:"Background"};
-const DRIVE_ITEMS=[
+const driveItems=()=>{const L=(S.settings&&S.settings.driveItems)||DEFAULT_DRIVE_ITEMS;return L.map(x=>Object.assign({weight:1},x))};
+const DEFAULT_DRIVE_ITEMS=[
  {id:"pretrip",t:"Pre-trip inspection: charge level, tyres, lights, mirrors"},
  {id:"setup",t:"Seatbelt, seat and mirror setup"},
  {id:"regen",t:"EV start-up and regenerative braking control"},
@@ -777,19 +832,22 @@ const DRIVE_ITEMS=[
  {id:"reverse",t:"Reversing and parking in a tight space"},
  {id:"bay",t:"Loading bay approach and positioning"},
  {id:"nav",t:"Route navigation using the app"}];
-const STAGES={requested:["Booking request","wait"],booking_declined:["Booking declined","stop"],booked:["Booked","plain"],noshow:["No-show","stop"],checkin:["At check-in","wait"],docs_fail:["Documents rejected","stop"],
+const STAGES={failed_told:["Not passed · told","stop"],iv_fail:["Interview not passed","stop"],drive_fail:["Driving test failed","stop"],pass_inform:["Passed · to inform","wait"],training_invite:["Waiting for training reply","wait"],training_declined:["Declined training","stop"],training_book:["Choosing training date","wait"],accr_inform:["Accredited · to inform","wait"],accredited:["Accredited","go"],requested:["Booking request","wait"],booking_declined:["Booking declined","stop"],booked:["Booked","plain"],noshow:["No-show","stop"],checkin:["At check-in","wait"],docs_fail:["Documents rejected","stop"],
  orientation:["Orientation","wait"],interview:["Interview","wait"],drive:["Driving test","wait"],not_hired:["Not hired","stop"],
- ojt:["On-the-job training","wait"],ojt_fail:["OJT failed","stop"],offer:["Offer to prepare","wait"],offer_sent:["Offer sent","wait"],
+ ojt:["Training booked","wait"],ojt_fail:["Training failed","stop"],offer:["Offer to prepare","wait"],offer_sent:["Offer sent","wait"],
  offer_accepted:["Offer accepted","go"],offer_declined:["Offer declined","stop"],canceled:["Canceled in Calendly","plain"]};
-const STATIONS=[["booked","Booked"],["showed","Showed up"],["docs","Documents cleared"],["oriented","Oriented"],["interviewed","Interviewed"],
- ["drove","Drive tested"],["hired","Hired"],["ojt","OJT passed"],["accepted","Offer accepted"]];
+const STATIONS=[["booked","Booked"],["showed","Showed up"],["docs","Documents cleared"],["oriented","Oriented"],["interviewed","Interview passed"],
+ ["drove","Drive test passed"],["hired","Passed"],["accepted","Accepted training"],["ojt","Accredited"]];
+const FAIL_STAGES={docs_fail:["document check","Documents"],iv_fail:["interview","Interview"],drive_fail:["driving test","Driving test"],ojt_fail:["1-day training","Training"]};
+const INFORM_STAGES=[...Object.keys(FAIL_STAGES),"pass_inform","accr_inform"];
+function ivFail(a){if(!a.interview?.done)return false;const s=settings(),iv=scoreInterview(a);return (iv.pct!=null&&iv.pct<s.interviewPass)||(s.highRiskBlocks&&iv.overall==="High")||(s.redFlagBlocks&&iv.red.length>0)}
 const STARTER_BANK=[
  {cat:"background",dim:"absenteeism",red:true,text:"In your last job, how many days did you miss in the past 3 months, and why?",fil:"Sa huling trabaho mo, ilang araw kang hindi nakapasok sa nakaraang 3 buwan, at bakit?",o:["6+ days, or any no-call no-show","4–5 days, or some without notice","2–3 days, all with notice","0–1 day, planned and notified"]},
  {cat:"situational",dim:"absenteeism",text:"Your shift starts at 6:00 AM. It's raining hard and the road near your home is flooding. What do you do?",fil:"6:00 AM ang simula ng shift mo. Malakas ang ulan at binabaha na ang daan malapit sa bahay mo. Ano ang gagawin mo?",o:["Stays home without telling anyone","Waits it out, only replies if called","Messages supervisor, arrives late","Leaves early on a backup route and sends ETA"]},
  {cat:"background",dim:"absenteeism",text:"How will you get to the hub every day, and how long does it take?",fil:"Paano ka pupunta sa hub araw-araw, at gaano katagal ang biyahe mo?",o:["No clear plan","Over 1 hour, one option only","Public transport under 1 hour, has an alternate","Reliable own transport, under 45 minutes"]},
  {cat:"behavioural",dim:"retention",text:"Why did you leave your last job?",fil:"Bakit ka umalis sa huling trabaho mo?",o:["Terminated or conflict, won't explain","Vague, or blames others","Contract ended","Clear reason, left on good terms"]},
  {cat:"background",dim:"retention",text:"How many employers have you had in the last 3 years?",fil:"Ilang employer na ang napasukan mo sa nakaraang 3 taon?",o:["4 or more","3","2","1"]},
- {cat:"situational",dim:"retention",text:"After the orientation, what made you want to join Mober?",fil:"Pagkatapos ng orientation, ano ang nagustuhan mo kaya gusto mong sumali sa Mober?",o:["No reason given","Only the pay","General positive comments","Names specific culture points and why they fit"]},
+ {cat:"situational",dim:"retention",text:"After the orientation, what made you want to join us?",fil:"Pagkatapos ng orientation, ano ang nagustuhan mo kaya gusto mong sumali sa amin?",o:["No reason given","Only the pay","General positive comments","Names specific culture points and why they fit"]},
  {cat:"situational",dim:"safety",text:"You're behind schedule with 5 drops left. The app suggests a road you know floods. What do you do?",fil:"Late ka na sa schedule at may 5 drop pa. Itinuturo ng app ang daan na alam mong binabaha. Ano ang gagawin mo?",o:["Takes the road to save time","Takes it, tells no one","Reroutes, doesn't inform dispatch","Reroutes safely and updates dispatch on ETA"]},
  {cat:"behavioural",dim:"safety",text:"Tell me about a near-miss or accident you had. What happened and what did you change?",fil:"Kwentuhan mo ako tungkol sa muntikang aksidente o aksidenteng naranasan mo. Ano ang nangyari at ano ang binago mo pagkatapos?",o:["Denies any, or blames others","Can't say what they learned","Clear story, some learning","Owns it and describes a concrete habit change"]},
  {cat:"background",dim:"safety",red:true,text:"Any traffic violations or licence suspensions in the last 3 years?",fil:"May traffic violation ka ba, o na-suspend ba ang lisensya mo, sa nakaraang 3 taon?",o:["Major violation or suspension","Several minor violations","One minor violation","None"]},
@@ -830,7 +888,11 @@ async function dbLoad(){
 async function publicLoad(){const {data}=await SB.from("app_config").select("data").eq("key","settings").maybeSingle();S.settings=cfgVal(data&&data.data);await loadSlots()}
 let PUB_TAKEN={};
 async function loadSlots(){if(!SB)return;const {data}=await SB.rpc("slot_counts");PUB_TAKEN={};(data||[]).forEach(r=>PUB_TAKEN[r.campaign+"|"+r.slot]=r.n)}
-async function loadTicket(id){if(S.applicants[id]&&S.uid)return;const {data}=await SB.rpc("get_ticket",{p_id:id});if(data)S.applicants[id]=data}
+async function loadTicket(id){if(S.applicants[id]&&S.uid)return;const [{data},tc]=await Promise.all([SB.rpc("get_ticket",{p_id:id}),SB.rpc("training_counts")]);if(data)S.applicants[id]=data;
+  TR_TAKEN={};((tc&&tc.data)||[]).forEach(r=>TR_TAKEN[r.day]=(TR_TAKEN[r.day]||0)+r.n)}
+let TR_TAKEN={};
+async function trRefresh(id){if(S.uid){/* staff: realtime keeps data fresh */}const [{data},tc]=await Promise.all([SB.rpc("get_ticket",{p_id:id}),SB.rpc("training_counts")]);
+  if(data)S.applicants[id]=S.uid?Object.assign({},S.applicants[id],{training:data.training,released:data.released}):data;TR_TAKEN={};((tc&&tc.data)||[]).forEach(r=>TR_TAKEN[r.day]=(TR_TAKEN[r.day]||0)+r.n)}
 function localLoad(){}
 let _syncT=null;function localSave(){if(!SB||!S.uid)return;clearTimeout(_syncT);_syncT=setTimeout(syncDirty,300)}
 async function syncDirty(){
@@ -841,15 +903,15 @@ async function saveApp(id,data){const j=canon(data);_lastApp[id]=j;remember(id,j
   const prev=_bstat[id],now=data&&data.booking&&data.booking.status;_bstat[id]=now;
   const {error}=await SB.from("applicants").upsert({id,code:data.code||null,data,updated_at:new Date().toISOString()});
   if(error){delete _lastApp[id];return dbErr(error)}
-  if(prev&&prev!=="approved"&&now==="approved")notify(id)}
+  if(prev==="pending"&&(now==="approved"||now==="declined"))notify(id)}
 function notify(id){if(SB)SB.functions.invoke("notify",{body:{id}}).catch(e=>console.warn("notify",e))}
 async function submitPublic(a){
   const {data,error}=await SB.rpc("submit_application",{p:a});
-  if(error)throw new Error("We couldn't send your request. Check your internet and try again.");
-  if(data&&data.error==="full")throw new Error("That time was just taken. Pick another.");
-  if(data&&data.error==="dup")throw new Error(`You already have an interview request for ${fmtDT(data.slot)}. <a href="#ticket/${data.id}">View its status</a>.`);
-  if(data&&data.error)throw new Error("This campaign is not taking bookings right now.");
-  if(a.booking&&a.booking.status==="approved")notify(a.id)}
+  if(error)throw new Error("Hindi namin naipadala ang request mo. I-check ang internet mo at subukan ulit.");
+  if(data&&data.error==="full")throw new Error("Kaka-book lang ng iba sa oras na 'yan. Pumili ng iba.");
+  if(data&&data.error==="dup")throw new Error(`May interview request ka na para sa ${fmtDT(data.slot)}. <a href="#ticket/${data.id}">Tingnan ang status</a>.`);
+  if(data&&data.error)throw new Error("Hindi tumatanggap ng booking ang campaign na 'to sa ngayon.");
+}
 function isTyping(){const el=document.activeElement;return !!(el&&el.closest&&el.closest("#main")&&(el.tagName==="TEXTAREA"||el.tagName==="SELECT"||(el.tagName==="INPUT"&&!/checkbox|radio|button|file/.test(el.type))))}
 function softRender(){if(isTyping()){_rp=true;return}render()}
 document.addEventListener("focusout",()=>{if(_rp)setTimeout(()=>{if(_rp&&!isTyping()){_rp=false;render()}},60)});
@@ -884,7 +946,7 @@ function setDoc(path,data){const [c,id]=path.split("/");
 async function delDoc(path){const id=path.split("/")[1],a=S.applicants[id];delete S.applicants[id];delete _lastApp[id];render();
   const {error}=await SB.from("applicants").delete().eq("id",id);if(error)return dbErr(error);
   const pids=Object.values((a&&a.docs)||{}).flatMap(d=>(d&&d.photos)||[]);if(pids.length)SB.storage.from("docs").remove(pids.map(p=>p+".jpg")).catch(()=>{})}
-const settings=()=>Object.assign({},DEFAULT_SETTINGS,S.settings||{});
+const settings=()=>Object.assign({},DEFAULT_SETTINGS,S.settings||{},{ojtDays:1,ojtMinPass:1});
 const questions=()=>(S.bank&&S.bank.questions||[]).filter(q=>!q.archived);
 const account=()=>S.accounts.find(u=>u.id===S.uid);
 function me(){return account()?.name||"You"}
@@ -947,11 +1009,11 @@ function scoreInterview(a){
   return{pct,answered:n,total:qs.length,dims:dimOut,red,overall};
 }
 function scoreDrive(a){
-  const it=a.drive?.items||{},s=settings();let pass=0,done=0;const critFail=[];
-  DRIVE_ITEMS.forEach(i=>{if(it[i.id]){done++;if(it[i.id]==="pass")pass++;else if(i.crit)critFail.push(i)}});
-  const pct=done?Math.round(pass/DRIVE_ITEMS.length*100):null;
-  const result=done<DRIVE_ITEMS.length?null:(critFail.length||pct<s.drivePass)?"fail":"pass";
-  return{pct,done,critFail,result};
+  const it=a.drive?.items||{},s=settings(),L=driveItems();let pts=0,tot=0,done=0;const critFail=[];
+  L.forEach(i=>{const w=Math.max(1,+i.weight||1);tot+=w;if(it[i.id]){done++;if(it[i.id]==="pass")pts+=w;else if(i.crit)critFail.push(i)}});
+  const pct=done&&tot?Math.round(pts/tot*100):null;
+  const result=done<L.length?null:(critFail.length||pct<s.drivePass)?"fail":"pass";
+  return{pct,done,critFail,result,pts,tot};
 }
 function decide(a){
   const s=settings(),c=[];const push=(label,st,why)=>c.push({label,st,why});
@@ -968,20 +1030,22 @@ function decide(a){
 function ojtVerdict(a){const s=settings(),days=(a.ojt?.days||[]).slice(0,s.ojtDays);
   const pass=days.filter(d=>d&&d.status==="pass").length,fail=days.filter(d=>d&&d.status==="fail").length;
   if(s.ojtDays-fail<s.ojtMinPass)return"fail";if(pass>=s.ojtMinPass)return"pass";return"pending"}
-function stage(a){
+function stageRaw(a){
   if(a.booking?.status==="pending")return"requested";if(a.booking?.status==="declined")return"booking_declined";
   if(a.calendlyCanceled&&!a.checkin?.status)return"canceled";
   if(a.checkin?.status==="noshow")return"noshow";if(!a.checkin?.status)return"booked";
   const dv=docsVerdict(a);if(dv==="fail")return"docs_fail";if(dv!=="pass")return"checkin";
-  if(!a.orientation?.attended)return"orientation";if(!a.interview?.done)return"interview";if(!a.drive?.result)return"drive";
-  if(decide(a).result==="not_hired")return"not_hired";
+  if(!a.orientation?.attended)return"orientation";if(!a.interview?.done)return"interview";if(ivFail(a))return"iv_fail";
+  if(!a.drive?.result)return"drive";if(a.drive.result!=="pass")return"drive_fail";
+  if(!a.released?.pass)return"pass_inform";
+  const t=a.training||{};if(t.response==="declined")return"training_declined";if(t.response!=="accepted")return"training_invite";if(!t.slot)return"training_book";
   const o=ojtVerdict(a);if(o==="fail")return"ojt_fail";if(o!=="pass")return"ojt";
-  const os=a.offer?.status;if(!os||os==="draft")return"offer";return"offer_"+os;
+  return a.released?.accredited?"accredited":"accr_inform";
 }
 function reached(a){const st=stage(a),r={booked:1};
   if(a.checkin?.status==="show")r.showed=1;if(docsVerdict(a)==="pass")r.docs=1;if(a.orientation?.attended)r.oriented=1;
-  if(a.interview?.done)r.interviewed=1;if(a.drive?.result)r.drove=1;if(decide(a).result==="hired")r.hired=1;
-  if(ojtVerdict(a)==="pass")r.ojt=1;if(st==="offer_accepted")r.accepted=1;return r}
+  if(a.interview?.done&&!ivFail(a))r.interviewed=1;if(r.interviewed&&a.drive?.result==="pass")r.drove=1;if(decide(a).result==="hired")r.hired=1;
+  if(r.hired&&a.training?.response==="accepted")r.accepted=1;if(r.accepted&&ojtVerdict(a)==="pass")r.ojt=1;return r}
 const stageTag=a=>{const[l,k]=STAGES[stage(a)];return tag(l,k)};
 
 /* ============ UI state ============ */
@@ -995,16 +1059,16 @@ const QUEUES=[
  {role:"orientation",view:"orientation",label:"Orientation",short:"Orientation",stages:["orientation"],sec:"orientation",after:"Documents cleared"},
  {role:"interviewer",view:"interview",label:"Interviews",short:"Interviews",stages:["interview"],sec:"interview",after:"Finished orientation"},
  {role:"tester",view:"drive",label:"Driving test",short:"Driving test",stages:["drive"],sec:"drive",after:"Interview submitted"},
- {role:"trainer",view:"ojt",label:"On-the-job training",short:"OJT",stages:["ojt"],sec:"ojt",after:"Hired"},
- {role:"hr",view:"offers",label:"Job offers",short:"Offers",stages:["offer","offer_sent"],sec:"offer",after:"Passed OJT"}];
-const readyList=q=>list().filter(a=>q.stages.includes(stage(a))).sort((a,b)=>(a.slot||"").localeCompare(b.slot||""));
+ {role:"trainer",view:"ojt",label:"1-day training",short:"Training",stages:["ojt"],sec:"ojt",after:"Booked a training date"},
+ {role:"verifier",view:"inform",label:"Results to give",short:"Results",stages:INFORM_STAGES,sec:"training",after:"A result is ready"}];
+const readyList=q=>list().filter(a=>q.stages.includes(stage(a))).sort((a,b)=>q.view==="ojt"?(a.training?.slot||"").localeCompare(b.training?.slot||""):(a.slot||"").localeCompare(b.slot||""));
 const readySince=a=>(a.log&&a.log[0]&&a.log[0].t)||a.createdAt;
 /* ============ nav ============ */
 function queueCount(stages){return list().filter(a=>stages.includes(stage(a))).length}
 function myQueues(){return QUEUES.filter(q=>can(q.role))}
 function moreItems(){const m=[];if(can("marketing"))m.push(["import","Import bookings"]);
   if(can("marketing")||can("verifier"))m.push(["reminders","Interview reminders",remindList().filter(a=>!a.reminder).length]);
-  if(can("interviewer")||can("marketing"))m.push(["bank","Question bank"]);if(S.isAdmin)m.push(["team","Accounts",S.accounts.filter(a=>a.pending).length],["settings","Rules & data"]);return m}
+  if(can("interviewer")||can("marketing"))m.push(["bank","Question bank"]);if(can("tester"))m.push(["drivebank","Driving test items"]);if(can("trainer")||can("marketing")||can("verifier"))m.push(["trcal","Training calendar"]);if(S.isAdmin)m.push(["team","Accounts",S.accounts.filter(a=>a.pending).length],["settings","Rules & data"]);return m}
 function renderNav(){
   const cur=UI.view==="profile"?(UI.back||"applicants"):UI.view==="results"?"applicants":UI.view;
   const btn=(v,l,n,isQ)=>`<button class="navbtn" data-go="${v}" aria-current="${cur===v}"><span>${l}</span>${n==null?"":isQ?(n?`<span class="rdy" aria-label="${n} ready">${n}</span>`:""):`<span class="n">${n}</span>`}</button>`;
@@ -1057,11 +1121,15 @@ const TASK={docs:"Mark attendance, then open each document, fill in the details 
 function campaignFilter(){const cs=[...new Set([...settings().campaigns,...Object.values(S.applicants).map(a=>a.campaign).filter(Boolean)])];
   return `<label class="f" style="min-width:200px">Campaign<select data-act="campaign"><option value="">All campaigns</option>${cs.map(c=>`<option ${UI.campaign===c?"selected":""}>${esc(c)}</option>`).join("")}</select></label>`}
 
+function stationList(L){const k=UI.station;if(!k)return `<p class="small muted" style="margin:10px 0 0;text-align:center">Tap a step to see who reached it.</p>`;
+  const lbl=(STATIONS.find(x=>x[0]===k)||[])[1],who=L.filter(a=>reached(a)[k]);
+  return `<div style="margin-top:14px"><div class="row" style="justify-content:space-between"><b>${esc(lbl)} · ${who.length}</b><button class="btn sm" data-act="station" data-v="${k}">Close</button></div>
+   ${who.length?`<ul class="checks" style="margin-top:8px">${who.map(a=>`<li><span><a href="#" data-open="${a.id}">${esc(a.name)}</a></span>${stageTag(a)}</li>`).join("")}</ul>`:`<p class="muted small">No one yet.</p>`}</div>`}
 function vPipeline(){
   const L=list(),n=L.length,counts={};STATIONS.forEach(([k])=>counts[k]=0);
   L.forEach(a=>{const r=reached(a);Object.keys(r).forEach(k=>counts[k]++)});
   const route=`<div class="route"><ol>${STATIONS.map(([k,l],i)=>{const c=counts[k],prev=i?counts[STATIONS[i-1][0]]:c;
-    return `<li class="${c?"on":""}"><div class="cnt">${c}</div><div class="dot"></div><div class="lbl">${l}</div><div class="pct">${i&&prev?Math.round(c/prev*100)+"% of previous":i?"—":"applicants"}</div></li>`}).join("")}</ol></div>`;
+    return `<li class="${c?"on":""}${UI.station===k?" sel":""}" data-act="station" data-v="${k}" style="cursor:pointer" title="Show who reached this step"><div class="cnt">${c}</div><div class="dot"></div><div class="lbl">${l}</div><div class="pct">${i&&prev?Math.round(c/prev*100)+"% of previous":i?"—":"applicants"}</div></li>`}).join("")}</ol></div>`;
   const pulses=L.map(a=>a.orientation?.pulse).filter(Boolean);
   const avgPulse=pulses.length?(pulses.reduce((x,y)=>x+y,0)/pulses.length).toFixed(1):"—";
   const risk={Low:0,Medium:0,High:0};L.forEach(a=>{if(a.interview?.done){const r=scoreInterview(a).overall;if(r)risk[r]++}});
@@ -1072,11 +1140,11 @@ function vPipeline(){
   ${vNext()}
   ${vReady()}
   <div class="sechead" style="margin-top:28px"><h2>Pipeline at a glance</h2><p>How many applicants reached each step.</p></div>
-  <div class="panel">${n?route:`<div class="empty">No applicants yet. ${can("marketing")?`<button class="btn primary" data-go="import">Import a Calendly export</button>`:"Marketing imports Calendly bookings to start the pipeline."}</div>`}</div>
+  <div class="panel">${n?route+stationList(L):`<div class="empty">No applicants yet. ${can("marketing")?`<button class="btn primary" data-go="import">Import a Calendly export</button>`:"Marketing imports Calendly bookings to start the pipeline."}</div>`}</div>
   <div class="kpis">
    <div class="kpi"><b>${n?Math.round(counts.showed/n*100):0}%</b><span>Show-up rate</span></div>
    <div class="kpi"><b>${avgPulse}<small style="font-size:14px"> /5</small></b><span>Post-orientation "I want to join" pulse</span></div>
-   <div class="kpi"><b>${counts.interviewed?Math.round(counts.hired/counts.interviewed*100):0}%</b><span>Hire rate after interview</span></div>
+   <div class="kpi"><b>${counts.interviewed?Math.round(counts.hired/counts.interviewed*100):0}%</b><span>Pass rate after interview</span></div>
    <div class="kpi"><b>${risk.Low} · ${risk.Medium} · ${risk.High}</b><span>Low · Medium · High risk</span></div>
   </div>
   <details class="more"><summary>Stage breakdown and upcoming interviews</summary><div class="grid2">
@@ -1108,8 +1176,8 @@ function vResults(){
   const cnt=k=>all.filter(a=>decide(a).result===k).length;
   const pill=(k,l)=>`<button class="btn sm" data-act="resf" data-v="${k}" aria-pressed="${f===k}" style="${f===k?"border-color:var(--ink)":""}">${l}</button>`;
   return `<div class="seg noprint">${[["applicants","All applicants"],["results","Results"]].map(([v,l])=>`<button data-go="${v}" aria-current="${UI.view===v}">${l}</button>`).join("")}</div><div class="head"><div><h1>Results</h1><p>Tabulated automatically from documents, interview, risk and driving test.</p></div>${campaignFilter()}</div>
-   <div class="row" style="margin-bottom:12px">${pill("all",`All ${all.length}`)}${pill("hired",`Hired ${cnt("hired")}`)}${pill("not_hired",`Not hired ${cnt("not_hired")}`)}${pill("pending",`Pending ${cnt("pending")}`)}</div>
-   ${applicantTable(rows,[COL.name,COL.score,COL.drive,["Decision",a=>{const d=decide(a).result;return d==="hired"?tag("Hired","go"):d==="not_hired"?tag("Not hired","stop"):tag("Pending","wait")}],
+   <div class="row" style="margin-bottom:12px">${pill("all",`All ${all.length}`)}${pill("hired",`Passed ${cnt("hired")}`)}${pill("not_hired",`Not passed ${cnt("not_hired")}`)}${pill("pending",`Pending ${cnt("pending")}`)}</div>
+   ${applicantTable(rows,[COL.name,COL.score,COL.drive,["Decision",a=>{const d=decide(a).result;return d==="hired"?tag("Passed","go"):d==="not_hired"?tag("Not passed","stop"):tag("Pending","wait")}],
      ["Reason",a=>{const d=decide(a);const f=d.checks.filter(c=>c.st==="fail").map(c=>c.label+(c.why?` (${c.why})`:""));const p=d.checks.filter(c=>c.st==="pending").map(c=>c.label);
        return `<span class="small">${esc(f.length?f.join("; "):p.length?"Waiting: "+p.join(", "):"All criteria met")}</span>`}]])}`;
 }
@@ -1135,9 +1203,9 @@ function vCheckin(){
 
 function vOrientation(){
   const rows=list().filter(a=>stage(a)==="orientation");
-  return `${flowStrip("orientation")}<div class="head"><div><h1>Company orientation</h1><p>Run the session, then mark attendance and record each applicant's pulse: “How much do you want to join Mober now?”</p></div>${campaignFilter()}</div>
+  return `${flowStrip("orientation")}<div class="head"><div><h1>Company orientation</h1><p>Run the session, then mark attendance and record each applicant's pulse: “How much do you want to join the team now?”</p></div>${campaignFilter()}</div>
   <div class="stack">
-  <div class="sect"><header><h3>Session goal</h3></header><div><p style="margin:0">By the end, each applicant should be thinking: <b>“I hope I get chosen to join Mober, because of their company culture.”</b></p>
+  <div class="sect"><header><h3>Session goal</h3></header><div><p style="margin:0">By the end, each applicant should be thinking: <b>“I hope I get chosen to join the team, because of the company culture.”</b></p>
    <p class="small muted" style="margin:6px 0 0">The pulse score below tracks whether the session lands. It feeds the pipeline dashboard.</p>
    <button class="btn sm" data-act="printsheet" data-k="orientation" style="margin-top:10px">Print attendance sheet</button></div></div>
   ${rows.length?`<div class="tablewrap"><table><thead><tr><th>Applicant</th><th>Pulse (1 = not keen, 5 = really want to join)</th><th>What stood out to them</th><th></th></tr></thead><tbody>${rows.map(a=>`<tr>
@@ -1201,10 +1269,92 @@ function vImport(){
    </div></div>`;
 }
 
+/* ---- driving test items editor (Admin + Driving instructor) ---- */
+function vDriveBank(){if(!can("tester"))return `<div class="panel empty">Only Admins and driving instructors can edit the driving test.</div>`;
+  const E=UI.editDrive||(UI.editDrive={items:clone(driveItems()),pass:settings().drivePass});const tot=E.items.reduce((x,i)=>x+Math.max(1,+i.weight||1),0);
+  return `<div class="head"><div><h1>Driving test items</h1><p>What the instructor scores in the vehicle. Weight = points for the item. A failed <b>critical</b> item fails the whole test.</p></div></div>
+  <div class="sect"><header><h3>${E.items.length} items · ${tot} points</h3></header><div class="stack">
+   ${E.items.map((i,k)=>`<div class="row" style="gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px">
+     <span class="muted small" style="width:22px">${k+1}</span>
+     <input class="db-in" data-k="${k}" data-f="t" value="${esc(i.t)}" placeholder="What to check" style="flex:1;min-width:240px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel)">
+     <label class="small">Weight <select class="db-in" data-k="${k}" data-f="weight">${[1,2,3,4,5].map(w=>`<option ${(+i.weight||1)===w?"selected":""}>${w}</option>`).join("")}</select></label>
+     <span class="small muted" style="width:44px">${tot?Math.round(Math.max(1,+i.weight||1)/tot*100):0}%</span>
+     <label class="row small"><input type="checkbox" class="db-in" data-k="${k}" data-f="crit" ${i.crit?"checked":""}> Critical</label>
+     <button class="btn sm" data-act="db-up" data-v="${k}" ${k?"":"disabled"} aria-label="Move up">↑</button>
+     <button class="btn sm danger" data-act="db-del" data-v="${k}">Remove</button></div>`).join("")||`<p class="muted">No items yet.</p>`}
+   <div class="row"><button class="btn" data-act="db-add">Add item</button></div>
+   <label class="f" style="max-width:220px">Pass mark (%)<input type="number" class="db-pass" min="0" max="100" value="${E.pass}"></label>
+   <p class="small muted" style="margin:0">Changes apply to new tests. Tests already submitted keep their result.</p>
+   <div class="row"><button class="btn primary" data-act="db-save">Save driving test</button><button class="btn" data-act="db-reset">Undo changes</button></div>
+  </div></div>`}
+document.addEventListener("input",e=>{const t=e.target;if(t.classList.contains("db-in")&&UI.editDrive){const i=UI.editDrive.items[+t.dataset.k];i[t.dataset.f]=t.type==="checkbox"?t.checked:t.dataset.f==="weight"?+t.value:t.value}
+  if(t.classList.contains("db-pass")&&UI.editDrive)UI.editDrive.pass=Math.min(100,Math.max(0,+t.value||0))});
+document.addEventListener("change",e=>{const t=e.target;if((t.classList.contains("db-in")&&t.dataset.f!=="t")){const i=UI.editDrive.items[+t.dataset.k];i[t.dataset.f]=t.type==="checkbox"?t.checked:+t.value;render()}});
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-act^='db-']");if(!b||!UI.editDrive)return;const A=b.dataset.act,k=+b.dataset.v,L=UI.editDrive.items;
+  if(A==="db-add"){L.push({id:"d"+uid(),t:"",weight:1,crit:false});render();const ins=document.querySelectorAll('.db-in[data-f="t"]');ins[ins.length-1]?.focus();return}
+  if(A==="db-del"){if(!confirm("Remove this item from the driving test?"))return;L.splice(k,1);return render()}
+  if(A==="db-up"&&k>0){[L[k-1],L[k]]=[L[k],L[k-1]];return render()}
+  if(A==="db-reset"){UI.editDrive=null;return render()}
+  if(A==="db-save"){const items=L.map(i=>({id:i.id,t:(i.t||"").trim(),weight:Math.min(5,Math.max(1,+i.weight||1)),crit:!!i.crit})).filter(i=>i.t);
+    if(!items.length)return toast("Add at least one item.");const ns=Object.assign({},S.settings||{},{driveItems:items,drivePass:UI.editDrive.pass});
+    S.settings=ns;UI.editDrive=null;render();await setDoc("admin/settings",ns);return toast("Driving test saved")}});
+/* ---- training calendar (Trainer + Admin edit; Marketing / Check-in view) ---- */
+function trBooked(ds){return Object.values(S.applicants).filter(a=>a.training?.slot===ds&&!a.released?.fail)}
+function vTrCal(){const ed=can("trainer"),t=trainOf(null),ov=t.overrides||{},tdy=today();
+  const base=UI.trMonth?new Date(UI.trMonth+"-01T00:00"):new Date();base.setDate(1);base.setHours(0,0,0,0);
+  const y=base.getFullYear(),m=base.getMonth(),fd=new Date(y,m,1).getDay(),n=new Date(y,m+1,0).getDate();
+  let cells=DOW.map(d=>`<div class="tc-wd">${d}</div>`).join("");for(let i=0;i<fd;i++)cells+="<div></div>";
+  for(let d=1;d<=n;d++){const ds=localDay(new Date(y,m,d)),seats=trSeats(t,ds),bk=trBooked(ds).length,o=ov[ds]||{},past=ds<tdy;
+    cells+=`<button class="tc-d${seats?" open":""}${o.closed?" closed":""}${past?" past":""}${UI.trDay===ds?" sel":""}${ds===tdy?" today":""}" data-act="tc-day" data-v="${ds}"><b>${d}</b><small>${o.closed?"Closed":seats?`${bk}/${seats}`:bk?`${bk} booked`:""}</small>${o.seats!=null&&!o.closed?'<i title="Seats changed for this day">•</i>':""}</button>`}
+  const fi=(id,l,v,type,x)=>`<label class="f">${l}<input id="tc-${id}" type="${type||"text"}" value="${esc(v??"")}" ${ed?"":"disabled"} ${x||""}></label>`;
+  const D=UI.trDay,dO=D?(ov[D]||{}):{},dB=D?trBooked(D):[];
+  const dayPanel=D?`<div class="sect" style="margin-top:16px"><header><h3>${new Date(D+"T00:00").toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</h3><div class="row">${dO.closed?tag("Closed","stop"):trSeats(t,D)?tag(`${dB.length}/${trSeats(t,D)} booked`,"go"):tag("No training","plain")}</div></header><div class="stack">
+     ${ed?`<div class="row" style="align-items:flex-end;gap:10px;flex-wrap:wrap"><label class="f" style="max-width:180px">Seats this day<input id="tc-dseats" type="number" min="0" max="200" value="${dO.seats??""}" placeholder="Default ${t.days.includes(new Date(D+"T00:00").getDay())?t.seats:0}"></label>
+       <button class="btn primary" data-act="tc-dsave">Save seats</button>${dO.closed?`<button class="btn" data-act="tc-dopen">Re-open day</button>`:`<button class="btn danger" data-act="tc-dclose">Close this day</button>`}${dO.seats!=null||dO.closed?`<button class="btn" data-act="tc-dreset">Use weekly default</button>`:""}</div>
+       <p class="small muted" style="margin:0">To open a day that isn't a regular training day, enter its seats.</p>`:""}
+     <div><div class="lbl">Booked trainees (${dB.length})</div>${dB.length?`<ul class="checks">${dB.map(a=>`<li><span><a href="#" data-open="${a.id}" data-sec="ojt">${esc(a.name)}</a> <span class="small muted">${esc(a.phone||"")}</span></span>${stageTag(a)}</li>`).join("")}</ul>`:`<p class="muted small" style="margin:4px 0 0">No one booked.</p>`}</div></div></div>`:"";
+  return `<div class="head"><div><h1>Training calendar</h1><p>Set when the 1-day paid training runs. Applicants who pass pick an open day with seats left on their phone.${ed?"":" View only."}</p></div></div>
+  <div class="tc-grid"><div class="stack">
+   <div class="sect"><header><h3>Month</h3><div class="row"><button class="btn sm" data-act="tc-month" data-v="-1">‹</button><b style="min-width:150px;text-align:center">${base.toLocaleDateString(undefined,{month:"long",year:"numeric"})}</b><button class="btn sm" data-act="tc-month" data-v="1">›</button></div></header>
+    <div class="tc-cal">${cells}</div><p class="small muted" style="margin:10px 0 0">Numbers show booked / seats. Tap a day to see trainees${ed?", close it or change its seats":""}.</p></div>${dayPanel}</div>
+   <div class="sect"><header><h3>Weekly default</h3></header><div class="stack">
+    <div><div class="lbl">Training days</div><div class="cp-days">${DOW.map((d,i)=>`<label class="cp-day"><input type="checkbox" data-twd="${i}" ${t.days.includes(i)?"checked":""} ${ed?"":"disabled"}><span>${d}</span></label>`).join("")}</div></div>
+    <div class="cp-3">${fi("start","Starts",t.start,"time")}${fi("end","Ends",t.end,"time")}${fi("seats","Trainees per day",t.seats,"number",'min="1" max="200"')}</div>
+    ${fi("window","Bookable days ahead",t.window,"number",'min="1" max="90"')}
+    ${fi("hub","Training hub",t.hubName,"text",'placeholder="e.g. 2C Hub"')}${fi("loc","Training address",t.location,"text",'placeholder="Full address"')}
+    ${ed?`<button class="btn primary" data-act="tc-save">Save weekly default</button>`:""}</div></div></div>`}
+async function saveTraining(t){const ns=Object.assign({},S.settings||{},{training:t});S.settings=ns;render();await setDoc("admin/settings",ns)}
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-act^='tc-']");if(!b||UI.view!=="trcal")return;e.preventDefault();const A=b.dataset.act,t=clone(trainOf(null));t.overrides=t.overrides||{};
+  if(A==="tc-day"){UI.trDay=UI.trDay===b.dataset.v?null:b.dataset.v;return render()}
+  if(A==="tc-month"){const d=UI.trMonth?new Date(UI.trMonth+"-01T00:00"):new Date();d.setDate(1);d.setMonth(d.getMonth()+ +b.dataset.v);UI.trMonth=localDay(d).slice(0,7);UI.trDay=null;return render()}
+  if(!can("trainer"))return;const D=UI.trDay,v=id=>(document.getElementById("tc-"+id)?.value||"").trim();
+  if(A==="tc-save"){t.days=[...document.querySelectorAll("[data-twd]")].filter(x=>x.checked).map(x=>+x.dataset.twd);t.start=v("start")||"08:00";t.end=v("end")||"17:00";t.seats=Math.max(1,+v("seats")||10);t.window=Math.max(1,+v("window")||14);t.hubName=v("hub");t.location=v("loc");
+    await saveTraining(t);return toast("Training schedule saved")}
+  if(!D)return;const o=Object.assign({},t.overrides[D]||{}),bk=trBooked(D).length;
+  if(A==="tc-dsave"){const n=v("dseats");if(n===""){delete o.seats}else{o.seats=Math.max(0,+n);if(o.seats<bk&&!confirm(`${bk} trainees are already booked on this day. They keep their booking. Continue?`))return}delete o.closed}
+  if(A==="tc-dclose"){if(bk&&!confirm(`${bk} trainee${bk>1?"s are":" is"} already booked on this day. They keep their booking — contact them to move. Close the day for new bookings?`))return;o.closed=true}
+  if(A==="tc-dopen")delete o.closed;
+  if(A==="tc-dreset"){delete t.overrides[D];await saveTraining(t);return toast("Day uses the weekly default")}
+  if(Object.keys(o).length)t.overrides[D]=o;else delete t.overrides[D];await saveTraining(t);toast("Day updated")});
 function vDrive(){return queueView("Driving test","Romar's queue. Score each item pass or fail; the result is calculated on submit.",["drive"],[COL.name,COL.slot,COL.score,["",a=>`<button class="btn sm primary" data-open="${a.id}" data-sec="drive">Start test</button>`]])}
 function vInterview(){return queueView("Interviews","Situational, behavioural and background questions from the question bank.",["interview"],[COL.name,COL.slot,["Pulse",a=>a.orientation?.pulse?a.orientation.pulse+"/5":"—"],["",a=>`<button class="btn sm primary" data-open="${a.id}" data-sec="interview">Open score sheet</button>`]],
   questions().length?"":`<div class="panel" style="margin-bottom:12px">The question bank is empty. <button class="btn sm" data-go="bank">Set up questions</button></div>`)}
-function vOjt(){const s=settings();return queueView("On-the-job training",`${s.ojtDays}-day OJT. Passing ${s.ojtMinPass} of ${s.ojtDays} days moves the driver to a job offer.`,["ojt"],[COL.name,["Progress",a=>{const d=(a.ojt?.days||[]).filter(x=>x&&x.status);return `${d.length}/${s.ojtDays} days logged`}],["",a=>`<button class="btn sm primary" data-open="${a.id}" data-sec="ojt">Log day</button>`]])}
+function failInfo(a){const st=stageRaw(a);return FAIL_STAGES[st]||null}
+function stage(a){const r=stageRaw(a);return FAIL_STAGES[r]&&a.released?.fail?"failed_told":r}
+function vInform(){const L=list(),todo=L.filter(a=>INFORM_STAGES.includes(stage(a))).sort((x,y)=>(x.updatedAt||"").localeCompare(y.updatedAt||""));
+  const waiting=L.filter(a=>["training_invite","training_book"].includes(stage(a)));
+  const why=a=>{const st=stage(a);if(st==="iv_fail"){const iv=scoreInterview(a);return `Score ${iv.pct}% (needs ${settings().interviewPass}%) · ${iv.overall} risk${iv.red.length?` · ${iv.red.length} red flag${iv.red.length>1?"s":""}`:""}`}
+    if(st==="drive_fail")return `Driving test ${a.drive?.pct??""}%`;if(st==="docs_fail")return DOCS.filter(([k])=>a.docs?.[k]?.status==="rejected").map(([,l])=>l+" rejected").join(", ")||"Document rejected";
+    if(st==="ojt_fail")return "Did not pass the 1-day training";if(st==="pass_inform")return "Passed all screening. Invite to 1-day paid training.";if(st==="accr_inform")return `Passed training${a.training?.slot?" on "+fmtD(a.training.slot):""}`;return ""};
+  const btn=a=>{const st=stage(a);return FAIL_STAGES[st]?`<button class="btn sm danger" data-act="rel-fail" data-id="${a.id}">Failed</button>`:st==="pass_inform"?`<button class="btn sm primary" data-act="rel-pass" data-id="${a.id}">Passed</button>`:`<button class="btn sm primary" data-act="rel-accr" data-id="${a.id}">Accredited</button>`};
+  const label=a=>{const f=failInfo(a);return f?tag("Not passed: "+f[1],"stop"):stage(a)==="pass_inform"?tag("Passed screening","go"):tag("Passed training","go")};
+  return `${flowStrip("Results to give")}<div class="head"><div><h1>Results to give</h1><p>Tell the applicant in person, then tap the button. Only then does the result appear on the applicant's phone.</p></div>${campaignFilter()}</div>
+  ${todo.length?`<div class="tablewrap"><table><thead><tr><th>Applicant</th><th>Result</th><th>Details</th><th></th></tr></thead><tbody>${todo.map(a=>`<tr><td><a href="#" data-open="${a.id}"><b>${esc(a.name)}</b></a><div class="small muted">${esc(a.phone||a.email||"")}</div></td><td>${label(a)}</td><td class="small">${esc(why(a))}</td><td>${btn(a)}</td></tr>`).join("")}</tbody></table></div>`:`<div class="tablewrap"><div class="empty">No results waiting to be given.</div></div>`}
+  <div class="sechead" style="margin-top:28px"><h2>Waiting on the applicant</h2><p>Result already given. These applicants still need to accept the training or pick a date on their phone.</p></div>
+  ${waiting.length?`<div class="tablewrap"><table><thead><tr><th>Applicant</th><th>Status</th><th>Result given</th></tr></thead><tbody>${waiting.map(a=>`<tr><td><a href="#" data-open="${a.id}"><b>${esc(a.name)}</b></a><div class="small muted">${esc(a.phone||a.email||"")}</div></td><td>${stageTag(a)}</td><td class="small">${fmtDT(a.released?.pass?.at)}</td></tr>`).join("")}</tbody></table></div>`:`<div class="tablewrap"><div class="empty">No one waiting.</div></div>`}`}
+function vOjt(){const rows=list().filter(a=>stage(a)==="ojt").sort((x,y)=>(x.training?.slot||"").localeCompare(y.training?.slot||""));
+  return `${flowStrip("1-day training")}<div class="head"><div><h1>1-day training</h1><p>Applicants who passed screening and booked a training day. Mark Pass or Fail after the training.</p></div>${campaignFilter()}</div>
+  ${applicantTable(rows,[COL.name,["Training date",a=>a.training?.slot?`<b>${fmtD(a.training.slot)}</b>${a.training.slot===today()?" "+tag("Today","go"):""}`:"—"],["",a=>`<button class="btn sm primary" data-open="${a.id}" data-sec="ojt">Record result</button>`]])}`}
 function vOffers(){return queueView("Job offers","Drivers who passed OJT. Prepare, send, and record the answer.",["offer","offer_sent","offer_accepted","offer_declined"],[COL.name,COL.stage,["Start date",a=>fmtD(a.offer?.start)],["",a=>`<button class="btn sm primary" data-open="${a.id}" data-sec="offer">Open offer</button>`]])}
 
 function vTeam(){
@@ -1255,7 +1405,7 @@ function vAuth(){
   const m=UI.auth;if(!m||m==="landing")return vLanding();
   const card=inner=>`<div class="auth"><div class="authcard">${m==="login"||m==="signup"?`<button class="lp-back" data-act="dx-landing">← Back</button>`:""}<div class="brandline">DrayberFlex</div>${inner}</div></div>`;
   if(m==="signup")return card(UI.signedUp?`<h1>Request sent</h1><p class="muted">An admin will review your sign-up for <b>${esc(UI.signedUp)}</b>. You can sign in once it's approved.</p><button class="btn primary" data-act="dx-signin" style="width:100%;margin-top:8px">Go to sign in</button>`:
-    `<h1>Sign up</h1><p class="muted">For Mober team members. An admin approves each new account.</p><div class="stack">
+    `<h1>Sign up</h1><p class="muted">For team members. An admin approves each new account.</p><div class="stack">
     <label class="f">Full name<input id="sname" autocomplete="name"></label><label class="f">Work email<input id="semail" type="email" autocapitalize="none" autocomplete="email" placeholder="name@mober.ph"></label>
     <label class="f">Password (min 8 characters)<input id="spw" type="password" autocomplete="new-password"></label><label class="f">Confirm password<input id="spw2" type="password" autocomplete="new-password"></label>
     <p class="err" id="serr"></p><button class="btn primary" data-act="dx-dosignup" style="width:100%">Request access</button>
@@ -1268,7 +1418,7 @@ function vAuth(){
     ${UI.forced===false?`<label class="f">Current password<input id="cpw0" type="password" autocomplete="current-password"></label>`:""}
     <label class="f">New password (min 8 characters)<input id="cpw" type="password" autocomplete="new-password"></label><label class="f">Confirm new password<input id="cpw2" type="password" autocomplete="new-password"></label>
     <p class="err" id="cerr"></p><div class="row"><button class="btn primary" data-act="changepw">Save password</button>${UI.forced===false?`<button class="btn" data-act="cancelpw">Cancel</button>`:`<button class="btn" data-act="logout">Sign out</button>`}</div></div>`);
-  const dflt=S.accounts.find(a=>a.username===DEFAULT_ADMIN.username&&a.defaultPw&&a.active);
+  const dflt=null;
   return card(`<h1>Sign in</h1>${dflt?`<div class="panel" style="margin:12px 0 0;padding:12px 14px;border-left:6px solid var(--signal)"><b>First sign-in</b><div class="small">Username <b>${DEFAULT_ADMIN.username}</b> · Password <b>${DEFAULT_ADMIN.password}</b><br>You'll be asked to set your own password straight away.</div></div>`:""}<div class="stack" style="margin-top:12px"><label class="f">Email<input id="luser" type="email" autocapitalize="none" autocomplete="username"></label>
     <label class="f">Password<input id="lpw" type="password" autocomplete="current-password"></label><p class="err" id="lerr"></p>
     <button class="btn primary" data-act="login" style="width:100%">Sign in</button><p class="small muted" style="margin:0">Forgot your password? Ask an Admin to set a temporary one.</p><p class="small muted" style="margin:0">New to the team? <a href="#" data-act="dx-signup">Sign up</a></p></div>`);
@@ -1320,7 +1470,7 @@ function remindList(day){day=day||tomorrowDay();return list().filter(a=>stage(a)
 function dayApps(day){return list().filter(a=>a.slot&&localDay(a.slot)===day).sort((a,b)=>(a.slot||"").localeCompare(b.slot||""))}
 function chipState(a){const st=stage(a);return st==="canceled"?"cx":st==="noshow"?"ns":st==="booked"?(a.reminder?"sent":"todo"):"done"}
 function reminderMsg(a){const s=settings(),d=new Date(a.slot);
-  return s.reminderText.replace(/\{first\}/g,(a.name||"").split(" ")[0]).replace(/\{name\}/g,a.name||"").replace(/\{address\}/g,a.location||s.hubAddress)
+  return s.reminderText.replace(/\{code\}/g,a.code||"").replace(/\{first\}/g,(a.name||"").split(" ")[0]).replace(/\{name\}/g,a.name||"").replace(/\{address\}/g,a.location||s.hubAddress)
    .replace(/\{date\}/g,isNaN(d)?"":d.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})).replace(/\{time\}/g,isNaN(d)?"":d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}))}
 function vReminders(){
   const sel=remindTarget(),mode=UI.calMode||"week",tdy=today();
@@ -1371,7 +1521,7 @@ function vReports(){
   const hiredT=L.filter(a=>decide(a).result==="hired"&&a.drive?.at&&a.slot).map(a=>days(a.slot,a.drive.at));
   const avg=x=>x.length?(x.reduce((p,q)=>p+q,0)/x.length).toFixed(1):"—";
   const done=L.filter(a=>a.interview?.done),dimAvg=Object.keys(DIMS).map(k=>{const v=done.map(a=>scoreInterview(a).dims[k]?.pct).filter(x=>x!=null);return[k,v.length?Math.round(v.reduce((p,q)=>p+q,0)/v.length):null]}).filter(x=>x[1]!=null);
-  const tested=L.filter(a=>a.drive?.result),itemFail=DRIVE_ITEMS.map(i=>[i,tested.filter(a=>a.drive.items?.[i.id]==="fail").length]).sort((a,b)=>b[1]-a[1]);
+  const tested=L.filter(a=>a.drive?.result),itemFail=driveItems().map(i=>[i,tested.filter(a=>a.drive.items?.[i.id]==="fail").length]).sort((a,b)=>b[1]-a[1]);
   const pH=L.filter(a=>decide(a).result==="hired"&&a.orientation?.pulse).map(a=>a.orientation.pulse),pN=L.filter(a=>decide(a).result==="not_hired"&&a.orientation?.pulse).map(a=>a.orientation.pulse);
   const wk=Date.now()-7*864e5,act={};L.forEach(a=>(a.log||[]).forEach(l=>{if(new Date(l.t)>wk&&l.by&&l.by!=="sample")act[l.by]=(act[l.by]||0)+1}));
   return `<div class="head"><div><h1>Reports</h1><p>${L.length} applicants${UI.campaign?" in "+esc(UI.campaign):""}.</p></div>${campaignFilter()}</div>
@@ -1401,11 +1551,11 @@ function printSheet(kind,id){
     <p style="margin-top:12px">Notes</p><div class="line"></div><div class="line"></div><p style="margin-top:18px">Interviewer signature ______________________</p></div>`}
   if(kind==="drive"){h=`<div class="sheet">${head("Driving test sheet")}${meta([["Applicant",a.name],["Date",""],["Vehicle / plate",""],["Tester",""]])}
     <p>Pass mark ${s.drivePass}%. A fail on any critical item fails the test.</p>
-    <table><thead><tr><th>Item</th><th style="width:70px">Pass</th><th style="width:70px">Fail</th></tr></thead><tbody>${DRIVE_ITEMS.map(i=>`<tr><td>${esc(i.t)}${i.crit?" <b>(critical)</b>":""}</td><td><span class="box"></span></td><td><span class="box"></span></td></tr>`).join("")}</tbody></table>
+    <table><thead><tr><th>Item</th><th style="width:70px">Pass</th><th style="width:70px">Fail</th></tr></thead><tbody>${driveItems().map(i=>`<tr><td>${esc(i.t)}${i.weight>1?` <span class="muted">(×${i.weight})</span>`:""}${i.crit?" <b>(critical)</b>":""}</td><td><span class="box"></span></td><td><span class="box"></span></td></tr>`).join("")}</tbody></table>
     <p style="margin-top:12px">Result: <span class="box"></span> Pass &nbsp; <span class="box"></span> Fail</p><p>Notes</p><div class="line"></div><div class="line"></div><p style="margin-top:18px">Tester signature ______________________</p></div>`}
   if(kind==="orientation"){const L=list().filter(x=>stage(x)==="orientation");const rows=[...L.map(x=>x.name),...Array(Math.max(4,12-L.length)).fill("")];
     h=`<div class="sheet">${head("Orientation attendance")}${meta([["Date",""],["Facilitator",""]])}
-    <p>Pulse: “How much do you want to join Mober now?” 1 = not keen, 5 = really want to join.</p>
+    <p>Pulse: “How much do you want to join the team now?” 1 = not keen, 5 = really want to join.</p>
     <table><thead><tr><th>Applicant</th><th style="width:150px">Pulse (circle)</th><th>What stood out</th><th style="width:120px">Signature</th></tr></thead><tbody>${rows.map(n=>`<tr><td style="height:30px">${esc(n)}</td><td>1 &nbsp; 2 &nbsp; 3 &nbsp; 4 &nbsp; 5</td><td></td><td></td></tr>`).join("")}</tbody></table></div>`}
   $("#print").innerHTML=h;document.body.classList.add("printing");
   const done=()=>{document.body.classList.remove("printing");window.removeEventListener("afterprint",done)};window.addEventListener("afterprint",done);window.print();setTimeout(done,1500);
@@ -1413,8 +1563,8 @@ function printSheet(kind,id){
 
 /* ============ profile ============ */
 function pf(act,id,val,extra=""){return `<div class="pf" role="group">${["pass","fail"].map(v=>`<button data-act="${act}" data-id="${id}" data-v="${v}" ${extra} aria-pressed="${val===v}" class="${v==="pass"?"p":"x"}">${v==="pass"?"Pass":"Fail"}</button>`).join("")}</div>`}
-const STEPS=[["docs","Check-in & documents","verifier"],["orientation","Orientation","orientation"],["interview","Interview","interviewer"],["drive","Driving test","tester"],["decision","Result",null],["ojt","OJT","trainer"],["offer","Job offer","hr"],["activity","Activity",null]];
-const STAGE_STEP={booked:"docs",checkin:"docs",noshow:"docs",docs_fail:"docs",orientation:"orientation",interview:"interview",drive:"drive",not_hired:"decision",ojt:"ojt",ojt_fail:"ojt",offer:"offer",offer_sent:"offer",offer_accepted:"offer",offer_declined:"offer"};
+const STEPS=[["docs","Check-in & documents","verifier"],["orientation","Orientation","orientation"],["interview","Interview","interviewer"],["drive","Driving test","tester"],["decision","Result",null],["training","Training booking",null],["ojt","1-day training","trainer"],["activity","Activity",null]];
+const STAGE_STEP={iv_fail:"interview",drive_fail:"drive",pass_inform:"training",training_invite:"training",training_declined:"training",training_book:"training",accr_inform:"ojt",accredited:"ojt",booked:"docs",checkin:"docs",noshow:"docs",docs_fail:"docs",orientation:"orientation",interview:"interview",drive:"drive",not_hired:"decision",ojt:"ojt",ojt_fail:"ojt",offer:"offer",offer_sent:"offer",offer_accepted:"offer",offer_declined:"offer"};
 const DOCS=[["nbi","NBI clearance"],["medical","Medical certificate"],["license","Driver's licence"]];
 function stepInfo(a){
   const s=settings(),dv=docsVerdict(a),o=a.orientation||{},iv=scoreInterview(a),d=decide(a),ov=ojtVerdict(a),of=a.offer||{},I={};
@@ -1422,9 +1572,11 @@ function stepInfo(a){
   I.orientation=o.attended?{st:"done",sum:`Pulse ${o.pulse}/5`}:dv==="pass"?{st:"now",sum:"Waiting"}:{st:"locked"};
   const ivOk=iv.pct>=s.interviewPass&&!(s.highRiskBlocks&&iv.overall==="High")&&!(s.redFlagBlocks&&iv.red.length);
   I.interview=a.interview?.done?{st:ivOk?"done":"fail",sum:`${iv.pct}% · ${iv.overall} risk`}:o.attended?{st:"now",sum:`${iv.answered}/${iv.total} answered`}:{st:"locked"};
-  I.drive=a.drive?.result?{st:a.drive.result==="pass"?"done":"fail",sum:`${a.drive.result==="pass"?"Pass":"Fail"} · ${a.drive.pct}%`}:a.interview?.done?{st:"now",sum:`${scoreDrive(a).done}/${DRIVE_ITEMS.length} scored`}:{st:"locked"};
-  I.decision=d.result==="hired"?{st:"done",sum:"Hired"}:d.result==="not_hired"?{st:"fail",sum:"Not hired"}:{st:"locked",sum:"Pending"};
-  I.ojt=ov==="pass"?{st:"done",sum:"Passed"}:ov==="fail"?{st:"fail",sum:"Failed"}:d.result==="hired"?{st:"now",sum:`${(a.ojt?.days||[]).filter(x=>x&&x.status).length}/${s.ojtDays} days logged`}:{st:"locked"};
+  I.drive=a.drive?.result?{st:a.drive.result==="pass"?"done":"fail",sum:`${a.drive.result==="pass"?"Pass":"Fail"} · ${a.drive.pct}%`}:a.interview?.done?{st:"now",sum:`${scoreDrive(a).done}/${driveItems().length} scored`}:{st:"locked"};
+  I.decision=d.result==="hired"?{st:"done",sum:"Passed"}:d.result==="not_hired"?{st:"fail",sum:"Not passed"}:{st:"locked",sum:"Pending"};
+  const t=a.training||{};
+  I.training=t.slot?{st:"done",sum:fmtD(t.slot)}:t.response==="declined"?{st:"fail",sum:"Declined"}:a.released?.pass?{st:"now",sum:t.response==="accepted"?"Picking a date":"Waiting for reply"}:d.result==="hired"?{st:"now",sum:"Result to give"}:{st:"locked"};
+  I.ojt=ov==="pass"?{st:"done",sum:a.released?.accredited?"Accredited":"Passed"}:ov==="fail"?{st:"fail",sum:"Not passed"}:t.slot?{st:"now",sum:fmtD(t.slot)}:{st:"locked"};
   I.offer=of.status==="accepted"?{st:"done",sum:"Accepted"}:of.status==="declined"?{st:"fail",sum:"Declined"}:ov==="pass"?{st:"now",sum:of.status==="sent"?"Sent":"To prepare"}:{st:"locked"};
   I.activity={st:"info",sum:`${(a.log||[]).length} entries`};return I;
 }
@@ -1472,7 +1624,7 @@ function vProfile(){
   // ---- orientation ----
   const eO=can("orientation"),o=a.orientation||{},dv=docsVerdict(a);
   const oBody=dv!=="pass"?`<p class="muted" style="margin:0">Opens once all three documents are verified.</p>`:`<div class="stack">
-    <div><b>Pulse: how much does ${esc(first)} want to join Mober now?</b><div class="row" style="margin-top:8px"><div class="pf">${[1,2,3,4,5].map(v=>`<button data-act="pulse" data-id="${id}" data-v="${v}" aria-pressed="${o.pulse===v}" class="${v<=2?"x":"p"}" ${eO?"":"disabled"}>${v}</button>`).join("")}</div><span class="small muted">1 not keen · 5 really wants to join</span></div></div>
+    <div><b>Pulse: how much does ${esc(first)} want to join the team now?</b><div class="row" style="margin-top:8px"><div class="pf">${[1,2,3,4,5].map(v=>`<button data-act="pulse" data-id="${id}" data-v="${v}" aria-pressed="${o.pulse===v}" class="${v<=2?"x":"p"}" ${eO?"":"disabled"}>${v}</button>`).join("")}</div><span class="small muted">1 not keen · 5 really wants to join</span></div></div>
     <label class="f">What stood out to them<input data-act="ocomment" data-id="${id}" value="${esc(o.comment||"")}" ${eO?"":"disabled"} placeholder="In their words"></label>
     ${o.attended?`<p style="margin:0">${tag("Attended","go")} <span class="small muted">${fmtD(o.at)}</span> ${eO?`<button class="btn sm" data-act="unattend" data-id="${id}">Undo</button>`:""}</p>`
      :eO?`<div><button class="btn primary" data-act="attend" data-id="${id}" ${o.pulse?"":"disabled"}>Mark attended</button>${o.pulse?"":`<span class="small muted" style="margin-left:8px">Record the pulse first</span>`}</div>`:""}</div>`;
@@ -1519,25 +1671,25 @@ function vProfile(){
   // ---- driving test ----
   const eT=can("tester"),di2=a.drive?.items||{},dLocked=!!a.drive?.result;
   const drBody=!locked?`<p class="muted" style="margin:0">Opens after the interview is submitted.</p>`:`${eT&&!dLocked?`<div class="attend panel" style="margin-bottom:14px;padding:14px"><div><b>Scoring in the vehicle?</b><div class="small muted">Test mode shows one item at a time with large Pass / Fail buttons.</div></div><button class="btn primary" data-act="testmode" data-id="${id}">Start test mode</button></div>`:""}
-    <ul class="checks">${DRIVE_ITEMS.map(i=>`<li><span>${esc(i.t)} ${i.crit?tag("Critical","stop"):""}</span>${pf("drv",id,di2[i.id],`data-i="${i.id}" ${eT&&!dLocked?"":"disabled"}`)}</li>`).join("")}</ul>
+    <ul class="checks">${driveItems().map(i=>`<li><span>${esc(i.t)} ${(i.weight>1?tag("×"+i.weight+" points","plain")+" ":"")+(i.crit?tag("Critical","stop"):"")}</span>${pf("drv",id,di2[i.id],`data-i="${i.id}" ${eT&&!dLocked?"":"disabled"}`)}</li>`).join("")}</ul>
     <label class="f" style="margin-top:10px">Tester notes<textarea data-act="drnotes" data-id="${id}" ${eT&&!dLocked?"":"disabled"}>${esc(a.drive?.notes||"")}</textarea></label>
     <div class="row" style="margin-top:12px">${dr.done?`<span>${dr.pct}% · pass mark ${s.drivePass}%</span>`:""}${dr.critFail.length?tag("Critical item failed","stop"):""}
-     ${eT?(dLocked?`${tag(a.drive.result==="pass"?"Passed":"Failed",a.drive.result==="pass"?"go":"stop")}<button class="btn sm" data-act="drreopen" data-id="${id}">Reopen</button>`:`<button class="btn primary" data-act="drsubmit" data-id="${id}" ${dr.result?"":"disabled"}>Submit driving test (${dr.done}/${DRIVE_ITEMS.length})</button>`)
+     ${eT?(dLocked?`${tag(a.drive.result==="pass"?"Passed":"Failed",a.drive.result==="pass"?"go":"stop")}<button class="btn sm" data-act="drreopen" data-id="${id}">Reopen</button>`:`<button class="btn primary" data-act="drsubmit" data-id="${id}" ${dr.result?"":"disabled"}>Submit driving test (${dr.done}/${driveItems().length})</button>`)
        :dLocked?tag(a.drive.result==="pass"?"Passed":"Failed",a.drive.result==="pass"?"go":"stop"):""}</div>`;
 
   // ---- decision ----
   const vd=d.result;
-  const decBody=`<div class="verdict ${vd==="hired"?"v-go":vd==="not_hired"?"v-stop":"v-wait"}"><b>${vd==="hired"?"Hired":vd==="not_hired"?"Not hired":"Pending"}</b>
-    <span>${vd==="hired"?`Moves to ${s.ojtDays}-day on-the-job training.`:vd==="not_hired"?"Did not meet the hiring rules below.":"The result appears when every step is complete."}</span></div>
+  const decBody=`<div class="verdict ${vd==="hired"?"v-go":vd==="not_hired"?"v-stop":"v-wait"}"><b>${vd==="hired"?"Passed":vd==="not_hired"?"Not passed":"Pending"}</b>
+    <span>${vd==="hired"?(a.released?.pass?"Result given. Invited to the 1-day paid training.":"Check-in gives the result, then the applicant is invited to the 1-day paid training."):vd==="not_hired"?(a.released?.fail?"Result given to the applicant.":"Check-in will tell the applicant."):"The result appears when every step is complete."}</span></div>
     <ul class="checks" style="margin-top:12px">${d.checks.map(c=>`<li><span>${c.label}</span><span class="small muted">${esc(c.why||"")}</span>${tag(c.st==="pass"?"Met":c.st==="fail"?"Not met":"Waiting",c.st==="pass"?"go":c.st==="fail"?"stop":"plain")}</li>`).join("")}</ul>`;
 
   // ---- OJT ----
   const eJ=can("trainer"),days=a.ojt?.days||[],ov=ojtVerdict(a);
-  const ojtBody=vd!=="hired"?`<p class="muted" style="margin:0">Opens when the applicant is hired.</p>`:`<ul class="checks">${Array.from({length:s.ojtDays},(_,i)=>{const dd=days[i]||{};return `<li style="flex-wrap:wrap"><span style="flex:0 0 56px"><b>Day ${i+1}</b></span>
+  const ojtBody=!a.training?.slot?`<p class="muted" style="margin:0">Opens when the applicant books a training date.</p>`:`<ul class="checks">${Array.from({length:s.ojtDays},(_,i)=>{const dd=days[i]||{};return `<li style="flex-wrap:wrap"><span style="flex:0 0 56px"><b>Day ${i+1}</b></span>
      <input type="date" aria-label="Day ${i+1} date" data-act="ojtf" data-id="${id}" data-i="${i}" data-f="date" value="${esc(dd.date||"")}" ${eJ?"":"disabled"} style="padding:6px;border:1px solid var(--line);border-radius:6px;background:var(--panel)">
      <input aria-label="Day ${i+1} notes" data-act="ojtf" data-id="${id}" data-i="${i}" data-f="notes" value="${esc(dd.notes||"")}" placeholder="Trainer notes" ${eJ?"":"disabled"} style="flex:1;min-width:160px;padding:6px 9px;border:1px solid var(--line);border-radius:6px;background:var(--panel)">
      ${pf("ojtst",id,dd.status,`data-i="${i}" ${eJ?"":"disabled"}`)}</li>`}).join("")}</ul>
-     <p style="margin:10px 0 0">${ov==="pass"?tag("OJT passed","go"):ov==="fail"?tag("OJT failed","stop"):tag(`${days.filter(x=>x&&x.status==="pass").length} of ${s.ojtMinPass} passing days needed`,"wait")}</p>`;
+     <p style="margin:10px 0 0">${ov==="pass"?tag("Training passed","go"):ov==="fail"?tag("Training not passed","stop"):tag(`${days.filter(x=>x&&x.status==="pass").length} of ${s.ojtMinPass} passing days needed`,"wait")}</p>`;
 
   // ---- offer ----
   const eH=can("hr"),of=a.offer||{};
@@ -1555,8 +1707,16 @@ function vProfile(){
   const logs=(a.log||[]).slice(0,30);
   const actBody=`<ul class="checks">${logs.map(l=>`<li><span>${esc(l.msg)}</span><span class="small muted">${esc(S.profiles[l.by]?.name||"")} · ${fmtDT(l.t)}</span></li>`).join("")||`<li class="muted">No activity yet.</li>`}</ul>`;
 
-  const bodies={docs:docsBody,orientation:oBody,interview:ivBody,drive:drBody,decision:decBody,ojt:ojtBody,offer:offBody,activity:actBody};
-  const edits={docs:eD,orientation:eO,interview:eI,drive:eT,decision:true,ojt:eJ,offer:eH,activity:true};
+  const tr=a.training||{},rl=a.released||{},eV=can("verifier");
+  const trBody=`<ul class="checks">
+    <li><span>Result given to applicant</span>${rl.pass?tag("Given "+fmtDT(rl.pass.at),"go"):vd==="hired"?(eV?`<button class="btn sm primary" data-act="rel-pass" data-id="${id}">Passed</button>`:tag("Waiting for Check-in","wait")):tag("Not yet","plain")}</li>
+    <li><span>Applicant's reply</span>${tr.response==="accepted"?tag("Accepted "+fmtDT(tr.respondedAt),"go"):tr.response==="declined"?tag("Declined "+fmtDT(tr.respondedAt),"stop"):tag(rl.pass?"Waiting":"Not yet","plain")}</li>
+    <li><span>Training date</span>${tr.slot?`<b>${fmtD(tr.slot)}</b>${tr.changes?` <span class="small muted">(changed once)</span>`:""}`:tag("Not booked","plain")}</li>
+    <li><span>Accredited result given</span>${rl.accredited?tag("Given "+fmtDT(rl.accredited.at),"go"):ov==="pass"?(eV?`<button class="btn sm primary" data-act="rel-accr" data-id="${id}">Accredited</button>`:tag("Waiting for Check-in","wait")):tag("Not yet","plain")}</li>
+    ${failInfo(a)?`<li><span>"Not passed" result given</span>${rl.fail?tag("Given "+fmtDT(rl.fail.at),"stop"):eV?`<button class="btn sm danger" data-act="rel-fail" data-id="${id}">Failed</button>`:tag("Waiting for Check-in","wait")}</li>`:""}
+   </ul><p class="small muted" style="margin:10px 0 0">The applicant sees each result on their phone only after Check-in taps the button.</p>`;
+  const bodies={docs:docsBody,orientation:oBody,interview:ivBody,drive:drBody,decision:decBody,training:trBody,ojt:ojtBody,offer:offBody,activity:actBody};
+  const edits={docs:eD,orientation:eO,interview:eI,drive:eT,decision:true,training:true,ojt:eJ,offer:eH,activity:true};
   const extra={interview:o.attended&&qs.length?`<button class="btn sm noprint" data-act="printsheet" data-k="interview" data-id="${id}">Print sheet</button>`:"",
     drive:locked?`<button class="btn sm noprint" data-act="printsheet" data-k="drive" data-id="${id}">Print sheet</button>`:""};
   const title=STEPS.find(x=>x[0]===tab)[1];
@@ -1578,10 +1738,10 @@ function vProfile(){
 /* ============ driving test mode (tablet) ============ */
 function vTestMode(){
   const tm=UI.testMode,a=S.applicants[tm.id];if(!a){UI.testMode=null;return vPipeline()}
-  const it=a.drive?.items||{},n=DRIVE_ITEMS.length,idx=Math.max(0,Math.min(tm.idx,n)),dr=scoreDrive(a),s=settings();
-  const dots=`<div class="dots">${DRIVE_ITEMS.map((x,i)=>`<button class="dotb ${it[x.id]==="pass"?"p":it[x.id]==="fail"?"x":""} ${i===idx?"cur":""}" data-act="tmgo" data-v="${i}" aria-label="Item ${i+1}">${i+1}</button>`).join("")}<button class="dotb ${idx===n?"cur":""}" data-act="tmgo" data-v="${n}" aria-label="Summary">✓</button></div>`;
+  const it=a.drive?.items||{},n=driveItems().length,idx=Math.max(0,Math.min(tm.idx,n)),dr=scoreDrive(a),s=settings();
+  const dots=`<div class="dots">${driveItems().map((x,i)=>`<button class="dotb ${it[x.id]==="pass"?"p":it[x.id]==="fail"?"x":""} ${i===idx?"cur":""}" data-act="tmgo" data-v="${i}" aria-label="Item ${i+1}">${i+1}</button>`).join("")}<button class="dotb ${idx===n?"cur":""}" data-act="tmgo" data-v="${n}" aria-label="Summary">✓</button></div>`;
   let body;
-  if(idx<n){const x=DRIVE_ITEMS[idx];
+  if(idx<n){const x=driveItems()[idx];
     body=`<div class="row"><span class="muted">Item ${idx+1} of ${n}</span>${x.crit?tag("Critical: a fail ends the test","stop"):""}</div><div class="tm-q">${esc(x.t)}</div>
      <div class="tm-btns"><button class="tmb pass" data-act="tmans" data-v="pass" aria-pressed="${it[x.id]==="pass"}">PASS<small>key P</small></button><button class="tmb fail" data-act="tmans" data-v="fail" aria-pressed="${it[x.id]==="fail"}">FAIL<small>key F</small></button></div>
      <div class="tm-nav"><button class="btn" data-act="tmgo" data-v="${idx-1}" ${idx?"":"disabled"}>← Back</button><button class="btn" data-act="tmgo" data-v="${idx+1}">${it[x.id]?"Next":"Skip"} →</button></div>`}
@@ -1652,7 +1812,7 @@ function render(){
   if(!S.ready)return;
   if(false){const bank=clone(S.bank||{questions:[]});SAMPLE_BANK.forEach(q=>{if(!bank.questions.some(x=>x.id===q.id))bank.questions.push(q)});S.bank=bank;SAMPLE_APPS.forEach(a=>S.applicants[a.id]=clone(a));localSave()}
   if(!(S.settings||{}).campSeeded&&typeof newCamp==="function"&&!camps().length){const c=Object.assign(newCamp(),{id:"drayber-flex",name:"Drayber Flex – Main",position:"Drayber Flex (EV delivery driver)",hubName:"2C Hub",
-    jd:"Deliver parcels for Mober using our electric vans. Choose the days you want to work and check in from the app.\nA typical day starts at the hub, where you load your van, then follow the app route to each drop-off.",
+    jd:"Deliver parcels using our electric vans. Choose the days you want to work and check in from the app.\nA typical day starts at the hub, where you load your van, then follow the app route to each drop-off.",
     reqs:"At least 21 years old\nValid driver's licence with code B or B1\nAt least 1 year of driving experience\nNBI clearance and medical certificate\nSmartphone with mobile data",
     perks:"Flexible schedule, pick your own days\nWeekly pay\nFree EV van and charging\n1-day paid training"});S.settings=Object.assign({},S.settings||{},{camps:[c],campSeeded:true,campaigns:[...new Set([...(S.settings?.campaigns||DEFAULT_SETTINGS.campaigns),c.name])]});localSave()}
   if(typeof qbMerge==="function")qbMerge();
@@ -1669,7 +1829,7 @@ function render(){
   document.documentElement.style.setProperty("--hh",$("#rail").offsetHeight+"px");
   const noRole=!S.isAdmin&&!myRoles().length;
   const V={pipeline:vPipeline,applicants:vApplicants,results:vResults,checkin:vCheckin,orientation:vOrientation,interview:vInterview,bank:vBank,
-    import:vImport,drive:vDrive,ojt:vOjt,offers:vOffers,team:vTeam,settings:vSettings,profile:vProfile,reports:vReports,reminders:vReminders,campaigns:vCampaigns,scan:vScan,requests:vRequests};
+    import:vImport,drive:vDrive,drivebank:vDriveBank,trcal:vTrCal,ojt:vOjt,offers:vOffers,inform:vInform,team:vTeam,settings:vSettings,profile:vProfile,reports:vReports,reminders:vReminders,campaigns:vCampaigns,scan:vScan,requests:vRequests};
   const act=document.activeElement,keep=act&&act.dataset&&act.dataset.act&&["INPUT","TEXTAREA"].includes(act.tagName)?{a:act.dataset.act,id:act.dataset.id,k:act.dataset.k,f:act.dataset.f,i:act.dataset.i,pos:act.selectionStart}:null;
   if(keep&&UI.typing)return; // don't repaint under someone mid-typing
   $("#main").innerHTML=(noRole&&UI.view==="pipeline"?vNoAccess()+"<div style='height:16px'></div>":"")+(V[UI.view]||vPipeline)();
@@ -1697,22 +1857,26 @@ document.addEventListener("click",async e=>{
    case"ivstep":{UI.ivStep=+v;UI.ivFor=UI.id;render();const el=$(".ivsteps");if(el)el.scrollIntoView({block:"start"});return}
    case"ans":return updateApplicant(id,a=>{a.interview=a.interview||{};a.interview.answers=a.interview.answers||{};a.interview.answers[b.dataset.q]=+v});
    case"ivsubmit":await updateApplicant(id,a=>{const s=scoreInterview(a);Object.assign(a.interview,{done:true,by:S.uid,at:now,pct:s.pct,risk:s.overall})},"Interview submitted");
-     {const r=scoreInterview(S.applicants[id]);markDone(id,"interview",`Interview submitted: ${r.pct}%, ${r.overall} risk.`)}return;
+     {const r=scoreInterview(S.applicants[id]);markDone(id,"interview",ivFail(S.applicants[id])?`Interview not passed: ${r.pct}%, ${r.overall} risk. Sent to Check-in to tell the applicant.`:`Interview passed: ${r.pct}%, ${r.overall} risk. Ready for the driving test.`)}return;
    case"ivgo":UI.ivIdx=+v;return render();
    case"tab":UI.tab=v;UI.letter=null;return render();
    case"docopen":{const cur=UI.docOpen&&UI.docOpen.id===id?UI.docOpen.k:(DOCS.find(([k])=>S.applicants[id].docs?.[k]?.status!=="verified")||[])[0];UI.docOpen={id,k:cur===b.dataset.k?"__none":b.dataset.k};return render()}
    case"menu":UI.menu=UI.menu===v?null:v;renderNav();return;
-   case"testmode":{const it=S.applicants[id].drive?.items||{},f=DRIVE_ITEMS.findIndex(x=>!it[x.id]);UI.testMode={id,idx:f<0?DRIVE_ITEMS.length:f};window.scrollTo(0,0);return render()}
+   case"testmode":{const it=S.applicants[id].drive?.items||{},f=driveItems().findIndex(x=>!it[x.id]);UI.testMode={id,idx:f<0?driveItems().length:f};window.scrollTo(0,0);return render()}
    case"tmgo":UI.testMode.idx=+v;return render();
    case"tmexit":UI.testMode=null;UI.tab="drive";return render();
-   case"tmans":{const tid=UI.testMode.id,x=DRIVE_ITEMS[UI.testMode.idx];UI.testMode.idx++;return updateApplicant(tid,a=>{a.drive=a.drive||{};a.drive.items=a.drive.items||{};a.drive.items[x.id]=v})}
+   case"tmans":{const tid=UI.testMode.id,x=driveItems()[UI.testMode.idx];UI.testMode.idx++;return updateApplicant(tid,a=>{a.drive=a.drive||{};a.drive.items=a.drive.items||{};a.drive.items[x.id]=v})}
    case"ivreopen":return updateApplicant(id,a=>{a.interview.done=false},"Interview reopened");
    case"drv":return updateApplicant(id,a=>{a.drive=a.drive||{};a.drive.items=a.drive.items||{};a.drive.items[b.dataset.i]=v});
    case"drsubmit":UI.testMode=null;UI.tab="drive";await updateApplicant(id,a=>{const r=scoreDrive(a);Object.assign(a.drive,{result:r.result,pct:r.pct,by:S.uid,at:now})},"Driving test submitted");
-     {const ap=S.applicants[id],dcs=decide(ap).result;markDone(id,"drive",`Driving test ${ap.drive.result==="pass"?"passed":"failed"} (${ap.drive.pct}%). Result: ${dcs==="hired"?"Hired":dcs==="not_hired"?"Not hired":"Pending"}.`)}return;
+     {const ap=S.applicants[id],dcs=decide(ap).result;markDone(id,"drive",`Driving test ${ap.drive.result==="pass"?"passed":"failed"} (${ap.drive.pct}%). Result: ${dcs==="hired"?"Passed":dcs==="not_hired"?"Not passed":"Pending"}. Sent to Check-in to give the result.`)}return;
    case"drreopen":return updateApplicant(id,a=>{delete a.drive.result},"Driving test reopened");
    case"ojtst":await updateApplicant(id,a=>{a.ojt=a.ojt||{days:[]};const i=+b.dataset.i;a.ojt.days[i]=Object.assign(a.ojt.days[i]||{},{status:v,by:S.uid})},`OJT day ${+b.dataset.i+1}: ${v}`);
-     {const ov=ojtVerdict(S.applicants[id]);if(ov==="pass")markDone(id,"ojt","OJT passed. Ready for a job offer.");else if(ov==="fail")markDone(id,"ojt","OJT failed.")}return;
+     {const ov=ojtVerdict(S.applicants[id]);if(ov==="pass")markDone(id,"ojt","Training passed. Check-in will give the Accredited result.");else if(ov==="fail")markDone(id,"ojt","Training not passed. Sent to Check-in to tell the applicant.")}return;
+   case"rel-fail":{const ap=S.applicants[id],f=failInfo(ap);if(!f)return;if(!confirm(`Tell ${ap.name} in person first. Show the "not passed" message on their phone now?`))return;
+     return updateApplicant(id,a=>{a.released=Object.assign(a.released||{},{fail:{stage:f[0],at:now,by:S.uid}})},`Result given: did not pass the ${f[0]}`)}
+   case"rel-pass":return updateApplicant(id,a=>{a.released=Object.assign(a.released||{},{pass:{at:now,by:S.uid}})},"Result given: passed, invited to 1-day paid training");
+   case"rel-accr":return updateApplicant(id,a=>{a.released=Object.assign(a.released||{},{accredited:{at:now,by:S.uid}})},"Result given: accredited Drayber Flex driver");
    case"offst":await updateApplicant(id,a=>{a.offer=Object.assign(a.offer||{},{status:v,[v+"At"]:now})},`Offer ${v}`);
      if(v!=="sent")markDone(id,"offer",v==="accepted"?"Offer accepted. Welcome to Mober!":"Offer declined.");return;
    case"letter":UI.letter=UI.letter===id?null:id;return render();
@@ -1723,6 +1887,7 @@ document.addEventListener("click",async e=>{
      const csv=[cols,...rows].map(r=>r.map(x=>`"${String(x??"").replace(/"/g,'""')}"`).join(",")).join("\n");
      saveFile(`mober-applicants-${today()}.csv`,"\ufeff"+csv,"text/csv");return}
    case"delapp":if(confirm("Delete this applicant and all their scores?")){await delDoc("applicants/"+id);go("applicants")}return;
+   case"station":UI.station=UI.station===v?null:v;return render();
    case"resf":UI.resFilter=v;return render();
    case"logout":return logout();
    case"viewphoto":{if(e.target.closest('[data-act="delphoto"]'))return;const src=PHOTOS[b.dataset.p];if(!src)return;$("#ovl").innerHTML=`<div class="overlay" data-act="closeovl"><img src="${src}" alt="Document photo"></div>`;return}
@@ -1736,6 +1901,7 @@ document.addEventListener("click",async e=>{
    case"delphoto":{e.stopPropagation();if(!confirm("Remove this photo?"))return;const k=b.dataset.k,pid=b.dataset.p;try{await IDB.del(pid)}catch(err){}delete PHOTOS[pid];
      return updateApplicant(id,a=>{const d=a.docs[k];d.photos=(d.photos||[]).filter(x=>x!==pid)},"Photo removed")}
    case"printsheet":return printSheet(b.dataset.k,id);
+   case"copysms":{await copyText(smsText(S.applicants[id]));return toast("SMS copied. Paste it in your messaging app.")}
    case"copymsg":{const a=S.applicants[id];await copyText(reminderMsg(a));return toast("Message copied")}
    case"copyall":{const L=remindList(remindTarget()).filter(a=>!a.reminder);await copyText(L.map(a=>`${a.name} — ${a.phone||a.email||"no contact"}\n${reminderMsg(a)}`).join("\n\n"));return toast(`${L.length} messages copied`)}
    case"reminded":return updateApplicant(id,a=>a.reminder={at:now,by:S.uid},"Reminder sent");
@@ -1776,7 +1942,7 @@ document.addEventListener("click",async e=>{
    case"toggleu":{const acc=S.accounts.find(x=>x.id===id);if(acc.active&&acc.roles.includes("admin")&&S.accounts.filter(x=>x.active&&x.roles.includes("admin")).length<2)return toast("Keep at least one active Admin.");
      const {error}=await SB.from("profiles").update({active:!acc.active}).eq("id",id);if(error)return dbErr(error);await loadProfiles();render();return toast(!acc.active?"Account enabled":"Account disabled")}
    case"backup":{const ns=Object.assign({},S.settings||{},{lastBackup:now});S.settings=ns;localSave();let photos={};try{photos=await IDB.all()}catch(err){}
-     saveFile(`mober-driver-pilot-backup-${today()}.json`,JSON.stringify({app:"mober-das",version:2,exportedAt:now,applicants:S.applicants,bank:S.bank,settings:S.settings,accounts:S.accounts,photos}),"application/json");render();return toast("Backup downloaded")}
+     saveFile(`drayberflex-backup-${today()}.json`,JSON.stringify({app:"mober-das",version:2,exportedAt:now,applicants:S.applicants,bank:S.bank,settings:S.settings,accounts:S.accounts,photos}),"application/json");render();return toast("Backup downloaded")}
    case"loadsample":{const bank=clone(S.bank||{questions:[]});SAMPLE_BANK.forEach(q=>{if(!bank.questions.some(x=>x.id===q.id))bank.questions.push(q)});S.bank=bank;
      SAMPLE_APPS.forEach(a=>S.applicants[a.id]=clone(a));localSave();render();return toast("20 sample applicants loaded")}
    case"clearsample":{if(!confirm("Remove all sample applicants?"))return;const ids=Object.values(S.applicants).filter(a=>a.source==="sample").map(a=>a.id);
@@ -1855,7 +2021,7 @@ document.addEventListener("toggle",e=>{if(e.target.id==="toolsgrp")UI.toolsOpen=
 document.addEventListener("change",e=>{if(e.target.id==="viewAs"){S.viewAs=e.target.value;UI.menu=null;go("pipeline")}});
 
 /* ============ sample data ============ */
-const SAMPLE_BANK=[{"id": "q01", "cat": "background", "dim": "absenteeism", "red": true, "weight": 2, "text": "In your last job, how many days did you miss in the past 3 months, and why?", "o": ["6+ days, or any no-call no-show", "4–5 days, or some without notice", "2–3 days, all with notice", "0–1 day, planned and notified"], "fil": "Sa huling trabaho mo, ilang araw kang hindi nakapasok sa nakaraang 3 buwan, at bakit?"}, {"id": "q02", "cat": "situational", "dim": "absenteeism", "red": false, "weight": 1, "text": "Your shift starts at 6:00 AM. It's raining hard and the road near your home is flooding. What do you do?", "o": ["Stays home without telling anyone", "Waits it out, only replies if called", "Messages supervisor, arrives late", "Leaves early on a backup route and sends ETA"], "fil": "6:00 AM ang simula ng shift mo. Malakas ang ulan at binabaha na ang daan malapit sa bahay mo. Ano ang gagawin mo?"}, {"id": "q03", "cat": "background", "dim": "absenteeism", "red": false, "weight": 1, "text": "How will you get to the hub every day, and how long does it take?", "o": ["No clear plan", "Over 1 hour, one option only", "Public transport under 1 hour, has an alternate", "Reliable own transport, under 45 minutes"], "fil": "Paano ka pupunta sa hub araw-araw, at gaano katagal ang biyahe mo?"}, {"id": "q04", "cat": "behavioural", "dim": "retention", "red": false, "weight": 1, "text": "Why did you leave your last job?", "o": ["Terminated or conflict, won't explain", "Vague, or blames others", "Contract ended", "Clear reason, left on good terms"], "fil": "Bakit ka umalis sa huling trabaho mo?"}, {"id": "q05", "cat": "background", "dim": "retention", "red": false, "weight": 1, "text": "How many employers have you had in the last 3 years?", "o": ["4 or more", "3", "2", "1"], "fil": "Ilang employer na ang napasukan mo sa nakaraang 3 taon?"}, {"id": "q06", "cat": "situational", "dim": "retention", "red": false, "weight": 1, "text": "After the orientation, what made you want to join Mober?", "o": ["No reason given", "Only the pay", "General positive comments", "Names specific culture points and why they fit"], "fil": "Pagkatapos ng orientation, ano ang nagustuhan mo kaya gusto mong sumali sa Mober?"}, {"id": "q07", "cat": "situational", "dim": "safety", "red": false, "weight": 1, "text": "You're behind schedule with 5 drops left. The app suggests a road you know floods. What do you do?", "o": ["Takes the road to save time", "Takes it, tells no one", "Reroutes, doesn't inform dispatch", "Reroutes safely and updates dispatch on ETA"], "fil": "Late ka na sa schedule at may 5 drop pa. Itinuturo ng app ang daan na alam mong binabaha. Ano ang gagawin mo?"}, {"id": "q08", "cat": "behavioural", "dim": "safety", "red": false, "weight": 1, "text": "Tell me about a near-miss or accident you had. What happened and what did you change?", "o": ["Denies any, or blames others", "Can't say what they learned", "Clear story, some learning", "Owns it and describes a concrete habit change"], "fil": "Kwentuhan mo ako tungkol sa muntikang aksidente o aksidenteng naranasan mo. Ano ang nangyari at ano ang binago mo pagkatapos?"}, {"id": "q09", "cat": "background", "dim": "safety", "red": true, "weight": 2, "text": "Any traffic violations or licence suspensions in the last 3 years?", "o": ["Major violation or suspension", "Several minor violations", "One minor violation", "None"], "fil": "May traffic violation ka ba, o na-suspend ba ang lisensya mo, sa nakaraang 3 taon?"}, {"id": "q10", "cat": "situational", "dim": "integrity", "red": true, "weight": 2, "text": "A customer offers you ₱500 to leave the item without a proper sign-off. What do you do?", "o": ["Accepts", "Hesitates, unsure", "Refuses", "Refuses politely, follows process, reports it"], "fil": "Inalok ka ng customer ng ₱500 para iwan ang item nang walang tamang pirma o sign-off. Ano ang gagawin mo?"}, {"id": "q11", "cat": "situational", "dim": "integrity", "red": false, "weight": 1, "text": "You scratch the van while parking and nobody saw. What do you do?", "o": ["Says nothing", "Reports only if asked", "Reports at end of shift", "Reports right away with photos"], "fil": "Nagasgas mo ang van habang nagpa-park at walang nakakita. Ano ang gagawin mo?"}, {"id": "q12", "cat": "situational", "dim": "customer", "red": false, "weight": 1, "text": "A customer is angry the delivery is late and refuses to receive it. What do you do?", "o": ["Argues or leaves the item", "Leaves without resolving", "Apologises, calls dispatch", "Stays calm, apologises, offers options, escalates properly"], "fil": "Galit ang customer dahil late ang delivery at ayaw niyang tanggapin. Ano ang gagawin mo?"}, {"id": "q13", "cat": "behavioural", "dim": "customer", "red": false, "weight": 1, "text": "Tell me about a disagreement with a helper or teammate. How did you handle it?", "o": ["Got physical or walked off", "Avoided it, left it unresolved", "Talked it through eventually", "Raised it early, calmly, and agreed a fix"], "fil": "Kwentuhan mo ako tungkol sa hindi ninyo pagkakasundo ng helper o katrabaho mo. Paano mo ito hinarap?"}];
+const SAMPLE_BANK=[{"id": "q01", "cat": "background", "dim": "absenteeism", "red": true, "weight": 2, "text": "In your last job, how many days did you miss in the past 3 months, and why?", "o": ["6+ days, or any no-call no-show", "4–5 days, or some without notice", "2–3 days, all with notice", "0–1 day, planned and notified"], "fil": "Sa huling trabaho mo, ilang araw kang hindi nakapasok sa nakaraang 3 buwan, at bakit?"}, {"id": "q02", "cat": "situational", "dim": "absenteeism", "red": false, "weight": 1, "text": "Your shift starts at 6:00 AM. It's raining hard and the road near your home is flooding. What do you do?", "o": ["Stays home without telling anyone", "Waits it out, only replies if called", "Messages supervisor, arrives late", "Leaves early on a backup route and sends ETA"], "fil": "6:00 AM ang simula ng shift mo. Malakas ang ulan at binabaha na ang daan malapit sa bahay mo. Ano ang gagawin mo?"}, {"id": "q03", "cat": "background", "dim": "absenteeism", "red": false, "weight": 1, "text": "How will you get to the hub every day, and how long does it take?", "o": ["No clear plan", "Over 1 hour, one option only", "Public transport under 1 hour, has an alternate", "Reliable own transport, under 45 minutes"], "fil": "Paano ka pupunta sa hub araw-araw, at gaano katagal ang biyahe mo?"}, {"id": "q04", "cat": "behavioural", "dim": "retention", "red": false, "weight": 1, "text": "Why did you leave your last job?", "o": ["Terminated or conflict, won't explain", "Vague, or blames others", "Contract ended", "Clear reason, left on good terms"], "fil": "Bakit ka umalis sa huling trabaho mo?"}, {"id": "q05", "cat": "background", "dim": "retention", "red": false, "weight": 1, "text": "How many employers have you had in the last 3 years?", "o": ["4 or more", "3", "2", "1"], "fil": "Ilang employer na ang napasukan mo sa nakaraang 3 taon?"}, {"id": "q06", "cat": "situational", "dim": "retention", "red": false, "weight": 1, "text": "After the orientation, what made you want to join us?", "o": ["No reason given", "Only the pay", "General positive comments", "Names specific culture points and why they fit"], "fil": "Pagkatapos ng orientation, ano ang nagustuhan mo kaya gusto mong sumali sa amin?"}, {"id": "q07", "cat": "situational", "dim": "safety", "red": false, "weight": 1, "text": "You're behind schedule with 5 drops left. The app suggests a road you know floods. What do you do?", "o": ["Takes the road to save time", "Takes it, tells no one", "Reroutes, doesn't inform dispatch", "Reroutes safely and updates dispatch on ETA"], "fil": "Late ka na sa schedule at may 5 drop pa. Itinuturo ng app ang daan na alam mong binabaha. Ano ang gagawin mo?"}, {"id": "q08", "cat": "behavioural", "dim": "safety", "red": false, "weight": 1, "text": "Tell me about a near-miss or accident you had. What happened and what did you change?", "o": ["Denies any, or blames others", "Can't say what they learned", "Clear story, some learning", "Owns it and describes a concrete habit change"], "fil": "Kwentuhan mo ako tungkol sa muntikang aksidente o aksidenteng naranasan mo. Ano ang nangyari at ano ang binago mo pagkatapos?"}, {"id": "q09", "cat": "background", "dim": "safety", "red": true, "weight": 2, "text": "Any traffic violations or licence suspensions in the last 3 years?", "o": ["Major violation or suspension", "Several minor violations", "One minor violation", "None"], "fil": "May traffic violation ka ba, o na-suspend ba ang lisensya mo, sa nakaraang 3 taon?"}, {"id": "q10", "cat": "situational", "dim": "integrity", "red": true, "weight": 2, "text": "A customer offers you ₱500 to leave the item without a proper sign-off. What do you do?", "o": ["Accepts", "Hesitates, unsure", "Refuses", "Refuses politely, follows process, reports it"], "fil": "Inalok ka ng customer ng ₱500 para iwan ang item nang walang tamang pirma o sign-off. Ano ang gagawin mo?"}, {"id": "q11", "cat": "situational", "dim": "integrity", "red": false, "weight": 1, "text": "You scratch the van while parking and nobody saw. What do you do?", "o": ["Says nothing", "Reports only if asked", "Reports at end of shift", "Reports right away with photos"], "fil": "Nagasgas mo ang van habang nagpa-park at walang nakakita. Ano ang gagawin mo?"}, {"id": "q12", "cat": "situational", "dim": "customer", "red": false, "weight": 1, "text": "A customer is angry the delivery is late and refuses to receive it. What do you do?", "o": ["Argues or leaves the item", "Leaves without resolving", "Apologises, calls dispatch", "Stays calm, apologises, offers options, escalates properly"], "fil": "Galit ang customer dahil late ang delivery at ayaw niyang tanggapin. Ano ang gagawin mo?"}, {"id": "q13", "cat": "behavioural", "dim": "customer", "red": false, "weight": 1, "text": "Tell me about a disagreement with a helper or teammate. How did you handle it?", "o": ["Got physical or walked off", "Avoided it, left it unresolved", "Talked it through eventually", "Raised it early, calmly, and agreed a fix"], "fil": "Kwentuhan mo ako tungkol sa hindi ninyo pagkakasundo ng helper o katrabaho mo. Paano mo ito hinarap?"}];
 const SAMPLE_APPS=[{"id": "s01", "name": "Rodel Manalo", "phone": "0917 555 0101", "email": "rodel.manalo@gmail.com", "slot": "2026-09-28T01:00:00Z", "campaign": "Facebook – Manila", "source": "sample", "createdAt": "2026-09-20T01:00:00Z", "updatedAt": "2026-09-28T01:00:00Z", "log": [{"t": "2026-09-24T00:00:00Z", "by": "sample", "msg": "Imported from Calendly"}]}, {"id": "s02", "name": "Jericho Bautista", "phone": "0918 555 0102", "email": "jericho.bautista@gmail.com", "slot": "2026-09-28T02:00:00Z", "campaign": "Facebook – Manila", "source": "sample", "createdAt": "2026-09-20T01:00:00Z", "updatedAt": "2026-09-28T02:00:00Z", "log": [{"t": "2026-09-24T00:00:00Z", "by": "sample", "msg": "Imported from Calendly"}]}, {"id": "s03", "name": "Arnel Villanueva", "phone": "0927 555 0103", "email": "arnel.villanueva@gmail.com", "slot": "2026-09-29T01:00:00Z", "campaign": "Referral", "source": "sample", "createdAt": "2026-09-20T01:00:00Z", "updatedAt": "2026-09-29T01:00:00Z", "log": [{"t": "2026-09-25T00:00:00Z", "by": "sample", "msg": "Imported from Calendly"}]}, {"id": "s04", "name": "Mark Anthony Reyes", "phone": "0919 555 0104", "email": "mark.anthony.reyes@gmail.com", "slot": "2026-09-25T01:00:00Z", "campaign": "Facebook – Cebu", "source": "sample", "createdAt": "2026-09-20T01:00:00Z", "updatedAt": "2026-09-25T01:00:00Z", "checkin": {"status": "noshow", "at": "2026-09-25T02:00:00Z"}, "log": [{"t": "2026-09-25T02:00:00Z", "by": "sample", "msg": "Marked no-show"}, {"t": "2026-09-22T00:00:00Z", "by": "sample", "msg": "Imported from Calendly"}]}, {"id": "s05", "name": "Jonel Garcia", "phone": "0995 555 0105", "email": "jonel.garcia@gmail.com", "slot": "2026-09-27T01:00:00Z", "campaign": "Walk-in", "source": "sample", "createdAt": "2026-09-20T01:00:00Z", "updatedAt": "2026-09-27T01:00:00Z", "checkin": {"status": "show", "at": "2026-09-27T01:05:00Z"}, "docs": {"nbi": {"ref": "NBI-26-5521", "expiry": "2027-02-11", "status": "verified"}, "license": {"number": "N04-18-221930", "expiry": "2028-08-01", "type": "professional"}}, "log": [{"t": "2026-09-27T01:15:00Z", "by": "sample", "msg": "NBI clearance verified"}, {"t": "2026-09-27T01:05:00Z", "by": "sample", "msg": "Checked in"}, {"t": "2026-09-26T07:00:00Z", "by": "sample", "msg": "Added by hand"}]}, {"id": "s06", "name": "Ramil Tolentino", "phone": "0906 555 0106", "email": "ramil.tolentino@gmail.com", "slot": "2026-09-27T02:00:00Z", "campaign": "Facebook – Manila", "source": "sample", "createdAt": "2026-09-20T01:00:00Z", "updatedAt": "2026-09-27T02:00:00Z", "checkin": {"status": "show", "at": "2026-09-27T02:02:00Z"}, "log": [{"t": "2026-09-27T02:02:00Z", "by": "sample", "msg": "Checked in"}, {"t": "2026-09-23T00:00:00Z", "by": "sample", "msg": "Imported from Calendly"}]}, {"id": "s07", "name": "Dennis Aquino", "phone": "0915 555 0107", "email": "dennis.aquino@gmail.com", "slot": "2026-09-26T01:00:00Z", "campaign": "Facebook – Cebu", "source": "sample", "createdAt": "2026-09-20T01:00:00Z", "updatedAt": "2026-09-26T01:00:00Z", "checkin": {"status": "show", "at": "2026-09-26T01:05:00Z"}, "docs": {"nbi": {"ref": "NBI-25-1180", "expiry": "2026-08-15", "status": "rejected"}, "medical": {"date": "2026-09-10", "clinic": "Hi-Precision Diagnostics", "fit": true, "status": "verified"}, "license": {"number": "N02-19-305127", "expiry": "2029-03-15", "type": "professional", "restrictions": "B, B1, B2", "status": "verified"}}, "log": [{"t": "2026-09-26T01:20:00Z", "by": "sample", "msg": "NBI clearance rejected"}, {"t": "2026-09-26T01:05:00Z", "by": "sample", "msg": "Checked in"}, {"t": "2026-09-22T00:00:00Z", "by": "sample", "msg": "Imported from Calendly"}]}, {"id": "s08", "name": "Christian Mendoza", "phone": "0916 555 0108", "email": "christian.mendoza@gmail.com", "slot": "2026-09-27T01:00:00Z", "campaign": "Facebook – Manila", "source": "sample", "createdAt": "2026-09-20T01:00:00Z", "updatedAt": "2026-09-27T01:00:00Z", "checkin": {"status": "show", "at": "2026-09-27T01:00:00Z", "by": "sample"}, "docs": {"nbi": {"ref": "NBI-26-4820", "expiry": "2027-06-30", "status": "verified"}, "medical": {"date": "2026-09-10", "clinic": "Hi-Precision Diagnostics", "fit": true, "status": "verified"}, "license": {"number": "N02-19-305128", "expiry": "2029-03-15", "type": "professional", "restrictions": "B, B1, B2", "status": "verified"}}, "log": [{"t": "2026-09-27T01:20:00Z", "by": "sample", "msg": "Documents verified"}, {"t": "2026-09-27T01:05:00Z", "by": "sample", "msg": "Checked in"}, {"t": "2026-09-27T01:00:00Z", "by": "sample", "msg": "Imported from Calendly"}]}, {"id": "s09", "name": "Ronaldo Castillo", "phone": "0926 555 0109", "email": "ronaldo.castillo@gmail.com", "slot": "2026-09-27T01:30:00Z", "campaign": "Referral", "source": "sample", "createdAt": "2026-09-20T01:00:00Z", "updatedAt": "2026-09-27T01:30:00Z", "checkin": {"status": "show", "at": "2026-09-27T01:00:00Z", "by": "sample"}, "docs": {"nbi": {"ref": "NBI-26-4821", "expiry": "2027-06-30", "status": "verified"}, "medical": {"date": "2026-09-10", "clinic": "Hi-Precision Diagnostics", "fit": true, "status": "verified"}, "license": {"number": "N02-19-305129", "expiry": "2029-03-15", "type": "professional", "restrictions": "B, B1, B2", "status": "verified"}}, "log": [{"t": "2026-09-27T01:20:00Z", "by": "sample", "msg": "Documents verified"}, {"t": "2026-09-27T01:05:00Z", "by": "sample", "msg": "Checked in"}, {"t": "2026-09-27T01:00:00Z", "by": "sample", "msg": "Imported from Calendly"}]}, {"id": "s10", "name": "Allan Navarro", "phone": "0935 555 0110", "email": "allan.navarro@gmail.com", "slot": "2026-09-26T01:00:00Z", "campaign": "Facebook – Manila", "source": "sample", "createdAt": "2026-09-20T01:00:00Z", "updatedAt": "2026-09-26T01:00:00Z", "checkin": {"status": "show", "at": "2026-09-26T01:00:00Z", "by": "sample"}, "docs": {"nbi": {"ref": "NBI-26-4822", "expiry": "2027-06-30", "status": "verified"}, "medical": {"date": "2026-09-10", "clinic": "Hi-Precision Diagnostics", "fit": true, "status": "verified"}, "license": {"number": "N02-19-305130", "expiry": "2029-03-15", "type": "professional", "restrictions": "B, B1, B2", "status": "verified"}}, "orientation": {"attended": true, "pulse": 4, "comment": "Liked the safety-first culture and EV fleet", "at": "2026-09-26T02:30:00Z", "by": "sample"}, "log": [{"t": "2026-09-26T02:30:00Z", "by": "sample", "msg": "Attended orientation"}, {"t": "2026-09-26T01:20:00Z", "by": "sample", "msg": "Documents verified"}, {"t": "2026-09-26T01:05:00Z", "by": "sample", "msg": "Checked in"}, {"t": "2026-09-26T01:00:00Z", "by": "sample", "msg": "Imported from Calendly"}]}, {"id": "s11", "name": "Joey Fernandez", "phone": "0945 555 0111", "email": "joey.fernandez@gmail.com", "slot": "2026-09-26T02:00:00Z", "campaign": "Walk-in", "source": "sample", "createdAt": "2026-09-20T01:00:00Z", "updatedAt": "2026-09-26T02:00:00Z", "checkin": {"status": "show", "at": "2026-09-26T01:00:00Z", "by": "sample"}, "docs": {"nbi": {"ref": "NBI-26-4823", "expiry": "2027-06-30", "status": "verified"}, "medical": {"date": "2026-09-10", "clinic": "Hi-Precision Diagnostics", "fit": true, "status": "verified"}, "license": {"number": "N02-19-305131", "expiry": "2029-03-15", "type": "professional", "restrictions": "B, B1, B2", "status": "verified"}}, "orientation": {"attended": true, "pulse": 5, "comment": "Liked the safety-first culture and EV fleet", "at": "2026-09-26T02:30:00Z", "by": "sample"}, "log": [{"t": "2026-09-26T02:30:00Z", "by": "sample", "msg": "Attended orientation"}, {"t": "2026-09-26T01:20:00Z", "by": "sample", "msg": "Documents verified"}, {"t": "2026-09-26T01:05:00Z", "by": "sample", "msg": "Checked in"}, {"t": "2026-09-26T01:00:00Z", "by": "sample", "msg": "Imported from Calendly"}]}, {"id": "s12", "name": "Ricky Ramos", "phone": "0955 555 0112", "email": "ricky.ramos@gmail.com", "slot": "2026-09-25T01:00:00Z", "campaign": "Facebook – Cebu", "source": "sample", "createdAt": "2026-09-20T01:00:00Z", "updatedAt": "2026-09-25T01:00:00Z", "checkin": {"status": "show", "at": "2026-09-25T01:00:00Z", "by": "sample"}, "docs": {"nbi": {"ref": "NBI-26-4824", "expiry": "2027-06-30", "status": "verified"}, "medical": {"date": "2026-09-10", "clinic": "Hi-Precision Diagnostics", "fit": true, "status": "verified"}, "license": {"number": "N02-19-305132", "expiry": "2029-03-15", "type": "professional", "restrictions": "B, B1, B2", "status": "verified"}}, "orientation": {"attended": true, "pulse": 5, "comment": "Liked the safety-first culture and EV fleet", "at": "2026-09-25T02:30:00Z", "by": "sample"}, "interview": {"answers": {"q01": 4, "q02": 3, "q03": 4, "q04": 4, "q05": 3, "q06": 4, "q07": 4, "q08": 3, "q09": 4, "q10": 4, "q11": 4, "q12": 3, "q13": 4}, "done": true, "pct": 92, "notes": "Clear answers, good attitude.", "at": "2026-09-25T03:30:00Z", "by": "sample"}, "log": [{"t": "2026-09-25T03:30:00Z", "by": "sample", "msg": "Interview submitted"}, {"t": "2026-09-25T02:30:00Z", "by": "sample", "msg": "Attended orientation"}, {"t": "2026-09-25T01:20:00Z", "by": "sample", "msg": "Documents verified"}, {"t": "2026-09-25T01:05:00Z", "by": "sample", "msg": "Checked in"}, {"t": "2026-09-25T01:00:00Z", "by": "sample", "msg": "Imported from Calendly"}]}, {"id": "s13", "name": "Noel Pascual", "phone": "0965 555 0113", "email": "noel.pascual@gmail.com", "slot": "2026-09-25T02:00:00Z", "campaign": "Referral", "source": "sample", "createdAt": "2026-09-20T01:00:00Z", "updatedAt": "2026-09-25T02:00:00Z", "checkin": {"status": "show", "at": "2026-09-25T01:00:00Z", "by": "sample"}, "docs": {"nbi": {"ref": "NBI-26-4825", "expiry": "2027-06-30", "status": "verified"}, "medical": {"date": "2026-09-10", "clinic": "Hi-Precision Diagnostics", "fit": true, "status": "verified"}, "license": {"number": "N02-19-305133", "expiry": "2029-03-15", "type": "professional", "restrictions": "B, B1, B2", "status": "verified"}}, "orientation": {"attended": true, "pulse": 5, "comment": "Liked the safety-first culture and EV fleet", "at": "2026-09-25T02:30:00Z", "by": "sample"}, "interview": {"answers": {"q01": 4, "q02": 4, "q03": 3, "q04": 3, "q05": 4, "q06": 4, "q07": 3, "q08": 4, "q09": 4, "q10": 4, "q11": 3, "q12": 4, "q13": 4}, "done": true, "pct": 92, "notes": "Clear answers, good attitude.", "at": "2026-09-25T03:30:00Z", "by": "sample"}, "log": [{"t": "2026-09-25T03:30:00Z", "by": "sample", "msg": "Interview submitted"}, {"t": "2026-09-25T02:30:00Z", "by": "sample", "msg": "Attended orientation"}, {"t": "2026-09-25T01:20:00Z", "by": "sample", "msg": "Documents verified"}, {"t": "2026-09-25T01:05:00Z", "by": "sample", "msg": "Checked in"}, {"t": "2026-09-25T01:00:00Z", "by": "sample", "msg": "Imported from Calendly"}]}, {"id": "s14", "name": "Edwin Soriano", "phone": "0975 555 0114", "email": "edwin.soriano@gmail.com", "slot": "2026-09-24T01:00:00Z", "campaign": "Facebook – Manila", "source": "sample", "createdAt": "2026-09-20T01:00:00Z", "updatedAt": "2026-09-24T01:00:00Z", "checkin": {"status": "show", "at": "2026-09-24T01:00:00Z", "by": "sample"}, "docs": {"nbi": {"ref": "NBI-26-4826", "expiry": "2027-06-30", "status": "verified"}, "medical": {"date": "2026-09-10", "clinic": "Hi-Precision Diagnostics", "fit": true, "status": "verified"}, "license": {"number": "N02-19-305134", "expiry": "2029-03-15", "type": "professional", "restrictions": "B, B1, B2", "status": "verified"}}, "orientation": {"attended": true, "pulse": 3, "comment": "Liked the safety-first culture and EV fleet", "at": "2026-09-24T02:30:00Z", "by": "sample"}, "interview": {"answers": {"q01": 4, "q02": 3, "q03": 4, "q04": 4, "q05": 3, "q06": 4, "q07": 4, "q08": 3, "q09": 4, "q10": 1, "q11": 4, "q12": 3, "q13": 4}, "done": true, "pct": 79, "notes": "Clear answers, good attitude.", "at": "2026-09-24T03:30:00Z", "by": "sample"}, "drive": {"items": {"pretrip": "pass", "setup": "pass", "regen": "pass", "smooth": "pass", "lane": "pass", "hazard": "pass", "rules": "pass", "reverse": "pass", "bay": "pass", "nav": "pass"}, "result": "pass", "pct": 100, "notes": "Tested by Romar.", "at": "2026-09-24T06:00:00Z", "by": "sample"}, "log": [{"t": "2026-09-24T06:00:00Z", "by": "sample", "msg": "Driving test submitted"}, {"t": "2026-09-24T03:30:00Z", "by": "sample", "msg": "Interview submitted"}, {"t": "2026-09-24T02:30:00Z", "by": "sample", "msg": "Attended orientation"}, {"t": "2026-09-24T01:20:00Z", "by": "sample", "msg": "Documents verified"}, {"t": "2026-09-24T01:05:00Z", "by": "sample", "msg": "Checked in"}, {"t": "2026-09-24T01:00:00Z", "by": "sample", "msg": "Imported from Calendly"}]}, {"id": "s15", "name": "Jayson Lim", "phone": "0985 555 0115", "email": "jayson.lim@gmail.com", "slot": "2026-09-24T02:00:00Z", "campaign": "Facebook – Cebu", "source": "sample", "createdAt": "2026-09-20T01:00:00Z", "updatedAt": "2026-09-24T02:00:00Z", "checkin": {"status": "show", "at": "2026-09-24T01:00:00Z", "by": "sample"}, "docs": {"nbi": {"ref": "NBI-26-4827", "expiry": "2027-06-30", "status": "verified"}, "medical": {"date": "2026-09-10", "clinic": "Hi-Precision Diagnostics", "fit": true, "status": "verified"}, "license": {"number": "N02-19-305135", "expiry": "2029-03-15", "type": "professional", "restrictions": "B, B1, B2", "status": "verified"}}, "orientation": {"attended": true, "pulse": 5, "comment": "Liked the safety-first culture and EV fleet", "at": "2026-09-24T02:30:00Z", "by": "sample"}, "interview": {"answers": {"q01": 4, "q02": 3, "q03": 4, "q04": 4, "q05": 3, "q06": 4, "q07": 4, "q08": 3, "q09": 4, "q10": 4, "q11": 4, "q12": 3, "q13": 4}, "done": true, "pct": 92, "notes": "Clear answers, good attitude.", "at": "2026-09-24T03:30:00Z", "by": "sample"}, "drive": {"items": {"pretrip": "pass", "setup": "pass", "regen": "pass", "smooth": "pass", "lane": "pass", "hazard": "fail", "rules": "pass", "reverse": "fail", "bay": "pass", "nav": "pass"}, "result": "fail", "pct": 80, "notes": "Tested by Romar.", "at": "2026-09-24T06:00:00Z", "by": "sample"}, "log": [{"t": "2026-09-24T06:00:00Z", "by": "sample", "msg": "Driving test submitted"}, {"t": "2026-09-24T03:30:00Z", "by": "sample", "msg": "Interview submitted"}, {"t": "2026-09-24T02:30:00Z", "by": "sample", "msg": "Attended orientation"}, {"t": "2026-09-24T01:20:00Z", "by": "sample", "msg": "Documents verified"}, {"t": "2026-09-24T01:05:00Z", "by": "sample", "msg": "Checked in"}, {"t": "2026-09-24T01:00:00Z", "by": "sample", "msg": "Imported from Calendly"}]}, {"id": "s16", "name": "Paolo Santiago", "phone": "0917 555 0116", "email": "paolo.santiago@gmail.com", "slot": "2026-09-19T01:00:00Z", "campaign": "Referral", "source": "sample", "createdAt": "2026-09-20T01:00:00Z", "updatedAt": "2026-09-19T01:00:00Z", "checkin": {"status": "show", "at": "2026-09-19T01:00:00Z", "by": "sample"}, "docs": {"nbi": {"ref": "NBI-26-4828", "expiry": "2027-06-30", "status": "verified"}, "medical": {"date": "2026-09-10", "clinic": "Hi-Precision Diagnostics", "fit": true, "status": "verified"}, "license": {"number": "N02-19-305136", "expiry": "2029-03-15", "type": "professional", "restrictions": "B, B1, B2", "status": "verified"}}, "orientation": {"attended": true, "pulse": 5, "comment": "Liked the safety-first culture and EV fleet", "at": "2026-09-19T02:30:00Z", "by": "sample"}, "interview": {"answers": {"q01": 4, "q02": 3, "q03": 4, "q04": 4, "q05": 3, "q06": 4, "q07": 4, "q08": 3, "q09": 4, "q10": 4, "q11": 4, "q12": 3, "q13": 4}, "done": true, "pct": 92, "notes": "Clear answers, good attitude.", "at": "2026-09-19T03:30:00Z", "by": "sample"}, "drive": {"items": {"pretrip": "pass", "setup": "pass", "regen": "pass", "smooth": "pass", "lane": "pass", "hazard": "pass", "rules": "pass", "reverse": "pass", "bay": "pass", "nav": "pass"}, "result": "pass", "pct": 100, "notes": "Tested by Romar.", "at": "2026-09-19T06:00:00Z", "by": "sample"}, "log": [{"t": "2026-09-19T06:00:00Z", "by": "sample", "msg": "Driving test submitted"}, {"t": "2026-09-19T03:30:00Z", "by": "sample", "msg": "Interview submitted"}, {"t": "2026-09-19T02:30:00Z", "by": "sample", "msg": "Attended orientation"}, {"t": "2026-09-19T01:20:00Z", "by": "sample", "msg": "Documents verified"}, {"t": "2026-09-19T01:05:00Z", "by": "sample", "msg": "Checked in"}, {"t": "2026-09-19T01:00:00Z", "by": "sample", "msg": "Imported from Calendly"}], "ojt": {"days": [{"status": "pass", "date": "2026-09-21", "notes": "Shadowed senior driver", "by": "sample"}, {"status": "pass", "date": "2026-09-22", "notes": "Handled 12 drops", "by": "sample"}]}}, {"id": "s17", "name": "Marvin dela Rosa", "phone": "0918 555 0117", "email": "marvin.dela.rosa@gmail.com", "slot": "2026-09-18T01:00:00Z", "campaign": "Facebook – Manila", "source": "sample", "createdAt": "2026-09-20T01:00:00Z", "updatedAt": "2026-09-18T01:00:00Z", "checkin": {"status": "show", "at": "2026-09-18T01:00:00Z", "by": "sample"}, "docs": {"nbi": {"ref": "NBI-26-4829", "expiry": "2027-06-30", "status": "verified"}, "medical": {"date": "2026-09-10", "clinic": "Hi-Precision Diagnostics", "fit": true, "status": "verified"}, "license": {"number": "N02-19-305137", "expiry": "2029-03-15", "type": "professional", "restrictions": "B, B1, B2", "status": "verified"}}, "orientation": {"attended": true, "pulse": 5, "comment": "Liked the safety-first culture and EV fleet", "at": "2026-09-18T02:30:00Z", "by": "sample"}, "interview": {"answers": {"q01": 4, "q02": 3, "q03": 4, "q04": 4, "q05": 3, "q06": 4, "q07": 4, "q08": 3, "q09": 4, "q10": 4, "q11": 4, "q12": 3, "q13": 4}, "done": true, "pct": 92, "notes": "Clear answers, good attitude.", "at": "2026-09-18T03:30:00Z", "by": "sample"}, "drive": {"items": {"pretrip": "pass", "setup": "pass", "regen": "pass", "smooth": "pass", "lane": "pass", "hazard": "pass", "rules": "pass", "reverse": "pass", "bay": "pass", "nav": "pass"}, "result": "pass", "pct": 100, "notes": "Tested by Romar.", "at": "2026-09-18T06:00:00Z", "by": "sample"}, "log": [{"t": "2026-09-18T06:00:00Z", "by": "sample", "msg": "Driving test submitted"}, {"t": "2026-09-18T03:30:00Z", "by": "sample", "msg": "Interview submitted"}, {"t": "2026-09-18T02:30:00Z", "by": "sample", "msg": "Attended orientation"}, {"t": "2026-09-18T01:20:00Z", "by": "sample", "msg": "Documents verified"}, {"t": "2026-09-18T01:05:00Z", "by": "sample", "msg": "Checked in"}, {"t": "2026-09-18T01:00:00Z", "by": "sample", "msg": "Imported from Calendly"}], "ojt": {"days": [{"status": "pass", "date": "2026-09-21", "notes": "Shadowed senior driver", "by": "sample"}, {"status": "pass", "date": "2026-09-22", "notes": "Handled 12 drops", "by": "sample"}, {"status": "pass", "date": "2026-09-23", "notes": "Good customer handling", "by": "sample"}, {"status": "pass", "date": "2026-09-24", "notes": "On time, clean trip ticket", "by": "sample"}]}}, {"id": "s18", "name": "Gilbert Morales", "phone": "0919 555 0118", "email": "gilbert.morales@gmail.com", "slot": "2026-09-12T01:00:00Z", "campaign": "Facebook – Manila", "source": "sample", "createdAt": "2026-09-20T01:00:00Z", "updatedAt": "2026-09-12T01:00:00Z", "checkin": {"status": "show", "at": "2026-09-12T01:00:00Z", "by": "sample"}, "docs": {"nbi": {"ref": "NBI-26-4830", "expiry": "2027-06-30", "status": "verified"}, "medical": {"date": "2026-09-10", "clinic": "Hi-Precision Diagnostics", "fit": true, "status": "verified"}, "license": {"number": "N02-19-305138", "expiry": "2029-03-15", "type": "professional", "restrictions": "B, B1, B2", "status": "verified"}}, "orientation": {"attended": true, "pulse": 5, "comment": "Liked the safety-first culture and EV fleet", "at": "2026-09-12T02:30:00Z", "by": "sample"}, "interview": {"answers": {"q01": 4, "q02": 3, "q03": 4, "q04": 4, "q05": 3, "q06": 4, "q07": 4, "q08": 3, "q09": 4, "q10": 4, "q11": 4, "q12": 3, "q13": 4}, "done": true, "pct": 92, "notes": "Clear answers, good attitude.", "at": "2026-09-12T03:30:00Z", "by": "sample"}, "drive": {"items": {"pretrip": "pass", "setup": "pass", "regen": "pass", "smooth": "pass", "lane": "pass", "hazard": "pass", "rules": "pass", "reverse": "pass", "bay": "pass", "nav": "pass"}, "result": "pass", "pct": 100, "notes": "Tested by Romar.", "at": "2026-09-12T06:00:00Z", "by": "sample"}, "log": [{"t": "2026-09-12T06:00:00Z", "by": "sample", "msg": "Driving test submitted"}, {"t": "2026-09-12T03:30:00Z", "by": "sample", "msg": "Interview submitted"}, {"t": "2026-09-12T02:30:00Z", "by": "sample", "msg": "Attended orientation"}, {"t": "2026-09-12T01:20:00Z", "by": "sample", "msg": "Documents verified"}, {"t": "2026-09-12T01:05:00Z", "by": "sample", "msg": "Checked in"}, {"t": "2026-09-12T01:00:00Z", "by": "sample", "msg": "Imported from Calendly"}], "ojt": {"days": [{"status": "pass", "date": "2026-09-21", "notes": "Shadowed senior driver", "by": "sample"}, {"status": "pass", "date": "2026-09-22", "notes": "Handled 12 drops", "by": "sample"}, {"status": "pass", "date": "2026-09-23", "notes": "Good customer handling", "by": "sample"}, {"status": "pass", "date": "2026-09-24", "notes": "On time, clean trip ticket", "by": "sample"}, {"status": "pass", "date": "2026-09-25", "notes": "Solo route, no issues", "by": "sample"}]}}, {"id": "s19", "name": "Reynaldo Cruz", "phone": "0927 555 0119", "email": "reynaldo.cruz@gmail.com", "slot": "2026-09-11T01:00:00Z", "campaign": "Facebook – Cebu", "source": "sample", "createdAt": "2026-09-20T01:00:00Z", "updatedAt": "2026-09-11T01:00:00Z", "checkin": {"status": "show", "at": "2026-09-11T01:00:00Z", "by": "sample"}, "docs": {"nbi": {"ref": "NBI-26-4831", "expiry": "2027-06-30", "status": "verified"}, "medical": {"date": "2026-09-10", "clinic": "Hi-Precision Diagnostics", "fit": true, "status": "verified"}, "license": {"number": "N02-19-305139", "expiry": "2029-03-15", "type": "professional", "restrictions": "B, B1, B2", "status": "verified"}}, "orientation": {"attended": true, "pulse": 5, "comment": "Liked the safety-first culture and EV fleet", "at": "2026-09-11T02:30:00Z", "by": "sample"}, "interview": {"answers": {"q01": 4, "q02": 3, "q03": 4, "q04": 4, "q05": 3, "q06": 4, "q07": 4, "q08": 3, "q09": 4, "q10": 4, "q11": 4, "q12": 3, "q13": 4}, "done": true, "pct": 92, "notes": "Clear answers, good attitude.", "at": "2026-09-11T03:30:00Z", "by": "sample"}, "drive": {"items": {"pretrip": "pass", "setup": "pass", "regen": "pass", "smooth": "pass", "lane": "pass", "hazard": "pass", "rules": "pass", "reverse": "pass", "bay": "pass", "nav": "pass"}, "result": "pass", "pct": 100, "notes": "Tested by Romar.", "at": "2026-09-11T06:00:00Z", "by": "sample"}, "log": [{"t": "2026-09-11T06:00:00Z", "by": "sample", "msg": "Driving test submitted"}, {"t": "2026-09-11T03:30:00Z", "by": "sample", "msg": "Interview submitted"}, {"t": "2026-09-11T02:30:00Z", "by": "sample", "msg": "Attended orientation"}, {"t": "2026-09-11T01:20:00Z", "by": "sample", "msg": "Documents verified"}, {"t": "2026-09-11T01:05:00Z", "by": "sample", "msg": "Checked in"}, {"t": "2026-09-11T01:00:00Z", "by": "sample", "msg": "Imported from Calendly"}], "ojt": {"days": [{"status": "pass", "date": "2026-09-21", "notes": "Shadowed senior driver", "by": "sample"}, {"status": "pass", "date": "2026-09-22", "notes": "Handled 12 drops", "by": "sample"}, {"status": "pass", "date": "2026-09-23", "notes": "Good customer handling", "by": "sample"}, {"status": "pass", "date": "2026-09-24", "notes": "On time, clean trip ticket", "by": "sample"}, {"status": "pass", "date": "2026-09-25", "notes": "Solo route, no issues", "by": "sample"}]}, "offer": {"status": "sent", "position": "Delivery Driver (EV)", "start": "2026-10-05", "hub": "Cavite hub", "sentAt": "2026-09-25T07:00:00Z"}}, {"id": "s20", "name": "Jomar Ocampo", "phone": "0935 555 0120", "email": "jomar.ocampo@gmail.com", "slot": "2026-09-10T01:00:00Z", "campaign": "Referral", "source": "sample", "createdAt": "2026-09-20T01:00:00Z", "updatedAt": "2026-09-10T01:00:00Z", "checkin": {"status": "show", "at": "2026-09-10T01:00:00Z", "by": "sample"}, "docs": {"nbi": {"ref": "NBI-26-4832", "expiry": "2027-06-30", "status": "verified"}, "medical": {"date": "2026-09-10", "clinic": "Hi-Precision Diagnostics", "fit": true, "status": "verified"}, "license": {"number": "N02-19-305140", "expiry": "2029-03-15", "type": "professional", "restrictions": "B, B1, B2", "status": "verified"}}, "orientation": {"attended": true, "pulse": 5, "comment": "Liked the safety-first culture and EV fleet", "at": "2026-09-10T02:30:00Z", "by": "sample"}, "interview": {"answers": {"q01": 4, "q02": 3, "q03": 4, "q04": 4, "q05": 3, "q06": 4, "q07": 4, "q08": 3, "q09": 4, "q10": 4, "q11": 4, "q12": 3, "q13": 4}, "done": true, "pct": 92, "notes": "Clear answers, good attitude.", "at": "2026-09-10T03:30:00Z", "by": "sample"}, "drive": {"items": {"pretrip": "pass", "setup": "pass", "regen": "pass", "smooth": "pass", "lane": "pass", "hazard": "pass", "rules": "pass", "reverse": "pass", "bay": "pass", "nav": "pass"}, "result": "pass", "pct": 100, "notes": "Tested by Romar.", "at": "2026-09-10T06:00:00Z", "by": "sample"}, "log": [{"t": "2026-09-10T06:00:00Z", "by": "sample", "msg": "Driving test submitted"}, {"t": "2026-09-10T03:30:00Z", "by": "sample", "msg": "Interview submitted"}, {"t": "2026-09-10T02:30:00Z", "by": "sample", "msg": "Attended orientation"}, {"t": "2026-09-10T01:20:00Z", "by": "sample", "msg": "Documents verified"}, {"t": "2026-09-10T01:05:00Z", "by": "sample", "msg": "Checked in"}, {"t": "2026-09-10T01:00:00Z", "by": "sample", "msg": "Imported from Calendly"}], "ojt": {"days": [{"status": "pass", "date": "2026-09-21", "notes": "Shadowed senior driver", "by": "sample"}, {"status": "pass", "date": "2026-09-22", "notes": "Handled 12 drops", "by": "sample"}, {"status": "pass", "date": "2026-09-23", "notes": "Good customer handling", "by": "sample"}, {"status": "pass", "date": "2026-09-24", "notes": "On time, clean trip ticket", "by": "sample"}, {"status": "pass", "date": "2026-09-25", "notes": "Solo route, no issues", "by": "sample"}]}, "offer": {"status": "accepted", "position": "Delivery Driver (EV)", "start": "2026-10-01", "hub": "Manila hub", "sentAt": "2026-09-22T07:00:00Z", "acceptedAt": "2026-09-23T02:00:00Z"}}];
 
 /* ============ campaigns, public apply, QR check-in ============ */
@@ -1869,7 +2035,7 @@ const loadScript=src=>new Promise((res,rej)=>{const s=document.createElement("sc
 function qrSvg(text,cell){if(!window.qrcode)return `<div class="small muted" style="padding:20px;text-align:center">QR unavailable offline. Code: ${esc(text)}</div>`;const q=qrcode(0,"M");q.addData(text);q.make();return q.createSvgTag({cellSize:cell||4,margin:2,scalable:true})}
 function qrPng(text){if(!window.qrcode)return"";const q=qrcode(0,"M");q.addData(text);q.make();return q.createDataURL(10,20)}
 const PUB={route:null,id:null,step:"job",form:{},month:null,day:null,time:null,err:""};
-function parseHash(){const m=location.hash.match(/^#(apply|ticket)\/([\w-]+)/);PUB.route=m?m[1]:null;PUB.id=m?m[2]:null}
+function parseHash(){const m=location.hash.match(/^#(apply|ticket)\/([\w-]+)/);PUB.route=m?m[1]:/^#status/.test(location.hash)?"status":null;PUB.id=m?m[2]:null}
 parseHash();
 window.addEventListener("hashchange",async()=>{parseHash();PUB.step="job";PUB.day=PUB.time=null;PUB.err="";if(SB&&PUB.route==="ticket")await loadTicket(PUB.id);if(SB&&PUB.route==="apply"&&!S.uid){if(!S.settings)await publicLoad();else await loadSlots()}render();window.scrollTo(0,0)});
 async function saveCamps(list){const s=Object.assign({},S.settings||{});s.camps=list;const names=new Set(s.campaigns||DEFAULT_SETTINGS.campaigns);list.forEach(c=>names.add(c.name));s.campaigns=[...names];S.settings=s;await setDoc("admin/settings",s)}
@@ -1936,6 +2102,7 @@ function vCampEdit(){const c=UI.editCamp,isNew=!c.id;
      <p class="small muted" style="margin:0">Each interview day has ${onN} slot${onN===1?"":"s"} × ${c.seats} applicant${c.seats==1?"":"s"} = up to ${onN*c.seats} interview${onN*c.seats===1?"":"s"} a day.</p>
      <label class="row"><input type="checkbox" id="cp-active" ${c.active?"checked":""}> Accept new applications</label>
    </div></div>
+   <div class="sect"><header><h3>4b. Training schedule</h3></header><div class="stack"><p class="small muted" style="margin:0">Training days are set by the trainer in <b>Training calendar</b> and shared by all campaigns.</p><div><button class="btn sm" data-go="trcal">Open Training calendar</button></div></div></div>
    <div class="sect"><header><h3>5. Pre-profile questions</h3></header><div class="stack">
      <p class="small muted" style="margin:0">Applicants answer these before picking a time. Each answer has points; the score is the share of the maximum.</p>
      ${cq(c).map((q,i)=>`<div class="cq"><div class="row" style="justify-content:space-between"><span class="muted small">Question ${i+1}</span><button class="btn sm" data-cqa="del" data-v="${i}">Remove</button></div>
@@ -1952,7 +2119,11 @@ function vCampEdit(){const c=UI.editCamp,isNew=!c.id;
 function campLinkCard(c){const u=campUrl(c);return `<div class="panel stack"><h3 style="margin:0">Campaign link</h3><div class="cp-url">${esc(u)}</div>
   <div class="row"><button class="btn primary sm" data-act="cp-copy" data-id="${c.id}">Copy link</button><a class="btn sm" href="#apply/${c.id}" target="_blank" rel="noopener">Preview</a></div>
   <div class="cp-qr">${qrSvg(u,4)}</div>${qrPng(u)?`<a class="btn sm" style="align-self:flex-start" href="${qrPng(u)}" download="${esc(c.id)}-qr.gif">Download QR</a>`:""}<p class="small muted" style="margin:0">Put this QR on posters or Facebook posts. Scanning it opens this campaign's booking page.</p></div>`}
-function readCampForm(){const g=k=>{const el=document.getElementById("cp-"+k);return el?el.value.trim():""};const c0=UI.editCamp;
+function readCampForm(){const c=readCampFormBase(),g=k=>{const el=document.getElementById("cp-"+k);return el?el.value.trim():""};const tb=[...document.querySelectorAll("[data-tday]")];if(!tb.length)return c;
+  c.train={days:tb.length?tb.filter(x=>x.checked).map(x=>+x.dataset.tday):trainOf(c).days,start:g("tstart")||"08:00",end:g("tend")||"17:00",seats:Math.max(1,+g("tseats")||10),window:Math.max(1,+g("twindow")||14),hubName:g("thub"),location:g("tloc")};return c}
+const trainOf=c=>Object.assign({days:[1,2,3,4,5,6],start:"08:00",end:"17:00",seats:10,window:14,hubName:"",location:"",overrides:{}},(c&&c.train)||{},(S.settings&&S.settings.training)||{});
+const trSeats=(t,ds)=>{const o=(t.overrides||{})[ds]||{};if(o.closed)return 0;if(o.seats!=null&&o.seats!=="")return +o.seats;return t.days.includes(new Date(ds+"T00:00").getDay())?+t.seats:0};
+function readCampFormBase(){const g=k=>{const el=document.getElementById("cp-"+k);return el?el.value.trim():""};const c0=UI.editCamp;
   const Q=cq(c0).map((q,i)=>{const t=document.querySelector(`[data-cq="${i}"][data-k="text"]`),o=document.querySelector(`[data-cq="${i}"][data-k="opts"]`);
     return{id:q.id,text:t?t.value:q.text,opts:o?o.value.split("\n").map(l=>{const [a,b]=l.split("|");return[(a||"").trim(),Math.max(0,parseInt(b)||0)]}).filter(x=>x[0]):q.opts}});
   const chips=[...document.querySelectorAll("[data-time]")];
@@ -1963,38 +2134,37 @@ function readCampForm(){const g=k=>{const el=document.getElementById("cp-"+k);re
    autoApprove:!!document.getElementById("cp-autoApprove")?.checked,passScore:Math.min(100,Math.max(0,+g("passScore")||0)),minAge:Math.max(18,+g("minAge")||18),maxAge:g("maxAge")?+g("maxAge"):"",questions:Q})}
 
 /* ---- public application page ---- */
-function pubShell(inner,c){return `<div class="ap"><header class="ap-top">${c?`<span class="small muted">${esc(c.position)}</span>`:""}</header><div class="ap-body">${inner}</div><footer class="ap-foot small muted">${esc(settings().company)}</footer></div>`}
+function pubShell(inner,c){return `<div class="ap"><header class="ap-top">${c?`<span class="small muted">${esc(c.position)}</span>`:""}</header><div class="ap-body">${inner}</div><footer class="ap-foot small muted"></footer></div>`}
 function vPublic(){
   if(PUB.route==="apply"&&PUB.id==="open"){const oc=camps().find(x=>x.active&&!(x.endDate&&today()>x.endDate));if(oc)PUB.id=oc.id}
   if(PUB.route==="ticket")return vTicket(S.applicants[PUB.id]);
+  if(PUB.route==="status")return vStatus();
   const c=campById(PUB.id);
-  if(!c)return pubShell(`<div class="ap-card ap-narrow"><h1>Link not found</h1><p class="muted">This application link isn't valid. Ask the recruiter for a new one.</p></div>`);
-  if(!c.active||(c.endDate&&today()>c.endDate))return pubShell(`<div class="ap-card ap-narrow"><h1>Applications are closed</h1><p class="muted">${esc(c.position)} applications for this campaign have closed. Thank you for your interest.</p></div>`,c);
-  const st=PUB.step,steps=[["job","1. The job"],["lic","2. Your licence"],["form","3. Contact"],["quiz","4. Questions"],["time","5. Interview"]],si=steps.findIndex(x=>x[0]===st);
+  if(!c)return pubShell(`<div class="ap-card ap-narrow"><h1>Hindi makita ang link</h1><p class="muted">Hindi valid ang link na 'to. Humingi ng bagong link sa recruiter.</p></div>`);
+  if(!c.active||(c.endDate&&today()>c.endDate))return pubShell(`<div class="ap-card ap-narrow"><h1>Sarado na ang applications</h1><p class="muted">Sarado na ang applications para sa ${esc(c.position)}. Salamat sa interes mo!</p></div>`,c);
+  const st=PUB.step,steps=[["job","1. Simula"],["lic","2. License"],["form","3. Contact info"],["quiz","4. Mga tanong"],["time","5. Interview"]],si=steps.findIndex(x=>x[0]===st);
   const bar=`<ol class="ap-steps">${steps.map(([k,l],i)=>`<li class="${i<=si?"on":""}">${l}</li>`).join("")}</ol>`;
-  const err=PUB.err?`<p class="ap-err" role="alert">${PUB.err}</p>`:"";const F=PUB.form,hub=esc(c.hubName||"Mober hub");
-  if(st==="job"){const R=linesOf(c.reqs),P=linesOf(c.perks);return pubShell(`${bar}<div class="ap-card ap-narrow">
-    <div class="ap-eyebrow">Now hiring</div><h1 style="margin:14px 0 6px">${esc(c.position)}</h1><p class="muted" style="margin:0">${hub}${c.location&&!/set the address/i.test(c.location)?" · "+esc(c.location):""}</p>
-    ${c.jd?`<div class="ap-sec"><h3>About the role</h3>${linesOf(c.jd).map(p=>`<p>${esc(p)}</p>`).join("")}</div>`:""}
-    ${R.length?`<div class="ap-sec"><h3>Requirements</h3><ul class="ap-list">${R.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:""}
-    ${P.length?`<div class="ap-sec"><h3>Pay and benefits</h3><ul class="ap-list">${P.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:""}
-    <div class="ap-sec ap-note">Next: upload a photo of your driver's licence, add your contact details and answer ${cq(c).length} short questions (about 3 minutes), then request a ${c.len}-minute interview at ${hub}. We'll confirm your interview before you come in.</div>
-    <button class="btn primary lg ap-full" data-act="ap-go" data-v="lic">Apply now</button></div>`,c)}
+  const err=PUB.err?`<p class="ap-err" role="alert">${PUB.err}</p>`:"";const F=PUB.form,hub=esc(c.hubName||"the hub");
+  if(st==="job"){const ST=[["Picturan ang driver's license mo","Gamit lang ang camera ng phone mo."],["Ilagay ang contact info mo","Mobile number at email. Pwede mo na ring i-upload ang NBI clearance at medical cert mo."],["Sagutan ang ilang tanong",`${cq(c).length} tanong lang, walang trick.`],["Pumili ng araw at oras ng interview",`Sa ${hub}.`],["Kunin ang QR ticket mo","Ipakita mo 'to pagdating sa hub."]];
+    return pubShell(`${bar}<div class="ap-card ap-narrow">
+    <div class="ap-eyebrow">Drayber Flex</div><h1 style="margin:14px 0 6px">5 easy steps lang para mag-apply</h1><p class="muted" style="margin:0">Mga 10 minutes lang 'to.</p>
+    <ol class="ap-how">${ST.map(([t,d])=>`<li><b>${t}</b><span>${d}</span></li>`).join("")}</ol>
+    <button class="btn primary lg ap-full" data-act="ap-go" data-v="lic">Simulan na →</button></div>`,c)}
   
   if(st==="lic")return pubShell(`${bar}${vLicStep(c,err)}`,c);
   if(st==="form"){const inp=(k,l,type,ph,req,extra)=>`<label class="f">${l}${req?"":` <span class="muted">(optional)</span>`}<input id="ap-${k}" type="${type||"text"}" value="${esc(F[k]||"")}" placeholder="${ph||""}" ${type==="tel"?'inputmode="tel"':""} ${extra||""}></label>`;
-    const sel=(k,l,opts)=>`<label class="f">${l}<select id="ap-${k}"><option value="">Choose…</option>${opts.map(o=>`<option ${F[k]===o?"selected":""}>${o}</option>`).join("")}</select></label>`;
-    return pubShell(`${bar}<div class="ap-card ap-narrow"><h2 style="margin:0 0 4px">How we reach you</h2><p class="muted" style="margin:0 0 22px">We'll use these to confirm your interview.</p>
+    const sel=(k,l,opts)=>`<label class="f">${l}<select id="ap-${k}"><option value="">Pumili…</option>${opts.map(o=>`<option ${F[k]===o?"selected":""}>${o}</option>`).join("")}</select></label>`;
+    return pubShell(`${bar}<div class="ap-card ap-narrow"><h2 style="margin:0 0 4px">Paano ka namin makokontak?</h2><p class="muted" style="margin:0 0 22px">Dito namin ico-confirm ang interview mo.</p>
     <div class="ap-form">${inp("phone","Mobile number","tel","0917 123 4567",1)}${inp("email","Email","email","you@email.com",1)}</div>
-    <h3 class="ap-h3">Getting to ${hub}</h3><div class="ap-form">${sel("transport","How you'll get to the interview",Object.keys(MODES))}${sel("years","Driving experience",["Less than 1 year","1–2 years","3–5 years","More than 5 years"])}</div>
-    <h3 class="ap-h3">NBI clearance <span class="muted small" style="font-weight:400">(optional)</span></h3><p class="small muted" style="margin:-4px 0 12px">If you already have one, upload it now to save time at check-in.</p>${upCard("nbi")}${docFields("nbi")}
-    <h3 class="ap-h3">Medical certificate <span class="muted small" style="font-weight:400">(optional)</span></h3><p class="small muted" style="margin:-4px 0 12px">Issued in the last ${settings().medicalMaxMonths} months.</p>${upCard("medical")}${docFields("medical")}
-    <div class="ap-form" style="margin-top:16px">${inp("ref","Referral code","text","If someone referred you",0)}</div>
-    <label class="row" style="margin-top:20px;align-items:flex-start;flex-wrap:nowrap"><input type="checkbox" id="ap-consent" ${F.consent?"checked":""} style="margin-top:4px"> <span class="small">I agree that ${esc(settings().company)} may use these details to process my application.</span></label>
-    ${err}<div class="ap-actions"><button class="btn" data-act="ap-go" data-v="lic">Back</button><button class="btn primary lg" data-act="ap-go" data-v="quiz">Next: a few questions</button></div></div>`,c)}
-  if(st==="quiz"){const A=F.answers||{};return pubShell(`${bar}<div class="ap-card ap-narrow"><h2 style="margin:0 0 4px">A few questions</h2><p class="muted" style="margin:0 0 10px">Answer honestly. There are no trick questions.</p>
+    <h3 class="ap-h3">Pagpunta sa ${hub}</h3><div class="ap-form">${sel("transport","Paano ka pupunta sa interview?",Object.keys(MODES))}${sel("years","Driving experience",["Less than 1 year","1–2 years","3–5 years","More than 5 years"])}</div>
+    <h3 class="ap-h3">NBI clearance <span class="muted small" style="font-weight:400">(optional)</span></h3><p class="small muted" style="margin:-4px 0 12px">Kung meron ka na, i-upload mo na para mas mabilis ang check-in.</p>${upCard("nbi")}${docFields("nbi")}
+    <h3 class="ap-h3">Medical certificate <span class="muted small" style="font-weight:400">(optional)</span></h3><p class="small muted" style="margin:-4px 0 12px">Dapat na-issue sa loob ng huling ${settings().medicalMaxMonths} buwan.</p>${upCard("medical")}${docFields("medical")}
+    <div class="ap-form" style="margin-top:16px">${inp("ref","Referral code","text","Kung may nag-refer sa'yo",0)}</div>
+    <label class="row" style="margin-top:20px;align-items:flex-start;flex-wrap:nowrap"><input type="checkbox" id="ap-consent" ${F.consent?"checked":""} style="margin-top:4px"> <span class="small">Pumapayag ako na gamitin ng ${esc(settings().company||"hiring team")} ang mga detalyeng ito para i-process ang application ko.</span></label>
+    ${err}<div class="ap-actions"><button class="btn" data-act="ap-go" data-v="lic">Bumalik</button><button class="btn primary lg" data-act="ap-go" data-v="quiz">Next: ilang tanong</button></div></div>`,c)}
+  if(st==="quiz"){const A=F.answers||{};return pubShell(`${bar}<div class="ap-card ap-narrow"><h2 style="margin:0 0 4px">Ilang tanong lang</h2><p class="muted" style="margin:0 0 10px">Sagutin mo lang nang tapat. Walang trick dito.</p>
     ${cq(c).map((q,i)=>`<fieldset class="ap-q"><legend>${i+1}. ${esc(q.text)}</legend><div class="ap-qo">${q.opts.map((o,j)=>`<label><input type="radio" name="pq_${q.id}" value="${j}" ${A[q.id]===j?"checked":""}><span>${esc(o[0])}</span></label>`).join("")}</div></fieldset>`).join("")}
-    ${err}<div class="ap-actions"><button class="btn" data-act="ap-go" data-v="form">Back</button><button class="btn primary lg" data-act="ap-go" data-v="time">Next: pick a time</button></div></div>`,c)}
+    ${err}<div class="ap-actions"><button class="btn" data-act="ap-go" data-v="form">Bumalik</button><button class="btn primary lg" data-act="ap-go" data-v="time">Next: pumili ng oras</button></div></div>`,c)}
   const base=PUB.month?new Date(PUB.month+"-01T00:00"):new Date();base.setDate(1);base.setHours(0,0,0,0);
   const y=base.getFullYear(),m=base.getMonth(),first=new Date(y,m,1).getDay(),n=new Date(y,m+1,0).getDate();
   const curM=new Date();curM.setDate(1);curM.setHours(0,0,0,0);const lim=new Date();lim.setDate(lim.getDate()+c.window);
@@ -2003,56 +2173,137 @@ function vPublic(){
   const slots=PUB.day?campSlots(c,PUB.day).filter(s=>s.left>0):[];
   const dayLbl=PUB.day?new Date(PUB.day+"T00:00").toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"}):"";const tv=F.geo&&F.geo.km!=null?F.geo:null;
   return pubShell(`${bar}<div class="ap-card"><div class="ap-cal">
-   <div class="ap-info"><div class="small muted">${esc(settings().company)}</div><h2 style="margin:4px 0 14px">${esc(c.position)} interview</h2>
-    <p class="ap-meta">${c.len} minutes</p><p class="ap-meta">${hub}, ${esc(c.location)}</p>${tv?`<p class="ap-meta">About ${tv.km} km · ${fmtMins(tv.mins)} by ${esc((F.transport||"").toLowerCase())}</p>`:""}<p class="ap-meta">For ${esc(F.name||"")}</p>
-    <button class="btn sm" data-act="ap-go" data-v="quiz" style="margin-top:14px">← Back</button></div>
-   <div><div class="ap-mh"><h3 style="margin:0">Select a date</h3><div class="row"><button class="ap-nav" data-act="ap-month" data-v="-1" ${base>curM?"":"disabled"} aria-label="Previous month">‹</button><span>${base.toLocaleDateString(undefined,{month:"long",year:"numeric"})}</span><button class="ap-nav" data-act="ap-month" data-v="1" ${new Date(y,m+1,1)<=lim?"":"disabled"} aria-label="Next month">›</button></div></div>
-    <div class="ap-grid">${cells}</div><p class="small muted" style="margin:14px 0 0">Blue dates have open interview slots.</p></div>
-   <div>${PUB.day?`<h3 style="margin:0 0 12px">${dayLbl}</h3><div class="ap-times">${slots.map(s=>PUB.time===s.iso?`<div class="ap-tsel"><span>${s.label}</span><button class="btn primary" data-act="ap-book">Request</button></div>`:`<button class="ap-t" data-act="ap-time" data-v="${s.iso}">${s.label}${s.left<=2?`<small>${s.left} seat${s.left>1?"s":""} left</small>`:""}</button>`).join("")||`<p class="muted">No open times left on this day.</p>`}</div>`:`<p class="muted" style="margin:0">Pick a date to see open times.</p>`}${err}</div>
+   <div class="ap-info"><h2 style="margin:4px 0 14px">${esc(c.position)} interview</h2>
+    <p class="ap-meta">${c.len} minutes</p><p class="ap-meta">${hub}, ${esc(c.location)}</p>${tv?`<p class="ap-meta">Mga ${tv.km} km · ${fmtMins(tv.mins)} (${esc((F.transport||"").toLowerCase())})</p>`:""}<p class="ap-meta">Para kay ${esc(F.name||"")}</p>
+    <div class="ap-sec ap-note" style="margin-top:14px"><b>Tama ba ang contact info mo?</b><div class="small" style="margin:6px 0">Mobile: <b>${esc(F.phone||"")}</b><br>Email: <b>${esc(F.email||"")}</b></div>
+     <label class="row small" style="align-items:flex-start;flex-wrap:nowrap"><input type="checkbox" id="ap-cconf" ${F.contactOk?"checked":""} style="margin-top:3px"> <span>Oo, tama ang mobile number at email ko. Dito ipapadala ang code at schedule ko.</span></label>
+     <button class="ap-link" data-act="ap-go" data-v="form" style="margin-top:6px">Baguhin ang contact info</button></div>
+    <button class="btn sm" data-act="ap-go" data-v="quiz" style="margin-top:14px">← Bumalik</button></div>
+   <div><div class="ap-mh"><h3 style="margin:0">Pumili ng araw</h3><div class="row"><button class="ap-nav" data-act="ap-month" data-v="-1" ${base>curM?"":"disabled"} aria-label="Previous month">‹</button><span>${base.toLocaleDateString(undefined,{month:"long",year:"numeric"})}</span><button class="ap-nav" data-act="ap-month" data-v="1" ${new Date(y,m+1,1)<=lim?"":"disabled"} aria-label="Next month">›</button></div></div>
+    <div class="ap-grid">${cells}</div><p class="small muted" style="margin:14px 0 0">May bakanteng slot sa mga araw na kulay blue.</p></div>
+   <div>${PUB.day?`<h3 style="margin:0 0 12px">${dayLbl}</h3><div class="ap-times">${slots.map(s=>PUB.time===s.iso?`<div class="ap-tsel"><span>${s.label}</span><button class="btn primary" data-act="ap-book">I-book</button></div>`:`<button class="ap-t" data-act="ap-time" data-v="${s.iso}">${s.label}${s.left<=2?`<small>${s.left} slot na lang</small>`:""}</button>`).join("")||`<p class="muted">Wala nang bakanteng oras sa araw na 'to.</p>`}</div>`:`<p class="muted" style="margin:0">Pumili ng araw para makita ang bakanteng oras.</p>`}${err}</div>
   </div></div>`,c)}
 function vTicket(a){
-  if(!a||!a.code)return pubShell(`<div class="ap-card ap-narrow"><h1>Booking not found</h1><p class="muted">Open the link from the device you booked on, or ask the recruiter for help.</p></div>`);
+  if(!a||!a.code)return pubShell(`<div class="ap-card ap-narrow"><h1>Hindi makita ang booking</h1><p class="muted">Buksan ang link sa phone na ginamit mo sa pag-book, o magtanong sa recruiter.</p></div>`);
   const s=settings(),d=new Date(a.slot),st=a.booking?.status||"approved",first=esc(a.name.split(" ")[0]);
-  const when=`<dl class="ap-dl"><div><dt>Date</dt><dd>${d.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</dd></div>
-    <div><dt>Time</dt><dd>${d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})}</dd></div>
-    <div><dt>Where</dt><dd>${esc(a.hubName?a.hubName+", ":"")}${esc(a.location||s.hubAddress)}</dd></div><div><dt>Position</dt><dd>${esc(a.position||s.position)}</dd></div><div><dt>Reference</dt><dd>${esc(a.code)}</dd></div></dl>`;
+  const when=`<dl class="ap-dl"><div><dt>Petsa</dt><dd>${d.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</dd></div>
+    <div><dt>Oras</dt><dd>${d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})}</dd></div>
+    <div><dt>Saan</dt><dd>${esc(a.hubName?a.hubName+", ":"")}${esc(a.location||s.hubAddress)}</dd></div><div><dt>Position</dt><dd>${esc(a.position||s.position)}</dd></div><div><dt>Reference</dt><dd>${esc(a.code)}</dd></div></dl>`;
   if(st==="pending")return pubShell(`<div class="ap-card ap-narrow ap-ticket"><div class="ap-check wait" aria-hidden="true">…</div>
-   <h1 style="text-align:center;margin:0">Request received, ${first}</h1>
-   <p class="muted" style="text-align:center;margin:8px 0 0">Our team is reviewing your application. Once your interview is approved, your QR code will appear on this page and we'll contact you at ${esc(a.email||a.phone)}.</p>${when}
-   <p class="small muted noprint" style="text-align:center;margin:18px 0 0">Bookmark this page to check your status.</p></div>`);
-  if(st==="declined")return pubShell(`<div class="ap-card ap-narrow ap-ticket"><h1 style="text-align:center;margin:0">We can't confirm this interview</h1>
-   <p class="muted" style="text-align:center;margin:8px 0 0">Thank you for applying, ${first}. We aren't able to schedule an interview for this campaign right now.${a.booking?.note?" "+esc(a.booking.note):""}</p></div>`);
-  const png=qrPng("MOBER:"+a.code);
+   <h1 style="text-align:center;margin:0">Natanggap na namin ang request mo, ${first}!</h1>
+   <p class="muted" style="text-align:center;margin:8px 0 0">Nire-review pa ng team namin ang application mo. Makakatanggap ka ng email o SMS mula sa <b>DRAYBERFLX</b> kapag may desisyon na.</p>
+   <div class="ap-code" style="margin-top:18px">${esc(a.code)}</div><p class="small muted" style="text-align:center;margin:4px 0 0">Ito ang code mo. <b>I-screenshot ang page na 'to.</b></p>${when}
+   <p class="small muted noprint" style="text-align:center;margin:18px 0 0">Para i-check ang status mo kahit kailan, buksan ang <b>Tingnan ang application mo</b> sa homepage at ilagay ang code mo.</p></div>`);
+  if(st==="declined")return pubShell(`<div class="ap-card ap-narrow ap-ticket"><h1 style="text-align:center;margin:0">Hindi namin ma-confirm ang interview na 'to</h1>
+   <p class="muted" style="text-align:center;margin:8px 0 0">Salamat sa pag-apply, ${first}. Sa ngayon, hindi pa namin kayang mag-schedule ng interview para sa campaign na 'to.${a.booking?.note?" "+esc(a.booking.note):""}</p></div>`);
+  const res=vResult(a,first);if(res)return pubShell(res);
+  const png=qrPng("DF:"+a.code);
   return pubShell(`<div class="ap-card ap-narrow ap-ticket"><div class="ap-check" aria-hidden="true">✓</div>
-   <h1 style="text-align:center;margin:0">You're booked, ${first}</h1>
-   <p class="muted" style="text-align:center;margin:8px 0 0">Show this QR code at the check-in desk when you arrive.</p>
-   <div class="ap-qr">${qrSvg("MOBER:"+a.code,6)}</div><div class="ap-code">${esc(a.code)}</div>${when}
-   <div class="ap-sec ap-note"><h3 style="margin:0 0 6px">Bring these originals</h3><ul class="ap-list"><li>NBI clearance</li><li>Medical certificate, issued in the last ${s.medicalMaxMonths} months</li><li>Driver's licence</li></ul></div>
-   <div class="ap-actions noprint">${png?`<a class="btn primary lg" href="${png}" download="interview-${esc(a.code)}.gif">Save QR image</a>`:""}<button class="btn lg" data-act="ap-print">Print</button></div>
-   <p class="small muted noprint" style="text-align:center;margin:14px 0 0">Tip: take a screenshot so you have it without internet.</p></div>`)}
+   <h1 style="text-align:center;margin:0">Booked ka na, ${first}!</h1>
+   <p class="muted" style="text-align:center;margin:8px 0 0">Ipakita ang QR code na 'to sa check-in desk pagdating mo.</p>
+   <div class="ap-qr">${qrSvg("DF:"+a.code,6)}</div><div class="ap-code">${esc(a.code)}</div>${when}
+   <div class="ap-sec ap-note"><h3 style="margin:0 0 6px">Dalhin ang mga original</h3><ul class="ap-list"><li>NBI clearance</li><li>Medical certificate (na-issue sa loob ng huling ${s.medicalMaxMonths} buwan)</li><li>Driver's license</li></ul></div>
+   <div class="ap-actions noprint">${png?`<a class="btn primary lg" href="${png}" download="interview-${esc(a.code)}.gif">I-save ang QR</a>`:""}<button class="btn lg" data-act="ap-print">Print</button></div>
+   <p class="small muted noprint" style="text-align:center;margin:14px 0 0">Tip: i-screenshot mo para may kopya ka kahit walang internet. Pwede mo ring buksan ulit ang page na 'to sa <b>Tingnan ang application mo</b> gamit ang code mo.</p></div>`)}
+/* ---- applicant results on their phone (shown only after Check-in gives the result) ---- */
+function trainCamp(a){const c=campById(a.campaignId)||camps()[0]||{};const t=trainOf(c);return{c,t,hub:t.hubName||c.hubName||"hub",loc:t.location||c.location||""}}
+function trDayOpen(a,ds){const {c,t}=trainCamp(a),d=new Date(ds+"T00:00"),lo=new Date();lo.setHours(0,0,0,0);const hi=new Date(lo);hi.setDate(hi.getDate()+t.window);
+  if(d<=lo||d>hi)return false;const seats=trSeats(t,ds);if(!seats)return false;const taken=(TR_TAKEN[ds]||0)-((a.training?.slot===ds)?1:0);return taken<seats}
+function vResult(a,first){const rl=a.released||{},t=a.training||{},card=(cls,h)=>`<div class="ap-card ap-narrow ap-ticket ${cls}">${h}</div>`;
+  if(rl.fail)return card("",`<h1 style="text-align:center;margin:0">Salamat sa oras mo, ${first}.</h1>
+    <p style="text-align:center;margin:14px 0 0">Sa ngayon, hindi ka nakapasa sa <b>${esc(rl.fail.stage||"screening")}</b> ng Drayber Flex screening.</p>
+    <p class="muted" style="text-align:center;margin:10px 0 0">Alam naming pinaghandaan mo ito, at salamat sa effort mo sa pagpunta.</p>
+    <p class="muted" style="text-align:center;margin:10px 0 0">Kung may tanong ka, kausapin lang ang staff sa check-in desk.</p>
+    <p style="text-align:center;margin:18px 0 0"><b>Good luck sa susunod, ${first}!</b></p>`);
+  if(rl.accredited)return card("ap-pass",`<div class="ap-check" aria-hidden="true">🏆</div><h1 style="text-align:center;margin:0">Congratulations, ${first}!</h1>
+    <p style="text-align:center;margin:12px 0 0;font-size:19px"><b>Accredited Drayber Flex driver ka na.</b></p>
+    <p class="muted" style="text-align:center;margin:10px 0 0">Pwede ka nang mag-check in sa hub sa mga araw na available ka.</p>
+    <p style="text-align:center;margin:18px 0 0"><b>Rest Day mo? Gawin Pay Day!</b></p>`);
+  if(!rl.pass)return"";
+  const {t:tc,hub,loc}=trainCamp(a),err=PUB.trErr?`<p class="ap-err" role="alert" style="text-align:center">${PUB.trErr}</p>`:"";
+  if(t.response==="declined")return card("",`<h1 style="text-align:center;margin:0">Okay lang, ${first}. Salamat sa pag-apply!</h1>
+    <p class="muted" style="text-align:center;margin:12px 0 0">Kung magbago ang isip mo, kausapin lang ang staff sa check-in desk.</p>`);
+  if(!t.response)return card("ap-pass",`<div class="ap-check" aria-hidden="true">🎉</div><h1 style="text-align:center;margin:0">Congratulations, ${first}!</h1>
+    <p style="text-align:center;margin:12px 0 0">Pasado ka sa Drayber Flex screening, at <b>accepted ka sa 1-day paid training.</b></p>
+    <dl class="ap-dl"><div><dt>Training</dt><dd>EV driving, delivery process at customer service</dd></div><div><dt>Bayad</dt><dd>Paid ang training day</dd></div><div><dt>Oras</dt><dd>${fmtTime(tc.start)} – ${fmtTime(tc.end)}</dd></div><div><dt>Saan</dt><dd>${esc(hub)}${loc?", "+esc(loc):""}</dd></div></dl>
+    <p style="text-align:center;margin:18px 0 0"><b>Tatanggapin mo ba ang training?</b></p>${err}
+    <div class="tr-btns"><button class="btn primary lg ap-full" data-act="tr-accept" data-id="${a.id}">Oo, tatanggapin ko</button><button class="btn lg ap-full" data-act="tr-decline" data-id="${a.id}">Hindi muna</button></div>`);
+  const today0=today(),canChange=t.slot&&!(t.changes>=1)&&t.slot>today0;
+  if(t.slot&&!PUB.trChange){const png=qrPng("DF:"+a.code),d=new Date(t.slot+"T00:00");
+    return card("ap-pass",`<div class="ap-check" aria-hidden="true">✓</div><h1 style="text-align:center;margin:0">Booked ka na sa training, ${first}!</h1>
+    <p class="muted" style="text-align:center;margin:8px 0 0">Ipakita ang QR code mo pagdating sa hub.</p>
+    <div class="ap-qr">${qrSvg("DF:"+a.code,6)}</div><div class="ap-code">${esc(a.code)}</div>
+    <dl class="ap-dl"><div><dt>Petsa</dt><dd>${d.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</dd></div><div><dt>Oras</dt><dd>${fmtTime(tc.start)} – ${fmtTime(tc.end)}</dd></div><div><dt>Saan</dt><dd>${esc(hub)}${loc?", "+esc(loc):""}</dd></div><div><dt>Training</dt><dd>1-day paid training</dd></div></dl>${err}
+    <div class="ap-actions noprint">${png?`<a class="btn primary lg" href="${png}" download="training-${esc(a.code)}.gif">I-save ang QR</a>`:""}${canChange?`<button class="btn lg" data-act="tr-change">Palitan ang petsa</button>`:""}</div>
+    <p class="small muted noprint" style="text-align:center;margin:14px 0 0">${canChange?"Isang beses mo lang pwedeng palitan ang petsa, hanggang sa araw bago ang training.":t.changes>=1?"Napalitan mo na ang petsa. Para sa ibang pagbabago, kausapin ang staff sa check-in desk.":""}</p>`)}
+  // calendar
+  const base=PUB.tmonth?new Date(PUB.tmonth+"-01T00:00"):new Date();base.setDate(1);base.setHours(0,0,0,0);
+  const y=base.getFullYear(),m=base.getMonth(),fd=new Date(y,m,1).getDay(),n=new Date(y,m+1,0).getDate(),curM=new Date();curM.setDate(1);curM.setHours(0,0,0,0);const lim=new Date();lim.setDate(lim.getDate()+tc.window);
+  let cells=DOW.map(d=>`<span class="ap-wd">${d}</span>`).join("");for(let i=0;i<fd;i++)cells+="<span></span>";
+  for(let d=1;d<=n;d++){const ds=localDay(new Date(y,m,d)),open=trDayOpen(a,ds);cells+=`<button class="ap-d${open?" open":""}${PUB.tday===ds?" sel":""}${ds===today0?" today":""}" ${open?`data-act="tr-day" data-v="${ds}"`:"disabled"} aria-label="${ds}${open?", available":""}">${d}</button>`}
+  const left=PUB.tday?trSeats(tc,PUB.tday)-(TR_TAKEN[PUB.tday]||0):0,dl=PUB.tday?new Date(PUB.tday+"T00:00").toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"}):"";
+  return `<div class="ap-card"><div class="ap-cal">
+   <div class="ap-info"><h2 style="margin:4px 0 14px">1-day paid training</h2><p class="ap-meta">${fmtTime(tc.start)} – ${fmtTime(tc.end)}</p><p class="ap-meta">${esc(hub)}${loc?", "+esc(loc):""}</p><p class="ap-meta">Para kay ${esc(a.name||"")}</p>
+    ${PUB.trChange?`<button class="btn sm" data-act="tr-cancelchange" style="margin-top:14px">← Bumalik</button>`:""}</div>
+   <div><div class="ap-mh"><h3 style="margin:0">${PUB.trChange?"Pumili ng bagong araw":"Pumili ng araw ng training mo"}</h3><div class="row"><button class="ap-nav" data-act="tr-month" data-v="-1" ${base>curM?"":"disabled"} aria-label="Previous month">‹</button><span>${base.toLocaleDateString(undefined,{month:"long",year:"numeric"})}</span><button class="ap-nav" data-act="tr-month" data-v="1" ${new Date(y,m+1,1)<=lim?"":"disabled"} aria-label="Next month">›</button></div></div>
+    <div class="ap-grid">${cells}</div><p class="small muted" style="margin:14px 0 0">May bakanteng slot sa mga araw na kulay blue.</p></div>
+   <div>${PUB.tday?`<h3 style="margin:0 0 12px">${dl}</h3><div class="ap-times"><div class="ap-tsel"><span>${fmtTime(tc.start)} – ${fmtTime(tc.end)}${left<=3?` <small>${left} slot na lang</small>`:""}</span><button class="btn primary" data-act="tr-book" data-id="${a.id}">I-book</button></div></div>`:`<p class="muted" style="margin:0">Pumili ng araw para makita ang slot.</p>`}${err}</div>
+  </div></div>`}
+const TR_ERR={full:"Puno na ang araw na 'yan. Pumili ng iba.",nochange:"Napalitan mo na ang petsa dati. Kausapin ang staff sa check-in desk.",toolate:"Hindi na pwedeng palitan sa araw ng training. Kausapin ang staff sa check-in desk.",
+  range:"Hindi pwedeng i-book ang araw na 'yan. Pumili ng iba.",closedday:"Walang training sa araw na 'yan. Pumili ng iba.",already:"Nakasagot ka na dati.",notready:"Hindi pa available ito. I-refresh ang page."};
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-act^='tr-']");if(!b||!PUB.route)return;e.preventDefault();e.stopPropagation();
+  const A=b.dataset.act,id=PUB.id;PUB.trErr="";
+  if(A==="tr-day"){PUB.tday=b.dataset.v;return render()}
+  if(A==="tr-month"){const base=PUB.tmonth?new Date(PUB.tmonth+"-01T00:00"):new Date();base.setDate(1);base.setMonth(base.getMonth()+ +b.dataset.v);PUB.tmonth=localDay(base).slice(0,7);return render()}
+  if(A==="tr-change"){PUB.trChange=true;PUB.tday=null;return render()}
+  if(A==="tr-cancelchange"){PUB.trChange=false;return render()}
+  b.disabled=true;
+  try{let r;
+    if(A==="tr-accept"||A==="tr-decline"){if(A==="tr-decline"&&!confirm("Sigurado ka bang hindi mo muna tatanggapin ang training?")){b.disabled=false;return}r=await SB.rpc("training_respond",{p_id:id,p_resp:A==="tr-accept"?"accepted":"declined"})}
+    if(A==="tr-book"){r=await SB.rpc("book_training",{p_id:id,p_day:PUB.tday})}
+    if(r&&r.error)throw r.error;if(r&&r.data&&r.data.error)PUB.trErr=TR_ERR[r.data.error]||"May problema. Subukan ulit.";else if(A==="tr-book"){PUB.trChange=false;PUB.tday=null}
+  }catch(err){PUB.trErr="Hindi namin naipadala. I-check ang internet mo at subukan ulit."}
+  await trRefresh(id);render();window.scrollTo(0,0)},true);
+/* ---- status lookup: code + last 4 digits of mobile ---- */
+function vStatus(){const F=PUB.st||{};return pubShell(`<div class="ap-card ap-narrow"><div class="ap-eyebrow">Drayber Flex</div><h1 style="margin:14px 0 6px">Tingnan ang application mo</h1>
+  <p class="muted" style="margin:0 0 20px">Ilagay ang code mo (halimbawa MB-7K2Q9P) at ang huling 4 digits ng mobile number na ginamit mo sa pag-apply.</p>
+  <div class="ap-form" style="grid-template-columns:1fr"><label class="f">Code<input id="st-code" value="${esc(F.code||"")}" placeholder="MB-XXXXXX" autocapitalize="characters" autocomplete="off" style="text-transform:uppercase;letter-spacing:.08em"></label>
+  <label class="f">Huling 4 digits ng mobile number<input id="st-last4" value="${esc(F.last4||"")}" inputmode="numeric" maxlength="4" placeholder="4567"></label></div>
+  ${PUB.stErr?`<p class="ap-err" role="alert">${PUB.stErr}</p>`:""}
+  <button class="btn primary lg ap-full" data-act="st-go" style="margin-top:18px">Tingnan</button>
+  <p class="small muted" style="margin:16px 0 0;text-align:center">Wala pang code? <a href="#apply/open">Mag-apply dito</a></p></div>`)}
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-act='st-go']");if(!b)return;e.preventDefault();
+  const code=($("#st-code").value||"").trim().toUpperCase().replace(/\s+/g,""),last4=($("#st-last4").value||"").replace(/\D/g,"");PUB.st={code,last4};PUB.stErr="";
+  if(!/^MB-?[A-Z0-9]{6}$/.test(code)){PUB.stErr="Paki-check ang code. Ganito ang itsura: MB-7K2Q9P.";return render()}
+  if(last4.length!==4){PUB.stErr="Ilagay ang huling 4 digits ng mobile number mo.";return render()}
+  b.disabled=true;b.textContent="Hinahanap…";
+  const {data,error}=await SB.rpc("lookup_ticket",{p_code:code.replace(/^MB-?/,"MB-"),p_last4:last4});
+  if(error||!data){PUB.stErr=error?"Hindi ma-check ngayon. I-check ang internet mo at subukan ulit.":"Walang nahanap. I-check ang code at ang huling 4 digits ng mobile number mo.";return render()}
+  PUB.st={};location.hash="#ticket/"+data});
 function bookCode(){const ch="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let c;do{c="MB-"+Array.from({length:6},()=>ch[Math.floor(Math.random()*ch.length)]).join("")}while(Object.values(S.applicants).some(a=>a.code===c));return c}
 function checkForm(){const F=PUB.form,ph=(F.phone||"").replace(/[\s-]/g,""),age=ageOf(F.birth);
-  if(!F.name||F.name.trim().split(/\s+/).length<2)return"Enter your full name (first and last).";
-  if(!/^(\+?63|0)9\d{9}$/.test(ph))return"Enter a valid mobile number, like 0917 123 4567.";
-  if(!F.email||!/^\S+@\S+\.\S+$/.test(F.email))return"Enter your email address.";
-  if(!F.birth)return"Enter your birthdate.";if(age<18)return"You must be at least 18 years old to apply.";if(age>80)return"Check your birthdate.";
-  if(!F.city)return"Choose your city or municipality.";if(!F.address||F.address.trim().length<6)return"Enter your home address.";if(!F.transport)return"Choose how you'll get to the interview.";
-  if(!F.license)return"Choose your driver's licence type.";if(F.license!=="None yet"&&!(F.codes||[]).length)return"Tick at least one licence code.";if(!F.years)return"Choose your driving experience.";
-  if(!F.consent)return"Tick the box to agree before continuing.";
+  if(!F.name||F.name.trim().split(/\s+/).length<2)return"Ilagay ang buong pangalan mo (pangalan at apelyido).";
+  if(!/^(\+?63|0)9\d{9}$/.test(ph))return"Ilagay ang tamang mobile number, halimbawa 0917 123 4567.";
+  if(!F.email||!/^\S+@\S+\.\S+$/.test(F.email))return"Ilagay ang email mo.";
+  if(!F.birth)return"Enter your birthdate.";if(age<18)return"Dapat 18 years old pataas ka para makapag-apply.";if(age>80)return"Check your birthdate.";
+  if(!F.city)return"Piliin ang city o municipality mo.";if(!F.address||F.address.trim().length<6)return"Enter your home address.";if(!F.transport)return"Piliin kung paano ka pupunta sa interview.";
+  if(!F.license)return"Choose your driver's licence type.";if(F.license!=="None yet"&&!(F.codes||[]).length)return"Tick at least one licence code.";if(!F.years)return"Piliin ang driving experience mo.";
+  if(!F.consent)return"I-tick muna ang box para makatuloy.";
   const dup=Object.values(S.applicants).find(a=>a.phone&&a.phone.replace(/[\s-]/g,"")===ph&&a.code&&!a.checkin?.status&&a.booking?.status!=="declined"&&(a.slot||"")>new Date().toISOString());
-  if(dup)return `You already have an interview request for ${fmtDT(dup.slot)}. <a href="#ticket/${dup.id}">View its status</a>.`;return""}
+  if(dup)return `May interview request ka na para sa ${fmtDT(dup.slot)}. <a href="#ticket/${dup.id}">Tingnan ang status</a>.`;return""}
 async function apGo(v,b){const c=campById(PUB.id),F=PUB.form;PUB.err="";
   if(v==="quiz"&&PUB.step==="form"){PUB.err=checkForm();if(PUB.err)return render();
-    b.disabled=true;b.textContent="Checking your address…";
+    b.disabled=true;b.textContent="Chine-check ang address mo…";
     const q=`${F.address}, ${String(F.city).replace(/\s*\(.*\)/,"")}, Philippines`;let geo=F.geo&&F.geo.q===q?F.geo:null;
     if(!geo){const g=await geocode(q)||await geocode(`${String(F.city).replace(/\s*\(.*\)/,"")}, Philippines`);geo=Object.assign({q},g||{})}
     const t=travel(parseGeo(c.hubGeo),geo.lat!=null?geo:null,F.transport);F.geo=Object.assign(geo,t||{km:null,mins:null})}
-  if(v==="time"){const A=F.answers||{},miss=cq(c).findIndex(q=>A[q.id]==null);if(miss>=0){PUB.err=`Answer question ${miss+1} to continue.`;return render()}
+  if(v==="time"){const A=F.answers||{},miss=cq(c).findIndex(q=>A[q.id]==null);if(miss>=0){PUB.err=`Sagutin muna ang tanong #${miss+1}.`;return render()}
     const d=new Date();let found=null;for(let i=0;i<=c.window&&!found;i++){const x=new Date(d);x.setDate(d.getDate()+i);const ds=localDay(x);if(dayOpen(c,ds))found=ds}
-    PUB.month=(found||today()).slice(0,7);if(!found)PUB.err="There are no open interview times right now. Please check again later."}
+    PUB.month=(found||today()).slice(0,7);if(!found)PUB.err="Wala pang bakanteng interview slot ngayon. Balikan mo na lang mamaya."}
   PUB.step=v;render();window.scrollTo(0,0)}
 async function bookNow(){const c=campById(PUB.id),F=PUB.form;if(!c||!PUB.time)return;
-  const sl=campSlots(c,PUB.day).find(s=>s.iso===PUB.time);if(!sl||sl.left<1){PUB.time=null;PUB.err="That time was just taken. Pick another.";return render()}
+  if(!F.contactOk){PUB.err="I-check ang mobile number at email mo, tapos i-tick ang “Oo, tama” na box bago mag-book.";return render()}
+  const sl=campSlots(c,PUB.day).find(s=>s.iso===PUB.time);if(!sl||sl.left<1){PUB.time=null;PUB.err="Kaka-book lang ng iba sa oras na 'yan. Pumili ng iba.";return render()}
   const now=new Date().toISOString(),id="a"+uid(),score=pqScore(c,F.answers),age=ageOf(F.birth);
   const ageOk=age>=(c.minAge??18)&&(!c.maxAge||age<=c.maxAge),auto=c.autoApprove!==false&&score>=(c.passScore??70)&&ageOk&&!(F.licExp&&F.licExp<today())&&!F.nbiHit;
   const reasons=[];if(score<(c.passScore??70))reasons.push(`score ${score}% below ${c.passScore??70}%`);if(!ageOk)reasons.push(`age ${age} outside ${c.minAge??18}${c.maxAge?"–"+c.maxAge:"+"}`);if(c.autoApprove===false)reasons.push("manual approval on");const licExpired=F.licExp&&F.licExp<today();if(licExpired)reasons.push("licence expired "+fmtD(F.licExp));if(F.nbiHit)reasons.push("NBI shows a record hit");
@@ -2069,6 +2320,11 @@ function appFacts(a){const ap=a.application||{},g=ap.geo,row=(k,v)=>`<div><dt>${
    row("Distance to hub",g&&g.km!=null?`${g.km} km · about ${fmtMins(g.mins)}`:(ap.address?"Couldn't locate address":""))+row("Transport",esc(ap.transport))+
    row("Sex",ap.sex==="M"?"Male":ap.sex==="F"?"Female":"")+row("DL codes",esc((ap.codes||[]).join(", ")))+row("Driving experience",esc(ap.years))+
    row("Pre-profile score",ap.score!=null?`${ap.score}%`:"")+docFacts(a)}
+function smsText(a){const first=(a.name||"").split(" ")[0],d=new Date(a.slot),c=campById(a.campaignId)||{};
+  const when=isNaN(d)?"":d.toLocaleDateString("en-PH",{month:"short",day:"numeric",weekday:"short"})+", "+d.toLocaleTimeString("en-PH",{hour:"numeric",minute:"2-digit"});
+  const where=[a.hubName||c.hubName,a.location||c.location].filter(x=>x&&!/set the address/i.test(x)).join(", ");
+  if(a.booking?.status==="declined")return `DRAYBERFLX: Hi ${first}, salamat sa pag-apply. Sa ngayon, hindi namin ma-confirm ang interview mo.${a.booking.note?" "+a.booking.note:""}`;
+  return `DRAYBERFLX: Hi ${first}, approved na ang interview mo sa ${when}${where?", "+where:""}. Code mo: ${a.code}. Ipakita ang SMS na ito sa check-in desk. Dalhin ang original NBI, medical cert at driver's license.`}
 function vRequests(){const P=Object.values(S.applicants).filter(a=>stage(a)==="requested").sort((a,b)=>(a.slot||"").localeCompare(b.slot||""));
   const recent=Object.values(S.applicants).filter(a=>a.booking&&a.booking.status!=="pending").sort((a,b)=>(b.booking.at||"").localeCompare(a.booking.at||"")).slice(0,8);
   return `<div class="head"><div><h1>Booking requests</h1><p>Applicants who didn't pass the automatic check. Review their pre-profile, then approve or decline the interview.</p></div></div>
@@ -2080,7 +2336,7 @@ function vRequests(){const P=Object.values(S.applicants).filter(a=>stage(a)==="r
    ${ap.answers?.length?`<div class="rq-sec"><div class="row" style="justify-content:space-between"><h3 style="margin:0">Pre-profile answers</h3><span class="small muted">${ap.answers.reduce((s,x)=>s+(x.pts||0),0)} of ${ap.answers.reduce((s,x)=>s+(x.max||0),0)} points</span></div><ol class="rq-ans">${ap.answers.map(x=>{const r=x.max?(x.pts||0)/x.max:1;return `<li class="${r>=.99?"full":r>=.5?"part":"low"}"><div class="rq-q">${esc(x.q)}</div><div class="rq-a"><b>${esc(x.a||"No answer")}</b><span class="rq-pts">${x.pts??0}/${x.max}</span></div></li>`}).join("")}</ol></div>`:""}
    <div class="row"><button class="btn primary" data-rq="approve" data-id="${a.id}">Approve interview</button><button class="btn danger" data-rq="decline" data-id="${a.id}">Decline</button></div></div>`}).join("")}</div>`
    :`<div class="tablewrap"><div class="empty">No requests waiting. Applicants who pass the automatic check are approved straight away and appear in Check-in.</div></div>`}
-  ${recent.length?`<div class="sechead" style="margin-top:32px"><h2>Recently decided</h2></div><div class="tablewrap"><table><thead><tr><th>Applicant</th><th>Interview</th><th>Score</th><th>Decision</th></tr></thead><tbody>${recent.map(a=>`<tr class="click" data-open="${a.id}"><td>${esc(a.name)}</td><td>${fmtDT(a.slot)}</td><td>${a.application?.score??"—"}%</td><td>${a.booking.status==="declined"?tag("Declined","stop"):tag(a.booking.auto?"Auto-approved":"Approved","go")}</td></tr>`).join("")}</tbody></table></div>`:""}`}
+  ${recent.length?`<div class="sechead" style="margin-top:32px"><h2>Recently decided</h2></div><div class="tablewrap"><table><thead><tr><th>Applicant</th><th>Interview</th><th>Score</th><th>Decision</th><th>Message</th></tr></thead><tbody>${recent.map(a=>`<tr class="click" data-open="${a.id}"><td>${esc(a.name)}<div class="small muted">${esc(a.phone||"")}</div></td><td>${fmtDT(a.slot)}</td><td>${a.application?.score??"—"}%</td><td>${a.booking.status==="declined"?tag("Declined","stop"):tag(a.booking.auto?"Auto-approved":"Approved","go")}</td><td>${a.booking.auto?`<span class="small muted">Not needed</span>`:`<button class="btn sm" data-act="copysms" data-id="${a.id}">Copy SMS</button>`}</td></tr>`).join("")}</tbody></table></div>`:""}`}
 async function decideBooking(id,ok){const a=S.applicants[id];if(!a)return;let note="";
   if(!ok){note=prompt(`Decline ${a.name}'s interview? Optional note shown to the applicant:`,"");if(note===null)return}
   const now=new Date().toISOString();a.booking=Object.assign({},a.booking,{status:ok?"approved":"declined",auto:false,by:S.uid,at:now,note:note||""});a.updatedAt=now;
@@ -2089,6 +2345,7 @@ document.addEventListener("click",async e=>{const r=e.target.closest("[data-rq]"
   const q=e.target.closest("[data-cqa]");if(q&&UI.editCamp){e.preventDefault();const c=readCampForm();const Q=c.questions.slice();
     if(q.dataset.cqa==="add")Q.push({id:"pq"+uid().slice(0,5),text:"",opts:[["Yes",10],["No",0]]});else Q.splice(+q.dataset.v,1);c.questions=Q;UI.editCamp=c;render()}});
 document.addEventListener("change",e=>{const t=e.target;
+  if(t.id==="ap-cconf"){PUB.form.contactOk=t.checked;PUB.err="";return render()}
   if(t.dataset.lcode!=null){const s=new Set(PUB.form.codes||[]);t.checked?s.add(t.dataset.lcode):s.delete(t.dataset.lcode);PUB.form.codes=[...s]}
   if(t.name&&t.name.startsWith("pq_")){PUB.form.answers=Object.assign({},PUB.form.answers,{[t.name.slice(3)]:+t.value})}
   if(UI.editCamp&&(t.dataset.time!=null||t.dataset.cq!=null||t.dataset.day!=null||["cp-start","cp-end","cp-len","cp-seats"].includes(t.id))){UI.editCamp=readCampForm();render()}});
@@ -2133,43 +2390,78 @@ function parseNbi(raw){const T=raw.toUpperCase(),f={};f.looks=/NBI|NATIONAL\s*BU
   return f}
 
 async function ocrBest(file,kind,O){const img=await new Promise((res,rej)=>{const i=new Image(),u=URL.createObjectURL(file);i.onload=()=>res(i);i.onerror=rej;i.src=u});
-  const prep=deg=>{const r=deg%180!==0,w=r?img.height:img.width,hh=r?img.width:img.height,sc=Math.min(2.2,2200/Math.max(w,hh));const c=document.createElement("canvas");c.width=Math.round(w*sc);c.height=Math.round(hh*sc);
-    const x=c.getContext("2d");x.translate(c.width/2,c.height/2);x.rotate(deg*Math.PI/180);x.drawImage(img,-img.width*sc/2,-img.height*sc/2,img.width*sc,img.height*sc);
-    const d=x.getImageData(0,0,c.width,c.height),p=d.data;for(let i=0;i<p.length;i+=4){let g=.3*p[i]+.59*p[i+1]+.11*p[i+2];g=Math.max(0,Math.min(255,(g-128)*1.5+128));p[i]=p[i+1]=p[i+2]=g}x.putImageData(d,0,0);return c};
-  const w=await Tesseract.createWorker("eng",1,{logger:m=>{if(m.status==="recognizing text"){O.pct=Math.round(m.progress*100);const el=document.getElementById("ocr-"+kind);if(el)el.textContent=`Reading${O.turn?" (turning photo)":""}… ${O.pct}%`}}});
+  const canvasFor=deg=>{const r=deg%180!==0,w=r?img.height:img.width,hh=r?img.width:img.height,sc=Math.min(2.2,2200/Math.max(w,hh));const c=document.createElement("canvas");c.width=Math.round(w*sc);c.height=Math.round(hh*sc);
+    const x=c.getContext("2d");x.imageSmoothingQuality="high";x.translate(c.width/2,c.height/2);x.rotate(deg*Math.PI/180);x.drawImage(img,-img.width*sc/2,-img.height*sc/2,img.width*sc,img.height*sc);return c};
+  const prep=deg=>{const c=canvasFor(deg),x=c.getContext("2d"),d=x.getImageData(0,0,c.width,c.height),p=d.data;for(let i=0;i<p.length;i+=4){let g=.3*p[i]+.59*p[i+1]+.11*p[i+2];g=Math.max(0,Math.min(255,(g-128)*1.5+128));p[i]=p[i+1]=p[i+2]=g}x.putImageData(d,0,0);return c};
+  /* black-and-white version (auto contrast + Otsu threshold): reads small digits better */
+  const prepBW=deg=>{const c=canvasFor(deg),x=c.getContext("2d"),d=x.getImageData(0,0,c.width,c.height),p=d.data,n=p.length/4,G=new Uint8ClampedArray(n),h=new Array(256).fill(0);
+    for(let i=0;i<n;i++){const g=Math.round(.3*p[i*4]+.59*p[i*4+1]+.11*p[i*4+2]);G[i]=g;h[g]++}
+    let lo=0,hi=255,acc=0;while(acc+h[lo]<n*.02&&lo<254)acc+=h[lo++];acc=0;while(acc+h[hi]<n*.02&&hi>lo+1)acc+=h[hi--];
+    const st=v=>Math.max(0,Math.min(255,Math.round((v-lo)*255/(hi-lo)))),H2=new Array(256).fill(0);for(let i=0;i<n;i++){G[i]=st(G[i]);H2[G[i]]++}
+    let sum=0;for(let t=0;t<256;t++)sum+=t*H2[t];let sB=0,wB=0,best=0,th=128;for(let t=0;t<256;t++){wB+=H2[t];if(!wB)continue;const wF=n-wB;if(!wF)break;sB+=t*H2[t];const mB=sB/wB,mF=(sum-sB)/wF,v=wB*wF*(mB-mF)*(mB-mF);if(v>best){best=v;th=t}}
+    for(let i=0;i<n;i++){const v=G[i]>th?255:0;p[i*4]=p[i*4+1]=p[i*4+2]=v}x.putImageData(d,0,0);return c};
+  const w=await Tesseract.createWorker("eng",1,{logger:m=>{if(m.status==="recognizing text"){O.pct=Math.round(m.progress*100);const el=document.getElementById("ocr-"+kind);if(el)el.textContent=`${O.pass||"Binabasa"}… ${O.pct}%`}}});
   const parse=kind==="license"?parseLicence:parseNbi,rank=f=>(f.looks?5:0)+Object.values(f).filter(v=>v&&(!Array.isArray(v)||v.length)).length;
-  let best=null;try{for(const deg of(img.width>img.height?[0,180,90,270]:[90,270,0,180])){O.turn=deg!==(img.width>img.height?0:90);const r=await w.recognize(prep(deg)),f=parse(r.data.text),s=rank(f);
-    if(!best||s>best.s)best={f,s};if(f.looks&&s>=7)break}}finally{w.terminate()}
+  let best=null;const texts=[];
+  try{for(const deg of(img.width>img.height?[0,180,90,270]:[90,270,0,180])){O.pass=deg!==(img.width>img.height?0:90)?"Inaayos ang photo":"Binabasa";const r=await w.recognize(prep(deg)),f=parse(r.data.text),s=rank(f);
+      if(!best||s>best.s)best={f,s,deg,text:r.data.text};if(f.looks&&s>=7)break}
+    if(kind==="license"&&best&&best.f.looks){texts.push([best.text,1]);
+      O.pass="Binabasa ulit para sigurado";
+      texts.push([(await w.recognize(prepBW(best.deg))).data.text,2]);
+      await w.setParameters({tessedit_char_whitelist:"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-/,. ",tessedit_pageseg_mode:"6"});
+      texts.push([(await w.recognize(canvasFor(best.deg))).data.text,2]);
+      texts.push([(await w.recognize(prepBW(best.deg))).data.text,2])}}
+  finally{w.terminate()}
+  if(texts.length){const vote=list=>{const m={};list.forEach(([v,wt])=>{if(v)m[v]=(m[v]||0)+wt});return Object.entries(m).sort((a,b)=>b[1]-a[1]||b[0].length-a[0].length)[0]?.[0]||""};
+    const ln=vote(texts.map(([t,wt])=>[licNoTolerant(t),wt]));if(ln)best.f.licNo=ln;
+    const cd=vote(texts.map(([t,wt])=>[codesTolerant(t).join(","),wt]));if(cd&&cd.split(",").length>=(best.f.codes||[]).length)best.f.codes=cd.split(",");
+    window.__ocrTexts=texts}
   return best.f}
+/* tolerant readers for phone photos: OCR often turns E into 5/£, 1 into t/4/%, B into 8, and dashes into 1 */
+function licNoTolerant(raw){const T=raw.toUpperCase().replace(/[£€]/g,"E").replace(/\$/g,"S").replace(/[|]/g,"I");
+  const dg=s=>s.replace(/[OQDU]/g,"0").replace(/[ILT!%]/g,"1").replace(/S/g,"5").replace(/B/g,"8").replace(/Z/g,"2").replace(/G/g,"6");
+  const re=/(?:^|[^A-Z0-9])([A-Z5])\s*([0-9OQDU]{2,3})\s*[-–—.~_]\s*([0-9OQDUILT%!SBZG]{2})\s*[-–—.~_]?\s*([0-9OQDUILT!SBZG]{6,7})/g;let m,out="";
+  while((m=re.exec(T))){let [_,a,b,c,d]=m;if(b.length===3)b=b.slice(1);if(d.length===7)d=/^[1ILT!]/.test(d)?d.slice(1):d.slice(0,6);
+    const v=`${a==="5"?"S":a}${dg(b)}-${dg(c)}-${dg(d)}`;if(/^[A-Z]\d{2}-\d{2}-\d{6}$/.test(v)){out=v;break}}
+  return out}
+function codesTolerant(raw){const LN=raw.toUpperCase().split(/\n/),lines=[];let best=[];
+  const i=LN.findIndex(l=>/D[LT1I]\s*C[O0]D|C[O0]DES/.test(l));if(i>=0){lines.push(LN[i+1]||"");lines.push(LN[i])}
+  LN.forEach(l=>{if(/\b[A48]\s*[,.]\s*[A48]|[AB8]\s*[1IL4]\s*[,.]|[AB8][A-Z0-9,.;\s]{0,22}\s+N[O0]NE/.test(l))lines.push(l)});
+  for(let l of lines){const nm=l.match(/^(.*?)\s*\bN[O0]NE\b/);if(nm)l=nm[1];l=l.replace(/\bCONDITIONS?\b.*$/,"").replace(/D[LT1I]\s*C[O0]DES?/,"");
+    const run=(l.match(/[AB8C4][A-Z0-9,.;\s]{0,24}$/)||[""])[0]
+      .replace(/8(?=[12IL!|T4,.;\s]|$)/g,"B").replace(/([AB])\s*[IL!|T4]/g,"$11").replace(/(^|[,.;\s])4/g,"$1A").replace(/([AB])\s+([12])/g,"$1$2").replace(/D(?=2)/g,"B").replace(/[^A-Z0-9]/g,"");
+    const g=[];let k=0;while(k<run.length){const m=run.slice(k).match(/^(CE|BE|A1|B1|B2|A|B|C|D)/);if(m){g.push(m[1]);k+=m[1].length}else k++}
+    const u=[...new Set(g)];if(u.length>best.length)best=u}
+  return LCODES.map(c=>c[0]).filter(c=>best.includes(c))}
 
 const IMGK={license:"licImg",nbi:"nbiImg",medical:"medImg"};
 async function scanDoc(kind,file){const F=PUB.form,O=PUB.ocr[kind]={status:"reading",pct:0,msg:""};
-  try{F[IMGK[kind]]=await shrinkImage(file)}catch(e){O.status="error";O.msg="That file isn't an image we can open. Try a JPG or PNG photo.";return render()}
-  if(kind==="medical"){O.status="done";O.looks=true;O.got=["photo"];O.msg="Photo saved. Add the date it was issued below.";return render()}
+  try{F[IMGK[kind]]=await shrinkImage(file)}catch(e){O.status="error";O.msg="Hindi namin mabuksan ang file na 'yan. Subukan ang JPG o PNG na photo.";return render()}
+  if(kind==="medical"){O.status="done";O.looks=true;O.got=["photo"];O.msg="Na-save ang photo. Ilagay sa ibaba ang petsa ng issue.";return render()}
   render();
   try{if(!window.Tesseract)await loadScript("https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js");
     const f=await ocrBest(file,kind,O),got=[];
     
-if(kind==="license"){if(f.name){F.name=f.name;got.push("name")}if(f.sex){F.sex=f.sex;got.push("sex")}if(f.birth){F.birth=f.birth;got.push("date of birth")}if(f.licNo){F.licNo=f.licNo;got.push("licence number")}if(f.licExp){F.licExp=f.licExp;got.push("expiration")}
+if(kind==="license"){if(f.name){F.name=f.name;got.push("pangalan")}if(f.sex){F.sex=f.sex;got.push("kasarian")}if(f.birth){F.birth=f.birth;got.push("birthday")}if(f.licNo){F.licNo=f.licNo;got.push("license number")}if(f.licExp){F.licExp=f.licExp;got.push("expiration date")}
       if(f.codes.length){F.codes=f.codes;got.push("DL codes")}if(f.address){F.licAddr=f.address.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());F.addrOk=null;got.push("address")}if(f.city){F.licCity=f.city}}
 
     else{if(f.nbiNo){F.nbiNo=f.nbiNo;got.push("clearance number")}if(f.nbiExp){F.nbiExp=f.nbiExp;got.push("valid-until date")}if(f.nbiHit!=null){F.nbiHit=f.nbiHit;got.push("remarks")}}
     O.status="done";O.looks=f.looks;O.got=got;
-    O.msg=(f.looks&&kind==="license"&&!f.license&&got.length?"":"")+(!f.looks?`This doesn't look like ${kind==="license"?"a driver's licence":"an NBI clearance"}. Check the photo, or fill in the details below.`:got.length?`We read: ${got.join(", ")}. Check them below.`:"We couldn't read the details. Retake the photo flat and well lit, or type them below.")}
-  catch(e){O.status="error";O.msg="We couldn't read the photo automatically. Please type the details below."}
+    O.msg=(f.looks&&kind==="license"&&!f.license&&got.length?"":"")+(!f.looks?`Mukhang hindi ${kind==="license"?"driver's license":"NBI clearance"} 'to. I-check ang photo, o i-type na lang ang details sa ibaba.`:got.length?`Nabasa namin: ${got.join(", ")}. I-check sa ibaba.`:"Hindi namin nabasa ang details. Kunan ulit nang flat at maliwanag, o i-type na lang sa ibaba.")}
+  catch(e){O.status="error";O.msg="Hindi namin nabasa nang automatic ang photo. Paki-type na lang ang details sa ibaba."}
   render()}
-function upCard(kind){const F=PUB.form,img=F[IMGK[kind]],O=PUB.ocr[kind]||{},nm=kind==="license"?"driver's licence":kind==="nbi"?"NBI clearance":"medical certificate";
-  if(!img)return `<div class="ap-cap"><button class="ap-cap-main" data-snap="${kind}"><span class="ap-drop-i" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span><span><b>Take a photo of your ${nm}</b><small>${kind==="license"?"We'll show a frame. Fit the front of the card inside it.":"Fit the whole page inside the frame."}</small></span></button><label class="ap-cap-alt">Upload from gallery<input type="file" accept="image/*" data-scan="${kind}"></label></div>`;
+function upCard(kind){const F=PUB.form,img=F[IMGK[kind]],O=PUB.ocr[kind]||{},nm=kind==="license"?"driver's license":kind==="nbi"?"NBI clearance":"medical certificate";
+  if(!img)return `<div class="ap-cap"><button class="ap-cap-main" data-snap="${kind}"><span class="ap-drop-i" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span><span><b>Picturan ang ${nm} mo</b><small>${kind==="license"?"May lalabas na frame. Ipasok mo sa loob ang harap ng card.":"Ipasok ang buong page sa loob ng frame."}</small></span></button><label class="ap-cap-alt">Upload mula sa gallery<input type="file" accept="image/*" data-scan="${kind}"></label></div>`;
   return `<div class="ap-upd"><img src="${img}" alt="${nm} photo"><div class="stack" style="gap:8px;min-width:0">
-   ${O.status==="reading"?`<div class="ap-ocr"><span class="ap-spin" aria-hidden="true"></span><span id="ocr-${kind}">Reading… ${O.pct||0}%</span></div>`:O.msg?`<p class="small" style="margin:0;color:${O.status==="done"&&O.looks&&O.got?.length?"var(--go)":"var(--wait)"}">${O.msg}</p>`:""}
-   <div class="row" style="gap:8px"><button class="btn sm" data-snap="${kind}">Retake photo</button><label class="btn sm">Upload instead<input type="file" accept="image/*" data-scan="${kind}" style="display:none"></label></div></div></div>`}
+   ${O.status==="reading"?`<div class="ap-ocr"><span class="ap-spin" aria-hidden="true"></span><span id="ocr-${kind}">Binabasa… ${O.pct||0}%</span></div>`:O.msg?`<p class="small" style="margin:0;color:${O.status==="done"&&O.looks&&O.got?.length?"var(--go)":"var(--wait)"}">${O.msg}</p>`:""}
+   <div class="row" style="gap:8px"><button class="btn sm" data-snap="${kind}">Kunan ulit</button><label class="btn sm">I-upload na lang<input type="file" accept="image/*" data-scan="${kind}" style="display:none"></label></div></div></div>`}
 function docFields(kind){const F=PUB.form,f=(k,l,type,ph)=>`<label class="f">${l}<input id="ap-${k}" type="${type}" value="${esc(F[k]||"")}" placeholder="${ph||""}"></label>`;
   if(kind==="license"){if(F.license==="None yet")return"";const exp=F.licExp&&F.licExp<today();
     return `<div class="ap-form" style="margin-top:16px">${f("licNo","Licence number","text","N01-23-456789")}${f("licExp","Licence expiry","date")}</div>${exp?`<p class="ap-err" style="margin-top:8px">This licence expired on ${fmtD(F.licExp)}. You can still apply, but our team will review it first.</p>`:""}`}
-  if(kind==="medical"){if(!F.medImg)return"";return `<div class="ap-form" style="margin-top:4px">${f("medDate","Date issued","date")}${f("medClinic","Clinic","text")}</div>`}
+  if(kind==="medical"){if(!F.medImg)return"";return `<div class="ap-form" style="margin-top:4px">${f("medDate","Petsa ng issue","date")}${f("medClinic","Clinic","text")}</div>`}
   if(!F.nbiImg&&!F.nbiNo)return"";
   return `<div class="ap-form" style="margin-top:16px">${f("nbiNo","NBI clearance number","text")}${f("nbiExp","Valid until","date")}</div>
-   <label class="row small" style="margin-top:10px"><input type="checkbox" id="ap-nbiHit" ${F.nbiHit?"checked":""}> The clearance shows a record "hit"</label>`}
+   <label class="row small" style="margin-top:10px"><input type="checkbox" id="ap-nbiHit" ${F.nbiHit?"checked":""}> May "hit" ang clearance</label>`}
 async function attachDocs(a,F){a.docs=a.docs||{};
   const put=async img=>{if(!img)return[];const pid="p"+uid();try{await IDB.put(pid,img);PHOTOS[pid]=img;return[pid]}catch(e){return[]}};
   if(F.licImg||F.licNo)a.docs.license={number:F.licNo||"",expiry:F.licExp||"",restrictions:(F.codes||[]).join(", "),photos:await put(F.licImg),fromApplicant:true};
@@ -2185,35 +2477,35 @@ document.addEventListener("change",e=>{const t=e.target;if(t.dataset.scan&&t.fil
 function vLicStep(c,err){const F=PUB.form,O=PUB.ocr.license||{},has=F.licImg||F.manual,reading=O.status==="reading";
   const inp=(k,l,type,ph)=>`<label class="f">${l}<input id="ap-${k}" type="${type||"text"}" value="${esc(F[k]||"")}" placeholder="${ph||""}" ${type==="date"&&k==="birth"?`max="${today()}"`:""}></label>`;
   const codes=F.codes||[],sameAddr=F.addrOk;
-  let body=`<h2 style="margin:0 0 4px">Your driver's licence</h2><p class="muted" style="margin:0 0 20px">Upload the front of your licence. We'll read your details from it so you don't have to type them.</p>${upCard("license")}`;
-  if(!has)body+=`<button class="ap-link" data-act="ap-manual">I can't upload a photo, I'll type my details</button>`;
+  let body=`<h2 style="margin:0 0 4px">Driver's license mo</h2><p class="muted" style="margin:0 0 20px">Picturan ang harap ng license mo. Babasahin namin ang details para hindi mo na kailangang i-type.</p>${upCard("license")}`;
+  if(!has)body+=`<button class="ap-link" data-act="ap-manual">Hindi ako maka-upload ng photo, ita-type ko na lang</button>`;
   if(has&&!reading){const exp=F.licExp&&F.licExp<today();
-    body+=`<h3 class="ap-h3">Check your details</h3><p class="small muted" style="margin:-4px 0 14px">Fix anything that was read wrong.</p>
-    <div class="ap-form">${inp("name","Full name","text","First and last name")}<label class="f">Sex<select id="ap-sex"><option value="">Choose…</option>${[["M","Male"],["F","Female"]].map(([v,l])=>`<option value="${v}" ${F.sex===v?"selected":""}>${l}</option>`).join("")}</select></label>
-     ${inp("birth","Date of birth","date")}${inp("licNo","Licence number","text","N01-23-456789")}${inp("licExp","Expiration date","date")}</div>
-    ${exp?`<p class="ap-err" style="margin-top:8px">This licence expired on ${fmtD(F.licExp)}. You can still apply, but our team will review it first.</p>`:""}
+    body+=`<h3 class="ap-h3">I-check ang details mo</h3><p class="small muted" style="margin:-4px 0 14px">Itama mo kung may maling nabasa.</p>
+    <div class="ap-form">${inp("name","Buong pangalan","text","Pangalan at apelyido")}<label class="f">Kasarian<select id="ap-sex"><option value="">Pumili…</option>${[["M","Lalaki"],["F","Babae"]].map(([v,l])=>`<option value="${v}" ${F.sex===v?"selected":""}>${l}</option>`).join("")}</select></label>
+     ${inp("birth","Birthday","date")}${inp("licNo","License number","text","N01-23-456789")}${inp("licExp","Expiration date","date")}</div>
+    ${exp?`<p class="ap-err" style="margin-top:8px">Expired na ang license mo noong ${fmtD(F.licExp)}. Pwede ka pa ring mag-apply, pero ire-review muna ito ng team namin.</p>`:""}
     <div style="margin-top:18px"><div class="lbl">DL codes</div><div class="ap-codes">${LCODES.map(([k,d])=>`<label class="ap-code-c"><input type="checkbox" data-lcode="${k}" ${codes.includes(k)?"checked":""}><span><b>${k}</b><small>${d}</small></span></label>`).join("")}</div></div>
-    <h3 class="ap-h3">Your address</h3>
-    ${F.licAddr?`<div class="ap-addr"><span class="small muted">Address on your licence</span><div>${esc(F.licAddr)}</div></div>
-     <fieldset class="ap-q" style="margin-top:14px"><legend>Is this where you live now?</legend><div class="ap-qo ap-yn"><label><input type="radio" name="ap-addrOk" value="yes" ${sameAddr===true?"checked":""}><span>Yes</span></label><label><input type="radio" name="ap-addrOk" value="no" ${sameAddr===false?"checked":""}><span>No, I moved</span></label></div></fieldset>`:""}
-    ${!F.licAddr||sameAddr===false?`<div class="ap-form" style="margin-top:14px;grid-template-columns:1fr"><label class="f">Current home address<input id="ap-address" value="${esc(F.address||"")}" placeholder="House no., street, barangay" autocomplete="street-address"></label></div>`:""}
-    ${!F.licAddr||sameAddr===false||(sameAddr===true&&!F.licCity)?`<div class="ap-form" style="margin-top:14px"><label class="f">City or municipality<select id="ap-city"><option value="">Choose…</option>${CITIES.map(o=>`<option ${F.city===o?"selected":""}>${o}</option>`).join("")}</select></label></div>`:""}`}
-  return `<div class="ap-card ap-narrow">${body}${err}<div class="ap-actions"><button class="btn" data-act="ap-go" data-v="job">Back</button>${has&&!reading?`<button class="btn primary lg" data-act="ap-go" data-v="form">Next: contact details</button>`:""}</div></div>`}
+    <h3 class="ap-h3">Address mo</h3>
+    ${F.licAddr?`<div class="ap-addr"><span class="small muted">Address sa license mo</span><div>${esc(F.licAddr)}</div></div>
+     <fieldset class="ap-q" style="margin-top:14px"><legend>Dito ka pa rin ba nakatira?</legend><div class="ap-qo ap-yn"><label><input type="radio" name="ap-addrOk" value="yes" ${sameAddr===true?"checked":""}><span>Oo</span></label><label><input type="radio" name="ap-addrOk" value="no" ${sameAddr===false?"checked":""}><span>Hindi, lumipat na ako</span></label></div></fieldset>`:""}
+    ${!F.licAddr||sameAddr===false?`<div class="ap-form" style="margin-top:14px;grid-template-columns:1fr"><label class="f">Kasalukuyang address<input id="ap-address" value="${esc(F.address||"")}" placeholder="House no., street, barangay" autocomplete="street-address"></label></div>`:""}
+    ${!F.licAddr||sameAddr===false||(sameAddr===true&&!F.licCity)?`<div class="ap-form" style="margin-top:14px"><label class="f">City o municipality<select id="ap-city"><option value="">Pumili…</option>${CITIES.map(o=>`<option ${F.city===o?"selected":""}>${o}</option>`).join("")}</select></label></div>`:""}`}
+  return `<div class="ap-card ap-narrow">${body}${err}<div class="ap-actions"><button class="btn" data-act="ap-go" data-v="job">Bumalik</button>${has&&!reading?`<button class="btn primary lg" data-act="ap-go" data-v="form">Next: contact info</button>`:""}</div></div>`}
 function checkLic(){const F=PUB.form,age=ageOf(F.birth);
-  if(!F.licImg&&!F.manual)return"Upload a photo of your driver's licence.";
-  if(!F.name||F.name.trim().split(/\s+/).length<2)return"Enter your full name (first and last).";
-  if(!F.birth)return"Enter your date of birth.";if(age<18)return"You must be at least 18 years old to apply.";if(age>80)return"Check your date of birth.";
-  if(!F.licNo)return"Enter your licence number.";if(!F.licExp)return"Enter your licence expiration date.";if(!(F.codes||[]).length)return"Tick the DL codes on your licence.";
-  if(F.licAddr&&F.addrOk==null)return"Tell us if the address on your licence is where you live now.";
+  if(!F.licImg&&!F.manual)return"Mag-upload ng photo ng driver's license mo.";
+  if(!F.name||F.name.trim().split(/\s+/).length<2)return"Ilagay ang buong pangalan mo (pangalan at apelyido).";
+  if(!F.birth)return"Ilagay ang birthday mo.";if(age<18)return"Dapat 18 years old pataas ka para makapag-apply.";if(age>80)return"Paki-check ang birthday mo.";
+  if(!F.licNo)return"Ilagay ang license number mo.";if(!F.licExp)return"Ilagay ang expiration date ng license mo.";if(!(F.codes||[]).length)return"I-tick ang DL codes na nasa license mo.";
+  if(F.licAddr&&F.addrOk==null)return"Sabihin kung dito ka pa rin nakatira (yung address sa license mo).";
   if(F.licAddr&&F.addrOk===true){F.address=F.licAddr;if(F.licCity)F.city=F.licCity}
-  if(!F.address||F.address.trim().length<6)return"Enter your current home address.";if(!F.city)return"Choose your city or municipality.";return""}
+  if(!F.address||F.address.trim().length<6)return"Ilagay ang kasalukuyang address mo.";if(!F.city)return"Piliin ang city o municipality mo.";return""}
 function checkForm(){const F=PUB.form,ph=(F.phone||"").replace(/[\s-]/g,"");
-  if(!/^(\+?63|0)9\d{9}$/.test(ph))return"Enter a valid mobile number, like 0917 123 4567.";
-  if(!F.email||!/^\S+@\S+\.\S+$/.test(F.email))return"Enter your email address.";
-  if(!F.transport)return"Choose how you'll get to the interview.";if(!F.years)return"Choose your driving experience.";
-  if(!F.consent)return"Tick the box to agree before continuing.";
+  if(!/^(\+?63|0)9\d{9}$/.test(ph))return"Ilagay ang tamang mobile number, halimbawa 0917 123 4567.";
+  if(!F.email||!/^\S+@\S+\.\S+$/.test(F.email))return"Ilagay ang email mo.";
+  if(!F.transport)return"Piliin kung paano ka pupunta sa interview.";if(!F.years)return"Piliin ang driving experience mo.";
+  if(!F.consent)return"I-tick muna ang box para makatuloy.";
   const dup=Object.values(S.applicants).find(a=>a.phone&&a.phone.replace(/[\s-]/g,"")===ph&&a.code&&!a.checkin?.status&&a.booking?.status!=="declined"&&(a.slot||"")>new Date().toISOString());
-  if(dup)return `You already have an interview request for ${fmtDT(dup.slot)}. <a href="#ticket/${dup.id}">View its status</a>.`;return""}
+  if(dup)return `May interview request ka na para sa ${fmtDT(dup.slot)}. <a href="#ticket/${dup.id}">Tingnan ang status</a>.`;return""}
 const _apGo=apGo;
 apGo=async function(v,b){if(v==="form"&&PUB.step==="lic"){PUB.err=checkLic();if(PUB.err)return render();PUB.step="form";render();return window.scrollTo(0,0)}return _apGo(v,b)};
 document.addEventListener("click",e=>{if(e.target.closest("[data-act='ap-manual']")){e.preventDefault();PUB.form.manual=true;render()}},true);
@@ -2225,15 +2517,15 @@ const SNAP={stream:null,kind:null,facing:"environment"};
 function snapClose(){if(SNAP.stream)SNAP.stream.getTracks().forEach(t=>t.stop());SNAP.stream=null;const o=document.getElementById("snap");if(o)o.remove();document.body.style.overflow=""}
 async function snapOpen(kind){SNAP.kind=kind;
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){const i=document.createElement("input");i.type="file";i.accept="image/*";i.capture="environment";i.onchange=()=>i.files[0]&&scanDoc(kind,i.files[0]);return i.click()}
-  const card=kind==="license",o=document.createElement("div"),dn={license:"Driver's licence",nbi:"NBI clearance",medical:"Medical certificate"}[kind];o.id="snap";o.className="snap";o.setAttribute("role","dialog");o.setAttribute("aria-modal","true");o.setAttribute("aria-label","Take photo");
+  const card=kind==="license",o=document.createElement("div"),dn={license:"Driver's license",nbi:"NBI clearance",medical:"Medical certificate"}[kind];o.id="snap";o.className="snap";o.setAttribute("role","dialog");o.setAttribute("aria-modal","true");o.setAttribute("aria-label","Take photo");
   o.innerHTML=`<div class="snap-top"><b>${dn}</b><button class="snap-x" data-snapx aria-label="Close">✕</button></div>
    <div class="snap-stage"><video id="snap-v" playsinline muted autoplay></video><div class="snap-mask"><div class="snap-frame ${card?"card":"page"}"><i></i><i></i><i></i><i></i></div></div>
-    <p class="snap-tip">${card?"Fit the front of your licence inside the frame. Avoid glare.":"Fit the whole page inside the frame."}</p></div>
+    <p class="snap-tip">${card?"Ipasok ang harap ng license mo sa loob ng frame. Iwasan ang silaw.":"Ipasok ang buong page sa loob ng frame."}</p></div>
    <div class="snap-bar"><span></span><button class="snap-shut" data-snapgo aria-label="Take photo"><span></span></button><button class="snap-flip" data-snapflip aria-label="Switch camera"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><path d="M9 13a3 3 0 0 1 5.2-2M15 13a3 3 0 0 1-5.2 2"/></svg></button></div>`;
   document.body.appendChild(o);document.body.style.overflow="hidden";await snapStart()}
 async function snapStart(){if(SNAP.stream)SNAP.stream.getTracks().forEach(t=>t.stop());
-  try{SNAP.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:SNAP.facing,width:{ideal:1920},height:{ideal:1080}},audio:false});const v=document.getElementById("snap-v");v.srcObject=SNAP.stream;await v.play().catch(()=>{})}
-  catch(e){snapClose();const k=SNAP.kind;toast("Camera not available. Choose a photo instead.");const i=document.createElement("input");i.type="file";i.accept="image/*";i.onchange=()=>i.files[0]&&scanDoc(k,i.files[0]);i.click()}}
+  try{SNAP.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:SNAP.facing,width:{ideal:3840},height:{ideal:2160}},audio:false});const v=document.getElementById("snap-v");v.srcObject=SNAP.stream;await v.play().catch(()=>{})}
+  catch(e){snapClose();const k=SNAP.kind;toast("Hindi ma-open ang camera. Pumili na lang ng photo.");const i=document.createElement("input");i.type="file";i.accept="image/*";i.onchange=()=>i.files[0]&&scanDoc(k,i.files[0]);i.click()}}
 function snapTake(){const v=document.getElementById("snap-v"),fr=document.querySelector(".snap-frame");if(!v||!v.videoWidth)return;
   const vr=v.getBoundingClientRect(),r=fr.getBoundingClientRect(),sc=Math.max(vr.width/v.videoWidth,vr.height/v.videoHeight),ox=(vr.width-v.videoWidth*sc)/2,oy=(vr.height-v.videoHeight*sc)/2,pad=12;
   const sx=Math.max(0,(r.left-vr.left-ox-pad)/sc),sy=Math.max(0,(r.top-vr.top-oy-pad)/sc),sw=Math.min(v.videoWidth-sx,(r.width+pad*2)/sc),sh=Math.min(v.videoHeight-sy,(r.height+pad*2)/sc);
@@ -2439,7 +2731,7 @@ async function tick(){if(!SC.stream)return;const v=document.getElementById("sc-v
     try{if(SC.det){const r=await SC.det.detect(v);txt=r[0]?r[0].rawValue:""}else if(window.jsQR){const cv=SC.cv||(SC.cv=document.createElement("canvas")),w=v.videoWidth,hh=v.videoHeight;cv.width=w;cv.height=hh;const cx=cv.getContext("2d",{willReadFrequently:true});cx.drawImage(v,0,0,w,hh);const r=jsQR(cx.getImageData(0,0,w,hh).data,w,hh);txt=r?r.data:""}}catch(e){}
     SC.busy=false;if(txt&&txt!==SC.last){SC.last=txt;lookupCode(txt)}}
   SC.t=setTimeout(tick,220)}
-function lookupCode(raw){const code=String(raw||"").trim().toUpperCase().replace(/^MOBER:/,"").replace(/\s/g,""),norm=x=>String(x||"").toUpperCase().replace(/-/g,"");
+function lookupCode(raw){const code=String(raw||"").trim().toUpperCase().replace(/^(MOBER|DF):/,"").replace(/\s/g,""),norm=x=>String(x||"").toUpperCase().replace(/-/g,"");
   if(!code)return toast("Type the code under the QR.");
   const a=Object.values(S.applicants).find(x=>x.id===raw||norm(x.code)===norm(code)||norm(x.code)==="MB"+norm(code));
   if(!a)return toast("No application found for "+code);
@@ -2500,14 +2792,30 @@ document.addEventListener("change",e=>{const t=e.target;if(t.id&&t.id.startsWith
 document.addEventListener("submit",e=>{if(e.target.matches("[data-scform]")){e.preventDefault();lookupCode(document.getElementById("sc-code").value)}});
 
 
-const STEPS_LP=[["01","Mag-apply Online","Sagutan ang Drayber Flex form. Piliin ang \"Drayber Flex\" sa mga posisyon sa ibaba."],["02","I-submit ang Docs","Pumunta sa pinakamalapit na hub para sa document verification."],["03","Skills Assessment","Simpleng driving test at orientation sa EV vans at delivery protocols."],["04","1-Day Flex Training","Mas maikli ang training. App usage, safety, at delivery standards."],["05","Ma-activate ang Account","Matanggap ang Drayber ID at app access. Handa ka nang mag-check in!"]];
-function vLanding(){const c=(settings().camps||[]).find(x=>x.active&&!(x.endDate&&today()>x.endDate));
-  return `<div class="lp"><header class="lp-top"><span class="lp-logo">Drayber<span>Flex</span></span><div class="lp-act"><a class="lp-btn ghost" href="#apply/${c?c.id:"open"}">Mag-apply</a></div></header>
-  <section class="lp-hero"><div class="lp-eye">Para sa Drayber Flex applicants</div><h1 class="lp-h1">Paano Maging Accredited Drayber Flex?</h1>
-   <p class="lp-sub">Isang beses lang ang accreditation — tapos handa ka nang mag-check in anumang araw.</p>
-   <a class="lp-btn lime lg" href="#apply/${c?c.id:"open"}">Mag-apply ngayon →</a></section>
+const STEPS_LP=[["01","Mag-apply online","Sagutan ang form at pumili ng schedule."],["02","Document check at orientation","Dalhin ang mga orihinal na dokumento sa hub."],["03","Interview at driving test","Simpleng interview at road test."],["04","1 araw na paid training","EV driving, delivery at customer service."],["05","Ma-accredit at mag-check in","Pumasa sa assessment, at handa ka nang kumita."]];
+function vLanding(){const c=(settings().camps||[]).find(x=>x.active&&!(x.endDate&&today()>x.endDate)),href=`#apply/${c?c.id:"open"}`;
+  const WHO=[["#8fd14f","Sa iyong day off","Rest Day Drivers","May regular na trabaho ka pero gusto mo pang kumita sa iyong day off? Mag-check in lang sa hub kapag available ka."],
+    ["#f5c542","Habang naghihintay","OFW / Abroad-bound","Nag-aabang pa ng deployment? Huwag pabayaan ang panahon — kumita muna habang naghihintay."],
+    ["#7aa7e0","Walang fixed commitment","Freelance / Transitioning","Naghahanap ng flexible work na walang fixed na commitment? Drayber Flex ang para sa iyo."]];
+  const PAY=[["#8fd14f","₱900","Deployed Pay — Bawat Araw na May Trip","Bayad para sa araw na may delivery assignment."],
+    ["#f5c542","₱300","Standby Allowance — Kahit Walang Trip","Kapag nag-check in ka sa hub at nandoon ka para sa deployment pero walang available na trip para sa iyo sa araw na iyon, pwede kang makatanggap ng ₱300 standby allowance — subject sa program rules at daily slot management. Hindi sayang ang iyong oras ng pagpunta."]];
+  const PERKS=[["Flexible schedule","Piliin ang mga araw na available kang magtrabaho."],["Bayad ka agad","Within the day ang bayad kapag walang issue."],["1 araw na paid training","Matutunan ang EV driving, delivery process at customer service."]];
+  const REQ=["21 taong gulang pataas","Bukas sa lalaki at babae","May valid driver's license","May hindi bababa sa 1 taong driving experience","May NBI clearance at medical certificate","May smartphone na may mobile data"];
+  return `<div class="lp"><header class="lp-top"><span class="lp-logo">Drayber<span>Flex</span></span><div class="lp-act"><a class="lp-btn ghost" href="#status">Tingnan ang status</a><a class="lp-btn ghost" href="${href}">Mag-apply</a></div></header>
+  <section class="lp-hero"><div class="lp-eye">EV Delivery Driver</div><h1 class="lp-h1">Ano ang Drayber Flex?</h1>
+   <p class="lp-sub lp-wide">Ang Drayber Flex ay para sa mga driver na gustong kumita habang naka-rest day, naghihintay na ma-deploy sa abroad, o naghahanap lang ng part-time na trabaho.</p>
+   <p class="lp-sub lp-wide" style="margin-top:14px">Piliin ang mga araw na available ka at pumunta sa hub ayon sa iyong confirmed schedule.</p>
+   <a class="lp-btn lime lg" href="${href}">Mag-apply ngayon →</a><p class="lp-sub" style="margin-top:16px;font-size:15px">Nag-apply ka na? <a href="#status" style="color:#8fd14f">Tingnan ang application mo gamit ang code mo</a></p></section>
+  <section class="lp-sec"><div class="lp-eye">Para kanino ito?</div>
+   <div class="lp-who">${WHO.map(([ac,tag,t,d],i)=>`<div class="lp-card" style="--ac:${ac}"><div class="lp-cardtop"><span class="lp-n">0${i+1}</span><span class="lp-tag">${tag}</span></div><h3>${t}</h3><p>${d}</p></div>`).join("")}</div></section>
+  <section class="lp-sec"><div class="lp-eye">Kita at benepisyo</div>
+   ${PAY.map(([ac,amt,t,d])=>`<div class="lp-pay" style="--ac:${ac}"><div><div class="lp-amt">${amt}</div><h3>${t}</h3></div><p>${d}</p></div>`).join("")}
+   <div class="lp-perks">${PERKS.map(([t,d])=>`<div class="lp-perk"><b>${t}</b><p>${d}</p></div>`).join("")}</div></section>
+  <section class="lp-sec"><div class="lp-eye">Sino ang puwedeng sumali?</div><ul class="lp-check">${REQ.map(x=>`<li>${x}</li>`).join("")}</ul></section>
+  <section class="lp-sec"><div class="lp-eye">Para sa Drayber Flex applicants</div><h2 class="lp-h1">Paano Maging Accredited Drayber Flex?</h2><p class="lp-sub lp-wide">Kumpletuhin ang requirements at ang 1 araw na paid training. Kapag pumasa ka sa training at assessment, magiging accredited Drayber Flex driver ka.</p></section>
   <section class="lp-steps">${STEPS_LP.map(([n,t,d],i)=>`<div class="lp-step${i===4?" last":""}"><div class="lp-n">${n}</div><h3>${t}</h3><p>${d}</p></div>`).join("")}</section>
-  <footer class="lp-foot"><span>© ${new Date().getFullYear()}</span><span class="lp-staff"><a href="#" data-act="dx-signin">Staff sign in</a> · <a href="#" data-act="dx-signup">Request access</a></span></footer></div>`}
+  <section class="lp-sec lp-close"><h2 class="lp-h2">Rest Day mo? Gawin Pay Day!</h2><a class="lp-btn lime lg" href="${href}">Mag-apply ngayon →</a></section>
+  <a class="lp-btn lime lp-float" href="${href}">Mag-apply ngayon →</a><footer class="lp-foot"><span>© ${new Date().getFullYear()}</span><span class="lp-staff"><a href="#" data-act="dx-signin">Staff sign in</a> · <a href="#" data-act="dx-signup">Request access</a></span></footer></div>`}
 function pendingBlock(){const P=S.accounts.filter(a=>a.pending);if(!P.length)return"";
   return `<div class="sect"><header><h3>Waiting for approval (${P.length})</h3></header><div class="stack">${P.map(u=>`<div class="pend"><div><div>${esc(u.name)}</div><div class="small muted">${esc(u.email||u.username)} · signed up ${fmtDT(u.createdAt)}</div></div>
    <div class="row">${Object.keys(ROLES).map(k=>`<label class="row small pr"><input type="checkbox" class="prole" data-u="${u.id}" value="${k}"> ${ROLES[k]}</label>`).join("")}</div>
@@ -2535,7 +2843,6 @@ document.addEventListener("click",async e=>{const b=e.target.closest("[data-act^
 document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="spw2")doSignup()});
 
 /* ============ boot ============ */
-const DEFAULT_ADMIN={username:"admin",password:"Mober2026"};
 async function ensureAdmin(){}
 async function boot(){
   if(!SB){$("#main").innerHTML=`<div class="auth"><div class="authcard"><div class="brandline">DrayberFlex</div><h1>Not connected</h1><p class="muted">Open <b>config.js</b> and paste your Supabase Project URL and anon public key, then reload.</p></div></div>`;return}
@@ -2544,6 +2851,7 @@ async function boot(){
   if(session){let ok=false;try{const ss=JSON.parse(sessionStorage.getItem(SESS)||"null");ok=ss&&ss.uid===session.user.id&&Date.now()-ss.t<(DEFAULT_SETTINGS.idleMinutes||30)*60000}catch(e){}
     if(ok){const msg=await enterSession(session.user);if(!msg)return}else await SB.auth.signOut()}
   if(!PUB.route){if(!S.settings)await publicLoad();S.ready=true;UI.auth=null;render()}}
+window.addEventListener("scroll",()=>document.body.classList.toggle("lp-scrolled",scrollY>420),{passive:true});
 render();boot();
 </script>
 </body>
