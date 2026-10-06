@@ -2542,7 +2542,7 @@ async function boot(){
   const {data:{session}}=await SB.auth.getSession();
   if(session){let ok=false;try{const ss=JSON.parse(sessionStorage.getItem(SESS)||"null");ok=ss&&ss.uid===session.user.id&&Date.now()-ss.t<(DEFAULT_SETTINGS.idleMinutes||30)*60000}catch(e){}
     if(ok){const msg=await enterSession(session.user);if(!msg)return}else await SB.auth.signOut()}
-  if(!PUB.route){if(!S.settings)await publicLoad();S.ready=true;UI.auth="login";render()}}
+  if(!PUB.route){if(!S.settings)await publicLoad();S.ready=true;UI.auth=null;render()}}
 render();boot();
 </script>
 </body>
