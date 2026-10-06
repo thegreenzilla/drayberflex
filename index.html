@@ -738,6 +738,7 @@ input::placeholder,textarea::placeholder{color:#a3a1ad!important;font-weight:400
 .mc-row.just{border-color:#1f9d63;box-shadow:0 0 0 2px #bfe6cf}
 
 .qb-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}.qb-bar .qb-tabs{margin:0}
+.lp-foot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}.lp-staff{opacity:.45;font-size:12px}.lp-staff a{color:inherit;text-decoration:none}.lp-staff a:hover{text-decoration:underline;opacity:1}
 </style>
 </head>
 <body>
@@ -761,7 +762,7 @@ input::placeholder,textarea::placeholder{color:#a3a1ad!important;font-weight:400
 /* ============ constants ============ */
 const ROLES={admin:"Admin",marketing:"Marketing",verifier:"Document check",orientation:"Orientation",interviewer:"Interviewer",tester:"Driving tester",trainer:"OJT trainer",hr:"HR offers"};
 const DEFAULT_SETTINGS={interviewPass:70,drivePass:80,highRiskBlocks:true,redFlagBlocks:true,ojtDays:5,ojtMinPass:5,medicalMaxMonths:6,requirePro:true,
-  campaigns:["Facebook – Manila","Facebook – Cebu","Referral","Walk-in"],position:"Delivery Driver (EV)",company:"Mober Technology",idleMinutes:15,hubAddress:"Mober hub (set the address in Rules & data)",
+  campaigns:["Facebook – Manila","Facebook – Cebu","Referral","Walk-in"],position:"Delivery Driver (EV)",company:"Mober Technology",idleMinutes:15,hubAddress:"Hub (set the address in Rules & data)",
   reminderText:"Hi {first}! This is Mober. Reminder: your driver interview is on {date} at {time}, {address}. Please bring your NBI clearance, latest medical certificate and driver's licence. Reply YES to confirm. Salamat!"};
 const DIMS={absenteeism:"Absenteeism",safety:"Road safety",integrity:"Integrity",customer:"Customer handling",retention:"Commitment & retention"};
 const CATS={situational:"Situational",behavioural:"Behavioural",background:"Background"};
@@ -1650,7 +1651,7 @@ function mapRows(c){const m=c.map,g=(r,k)=>m[k]!=null?(r[m[k]]||"").trim():"";co
 function render(){
   if(!S.ready)return;
   if(false){const bank=clone(S.bank||{questions:[]});SAMPLE_BANK.forEach(q=>{if(!bank.questions.some(x=>x.id===q.id))bank.questions.push(q)});S.bank=bank;SAMPLE_APPS.forEach(a=>S.applicants[a.id]=clone(a));localSave()}
-  if(!(S.settings||{}).campSeeded&&typeof newCamp==="function"&&!camps().length){const c=Object.assign(newCamp(),{id:"drayber-flex",name:"Drayber Flex – Main",position:"Drayber Flex (EV delivery driver)",hubName:"Mober 2C",
+  if(!(S.settings||{}).campSeeded&&typeof newCamp==="function"&&!camps().length){const c=Object.assign(newCamp(),{id:"drayber-flex",name:"Drayber Flex – Main",position:"Drayber Flex (EV delivery driver)",hubName:"2C Hub",
     jd:"Deliver parcels for Mober using our electric vans. Choose the days you want to work and check in from the app.\nA typical day starts at the hub, where you load your van, then follow the app route to each drop-off.",
     reqs:"At least 21 years old\nValid driver's licence with code B or B1\nAt least 1 year of driving experience\nNBI clearance and medical certificate\nSmartphone with mobile data",
     perks:"Flexible schedule, pick your own days\nWeekly pay\nFree EV van and charging\n1-day paid training"});S.settings=Object.assign({},S.settings||{},{camps:[c],campSeeded:true,campaigns:[...new Set([...(S.settings?.campaigns||DEFAULT_SETTINGS.campaigns),c.name])]});localSave()}
@@ -1880,7 +1881,7 @@ function campSlots(c,day){const d=new Date(day+"T00:00");if(!c.days.includes(d.g
   return out}
 function dayOpen(c,day){const d=new Date(day+"T00:00"),lo=new Date();lo.setHours(0,0,0,0);const hi=new Date(lo);hi.setDate(hi.getDate()+c.window);
   if(d<lo||d>hi||(c.endDate&&day>c.endDate))return false;return campSlots(c,day).some(s=>s.left>0)}
-const newCamp=()=>({id:"",name:"",position:settings().position,jd:"",reqs:"",perks:"",hubName:"Mober 2C",location:settings().hubAddress,hubGeo:"",days:[1,2,3,4,5],start:"09:00",end:"16:00",len:60,seats:5,offTimes:[],window:14,endDate:"",active:true,autoApprove:true,passScore:70,minAge:21,maxAge:"",questions:clone((S.settings&&S.settings.pqDefault)||DEFAULT_PQ)});
+const newCamp=()=>({id:"",name:"",position:settings().position,jd:"",reqs:"",perks:"",hubName:"2C Hub",location:settings().hubAddress,hubGeo:"",days:[1,2,3,4,5],start:"09:00",end:"16:00",len:60,seats:5,offTimes:[],window:14,endDate:"",active:true,autoApprove:true,passScore:70,minAge:21,maxAge:"",questions:clone((S.settings&&S.settings.pqDefault)||DEFAULT_PQ)});
 
 function vCampaigns(){
   if(UI.editCamp)return vCampEdit();
@@ -1925,7 +1926,7 @@ function vCampEdit(){const c=UI.editCamp,isNew=!c.id;
   <div class="cp-grid"><div class="stack">
    <div class="sect"><header><h3>1. Campaign</h3></header><div class="cp-3">${f("name","Campaign name",c.name,"text",'placeholder="e.g. Facebook – Manila, October"')}${f("position","Position",c.position)}</div></div>
    <div class="sect"><header><h3>2. Job description</h3></header><div class="stack">${ta("jd","About the role",c.jd,"What the job is and what a typical day looks like.",6)}${ta("reqs","Requirements",c.reqs,"One per line.",5)}${ta("perks","Pay and benefits",c.perks,"One per line.",4)}</div></div>
-   <div class="sect"><header><h3>3. Interview location</h3></header><div class="stack"><div class="cp-3">${f("hubName","Hub name",c.hubName??"Mober 2C")}${f("hubGeo","Map pin (latitude, longitude)",c.hubGeo,"text",'placeholder="Filled in when you save"')}</div>${f("location","Hub address",c.location)}
+   <div class="sect"><header><h3>3. Interview location</h3></header><div class="stack"><div class="cp-3">${f("hubName","Hub name",c.hubName??"2C Hub")}${f("hubGeo","Map pin (latitude, longitude)",c.hubGeo,"text",'placeholder="Filled in when you save"')}</div>${f("location","Hub address",c.location)}
      <p class="small muted" style="margin:0">Used to estimate each applicant's distance and travel time. ${parseGeo(c.hubGeo)?"Pin is set.":"If the pin stays empty after saving, paste the latitude and longitude from Google Maps."}</p></div></div>
    <div class="sect"><header><h3>4. Interview schedule</h3></header><div class="stack">
      <div><div class="lbl">Interview days</div><div class="cp-days">${DOW.map((d,i)=>`<label class="cp-day"><input type="checkbox" data-day="${i}" ${c.days.includes(i)?"checked":""}><span>${d}</span></label>`).join("")}</div></div>
@@ -1962,7 +1963,7 @@ function readCampForm(){const g=k=>{const el=document.getElementById("cp-"+k);re
    autoApprove:!!document.getElementById("cp-autoApprove")?.checked,passScore:Math.min(100,Math.max(0,+g("passScore")||0)),minAge:Math.max(18,+g("minAge")||18),maxAge:g("maxAge")?+g("maxAge"):"",questions:Q})}
 
 /* ---- public application page ---- */
-function pubShell(inner,c){return `<div class="ap"><header class="ap-top"><span class="ap-brand">mober</span>${c?`<span class="small muted">${esc(c.position)}</span>`:""}</header><div class="ap-body">${inner}</div><footer class="ap-foot small muted">${esc(settings().company)}</footer></div>`}
+function pubShell(inner,c){return `<div class="ap"><header class="ap-top">${c?`<span class="small muted">${esc(c.position)}</span>`:""}</header><div class="ap-body">${inner}</div><footer class="ap-foot small muted">${esc(settings().company)}</footer></div>`}
 function vPublic(){
   if(PUB.route==="apply"&&PUB.id==="open"){const oc=camps().find(x=>x.active&&!(x.endDate&&today()>x.endDate));if(oc)PUB.id=oc.id}
   if(PUB.route==="ticket")return vTicket(S.applicants[PUB.id]);
@@ -2027,7 +2028,7 @@ function vTicket(a){
    <p class="muted" style="text-align:center;margin:8px 0 0">Show this QR code at the check-in desk when you arrive.</p>
    <div class="ap-qr">${qrSvg("MOBER:"+a.code,6)}</div><div class="ap-code">${esc(a.code)}</div>${when}
    <div class="ap-sec ap-note"><h3 style="margin:0 0 6px">Bring these originals</h3><ul class="ap-list"><li>NBI clearance</li><li>Medical certificate, issued in the last ${s.medicalMaxMonths} months</li><li>Driver's licence</li></ul></div>
-   <div class="ap-actions noprint">${png?`<a class="btn primary lg" href="${png}" download="mober-interview-${esc(a.code)}.gif">Save QR image</a>`:""}<button class="btn lg" data-act="ap-print">Print</button></div>
+   <div class="ap-actions noprint">${png?`<a class="btn primary lg" href="${png}" download="interview-${esc(a.code)}.gif">Save QR image</a>`:""}<button class="btn lg" data-act="ap-print">Print</button></div>
    <p class="small muted noprint" style="text-align:center;margin:14px 0 0">Tip: take a screenshot so you have it without internet.</p></div>`)}
 function bookCode(){const ch="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let c;do{c="MB-"+Array.from({length:6},()=>ch[Math.floor(Math.random()*ch.length)]).join("")}while(Object.values(S.applicants).some(a=>a.code===c));return c}
 function checkForm(){const F=PUB.form,ph=(F.phone||"").replace(/[\s-]/g,""),age=ageOf(F.birth);
@@ -2381,7 +2382,7 @@ const DEMO=[
  {id:"demo4",code:"MB-DEMO04",name:"Ana Lim",phone:"0917 100 0004",email:"ana.lim@email.com",hour:9,dayOffset:2,status:"approved",note:"Booked for another day",
   application:{birth:"1990-08-09",sex:"F",address:"12 Aurora Blvd, Cubao",city:"Quezon City",transport:"Motorcycle (own)",codes:["A","B"],years:"More than 5 years",geo:{km:12.5,mins:27},score:90}}];
 function demoSlot(d){const t=new Date();t.setDate(t.getDate()+(d.dayOffset||0));t.setHours(d.hour,0,0,0);return t.toISOString()}
-function demoMake(d){const now=new Date().toISOString(),c=camps()[0];return{id:d.id,code:d.code,name:d.name,phone:d.phone,email:d.email,slot:demoSlot(d),campaign:c?c.name:"Drayber Flex – Main",campaignId:c?c.id:"",position:c?c.position:settings().position,hubName:"Mober 2C",
+function demoMake(d){const now=new Date().toISOString(),c=camps()[0];return{id:d.id,code:d.code,name:d.name,phone:d.phone,email:d.email,slot:demoSlot(d),campaign:c?c.name:"Drayber Flex – Main",campaignId:c?c.id:"",position:c?c.position:settings().position,hubName:"2C Hub",
   source:"demo",application:clone(d.application),docs:clone(d.docs||{}),booking:{status:d.status,auto:d.status==="approved",reasons:d.status==="pending"?["score 52% below 70%"]:[],at:now},createdAt:now,updatedAt:now,log:[{t:now,by:"applicant",msg:"Demo applicant"}]}}
 function ensureDemo(force){let ch=false;setTimeout(()=>demoPhotos().then(()=>{if(UI.mci)render()}),0);DEMO.forEach(d=>{const a=S.applicants[d.id];
   if(force||!a){S.applicants[d.id]=demoMake(d);ch=true}
@@ -2499,14 +2500,14 @@ document.addEventListener("change",e=>{const t=e.target;if(t.id&&t.id.startsWith
 document.addEventListener("submit",e=>{if(e.target.matches("[data-scform]")){e.preventDefault();lookupCode(document.getElementById("sc-code").value)}});
 
 
-const STEPS_LP=[["01","Mag-apply Online","Sagutan ang Drayber Flex form. Piliin ang \"Drayber Flex\" sa mga posisyon sa ibaba."],["02","I-submit ang Docs","Pumunta sa pinakamalapit na Mober hub para sa document verification."],["03","Skills Assessment","Simpleng driving test at orientation sa EV vans at delivery protocols."],["04","1-Day Flex Training","Mas maikli ang training. App usage, safety, at delivery standards ng Mober."],["05","Ma-activate ang Account","Matanggap ang Drayber ID at app access. Handa ka nang mag-check in!"]];
+const STEPS_LP=[["01","Mag-apply Online","Sagutan ang Drayber Flex form. Piliin ang \"Drayber Flex\" sa mga posisyon sa ibaba."],["02","I-submit ang Docs","Pumunta sa pinakamalapit na hub para sa document verification."],["03","Skills Assessment","Simpleng driving test at orientation sa EV vans at delivery protocols."],["04","1-Day Flex Training","Mas maikli ang training. App usage, safety, at delivery standards."],["05","Ma-activate ang Account","Matanggap ang Drayber ID at app access. Handa ka nang mag-check in!"]];
 function vLanding(){const c=(settings().camps||[]).find(x=>x.active&&!(x.endDate&&today()>x.endDate));
-  return `<div class="lp"><header class="lp-top"><span class="lp-logo">Drayber<span>Flex</span></span><div class="lp-act"><a class="lp-btn ghost" href="#apply/${c?c.id:"open"}">Mag-apply</a><button class="lp-btn ghost" data-act="dx-signin">Sign in</button><button class="lp-btn lime" data-act="dx-signup">Sign up</button></div></header>
+  return `<div class="lp"><header class="lp-top"><span class="lp-logo">Drayber<span>Flex</span></span><div class="lp-act"><a class="lp-btn ghost" href="#apply/${c?c.id:"open"}">Mag-apply</a></div></header>
   <section class="lp-hero"><div class="lp-eye">Para sa Drayber Flex applicants</div><h1 class="lp-h1">Paano Maging Accredited Drayber Flex?</h1>
    <p class="lp-sub">Isang beses lang ang accreditation — tapos handa ka nang mag-check in anumang araw.</p>
    <a class="lp-btn lime lg" href="#apply/${c?c.id:"open"}">Mag-apply ngayon →</a></section>
   <section class="lp-steps">${STEPS_LP.map(([n,t,d],i)=>`<div class="lp-step${i===4?" last":""}"><div class="lp-n">${n}</div><h3>${t}</h3><p>${d}</p></div>`).join("")}</section>
-  <footer class="lp-foot">© ${new Date().getFullYear()} ${esc(settings().company)}</footer></div>`}
+  <footer class="lp-foot"><span>© ${new Date().getFullYear()}</span><span class="lp-staff"><a href="#" data-act="dx-signin">Staff sign in</a> · <a href="#" data-act="dx-signup">Request access</a></span></footer></div>`}
 function pendingBlock(){const P=S.accounts.filter(a=>a.pending);if(!P.length)return"";
   return `<div class="sect"><header><h3>Waiting for approval (${P.length})</h3></header><div class="stack">${P.map(u=>`<div class="pend"><div><div>${esc(u.name)}</div><div class="small muted">${esc(u.email||u.username)} · signed up ${fmtDT(u.createdAt)}</div></div>
    <div class="row">${Object.keys(ROLES).map(k=>`<label class="row small pr"><input type="checkbox" class="prole" data-u="${u.id}" value="${k}"> ${ROLES[k]}</label>`).join("")}</div>
