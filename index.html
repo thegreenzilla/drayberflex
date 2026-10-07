@@ -807,6 +807,11 @@ body:has(.lp){background:#030f1f}
 .man-docs summary{cursor:pointer}
 
 main#main:has(.reg-table){max-width:min(1680px,100%)}
+
+.reg-phw{display:block;cursor:zoom-in}
+.reg-noph{margin-top:8px;padding:14px;border:1px dashed var(--line);border-radius:8px;color:var(--mute);font-size:13px;text-align:center}
+.reg-att{list-style:none;margin:0;padding:0}.reg-att li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.reg-attadd{gap:10px;margin-top:10px;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -923,6 +928,7 @@ async function submitPublic(a){
   const {data,error}=await SB.rpc("submit_application",{p:a});
   if(error)throw new Error("Hindi namin naipadala ang request mo. I-check ang internet mo at subukan ulit.");
   if(data&&data.error==="full")throw new Error("Kaka-book lang ng iba sa oras na 'yan. Pumili ng iba.");
+  if(data&&data.error==="nophoto")throw new Error("Kailangan ang photo ng driver's license mo. Bumalik sa step 2 at i-upload ito.");
   if(data&&data.error==="dup")throw new Error(`May interview request ka na para sa ${fmtDT(data.slot)}. <a href="#ticket/${data.id}">Tingnan ang status</a>.`);
   if(data&&data.error)throw new Error("Hindi tumatanggap ng booking ang campaign na 'to sa ngayon.");
 }
@@ -959,7 +965,7 @@ function setDoc(path,data){const [c,id]=path.split("/");
   return saveCfg(path==="bank/questions"?"bank":"settings",data)}
 async function delDoc(path){const id=path.split("/")[1],a=S.applicants[id];delete S.applicants[id];delete _lastApp[id];render();
   const {error}=await SB.from("applicants").delete().eq("id",id);if(error)return dbErr(error);
-  const pids=Object.values((a&&a.docs)||{}).flatMap(d=>(d&&d.photos)||[]);if(pids.length)SB.storage.from("docs").remove(pids.map(p=>p+".jpg")).catch(()=>{})}
+  const pids=Object.values((a&&a.docs)||{}).flatMap(d=>(d&&d.photos)||[]),atts=((a&&a.attachments)||[]).map(f=>f.path);if(pids.length||atts.length)SB.storage.from("docs").remove([...pids.map(p=>p+".jpg"),...atts]).catch(()=>{})}
 const settings=()=>Object.assign({},DEFAULT_SETTINGS,S.settings||{},{ojtDays:1,ojtMinPass:1});
 const questions=()=>(S.bank&&S.bank.questions||[]).filter(q=>!q.archived);
 const account=()=>S.accounts.find(u=>u.id===S.uid);
@@ -1219,7 +1225,7 @@ function vRegistry(){const rows=filteredApplicants();
   ${rec}${apFilters()}
   ${rows.length?`<div class="tablewrap reg-table"><table><thead><tr>${head.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>`:`<div class="tablewrap"><div class="empty">No applicants match these filters.</div></div>`}`}
 function regRecord(a){const c=regCells(a),L=a.docs?.license||{},N=a.docs?.nbi||{},M=a.docs?.medical||{},iv=a.interview?.done?scoreInterview(a):null,tr=a.training||{},nm=id=>esc(S.profiles[id]?.name||"—");
-  const row=(k,v)=>`<div><dt>${k}</dt><dd>${v||"—"}</dd></div>`,ph=p=>(p||[]).map(x=>`<img data-photo="${x}" alt="" class="reg-ph">`).join("");
+  const row=(k,v)=>`<div><dt>${k}</dt><dd>${v||"—"}</dd></div>`,ph=(p,d)=>(p||[]).length?(p||[]).map(x=>`<span role="button" tabindex="0" data-act="viewphoto" data-p="${x}" class="reg-phw"><img data-photo="${x}" alt="Photo" class="reg-ph"></span>`).join(""):`<div class="reg-noph">${d&&d.photoError?`⚠️ Photo upload failed: ${esc(d.photoError)}`:"No photo saved"}</div>`;
   const docStat=k=>{const d=a.docs?.[k];return d?.status==="verified"?T("Verified","go"):d?.status==="rejected"?T("Rejected","stop"):d?T("Not verified yet","wait"):T("Not submitted","plain")};
   return `<div class="sect reg-rec" id="reg-rec"><header><h3>${esc(a.name)} <span class="mono small muted">${esc(a.code||"")}</span></h3><div class="row noprint"><button class="btn sm" data-open="${a.id}">Open full profile</button><button class="btn sm" data-act="regprint">Print</button><button class="btn sm" data-act="regclose">Close</button></div></header>
    <div class="reg-grid">
@@ -1230,11 +1236,36 @@ function regRecord(a){const c=regCells(a),L=a.docs?.license||{},N=a.docs?.nbi||{
      ${row("Training",c.training+(tr.changes?` <span class="small muted">changed once</span>`:""))}${row("Accredited",c.accr)}</dl></div>
    </div>
    <h4 style="margin-top:14px">Documents</h4><div class="reg-docs">
-    <div class="reg-doc"><b>Driver's license</b> ${docStat("license")}<div class="small">${esc(L.number||"")}${L.expiry?` · expires ${fmtD(L.expiry)}`:""}${L.restrictions?` · codes ${esc(L.restrictions)}`:""}</div>${ph(L.photos)}</div>
-    <div class="reg-doc"><b>NBI clearance</b> ${docStat("nbi")}<div class="small">${esc(N.ref||"")}${N.expiry?` · valid until ${fmtD(N.expiry)}`:""}${N.hit?` · <b style="color:var(--stop)">hit</b>`:""}</div>${ph(N.photos)}</div>
-    <div class="reg-doc"><b>Medical certificate</b> ${docStat("medical")}<div class="small">${M.date?`issued ${fmtD(M.date)}`:""}${M.clinic?` · ${esc(M.clinic)}`:""}</div>${ph(M.photos)}</div></div>
+    <div class="reg-doc"><b>Driver's license</b> ${docStat("license")}<div class="small">${esc(L.number||"")}${L.expiry?` · expires ${fmtD(L.expiry)}`:""}${L.restrictions?` · codes ${esc(L.restrictions)}`:""}</div>${ph(L.photos,L)}</div>
+    <div class="reg-doc"><b>NBI clearance</b> ${docStat("nbi")}<div class="small">${esc(N.ref||"")}${N.expiry?` · valid until ${fmtD(N.expiry)}`:""}${N.hit?` · <b style="color:var(--stop)">hit</b>`:""}</div>${ph(N.photos,N)}</div>
+    <div class="reg-doc"><b>Medical certificate</b> ${docStat("medical")}<div class="small">${M.date?`issued ${fmtD(M.date)}`:""}${M.clinic?` · ${esc(M.clinic)}`:""}</div>${ph(M.photos,M)}</div></div>
+   ${regAttachments(a)}
    <h4 style="margin-top:14px">History</h4><ul class="reg-log">${(a.log||[]).slice().reverse().slice(0,15).map(l=>`<li><span class="small muted">${fmtDT(l.t)}</span> ${esc(l.msg||"")} <span class="small muted">· ${nm(l.by)}</span></li>`).join("")||"<li class='muted small'>No history yet.</li>"}</ul>
   </div>`}
+/* ---- Registry attachments: photos or PDFs (Admin + Check-in can add/remove) ---- */
+const ATT_LABELS=["Signed contract","Training certificate","Valid ID","Barangay clearance","Other"];
+function regAttachments(a){const L=a.attachments||[],ed=can("verifier"),kb=n=>n>1048576?(n/1048576).toFixed(1)+" MB":Math.max(1,Math.round(n/1024))+" KB";
+  return `<h4 style="margin-top:14px">Attachments (${L.length})</h4>
+   ${L.length?`<ul class="reg-att">${L.map(f=>`<li><span>${/pdf/.test(f.type)?"📄":"🖼️"} <b>${esc(f.label)}</b> <span class="small muted">${esc(f.name)} · ${kb(f.size||0)} · ${fmtD(f.at)} · ${esc(S.profiles[f.by]?.name||"")}</span></span>
+     <span class="row noprint"><button class="btn sm" data-act="attview" data-id="${a.id}" data-v="${f.id}">View</button>${ed?`<button class="btn sm danger" data-act="attdel" data-id="${a.id}" data-v="${f.id}">Remove</button>`:""}</span></li>`).join("")}</ul>`:`<p class="small muted" style="margin:0">No attachments yet.</p>`}
+   ${ed?`<div class="row noprint reg-attadd"><label class="f">Label<select id="att-label">${ATT_LABELS.map(x=>`<option>${x}</option>`).join("")}</select></label><label class="f" id="att-otherw" style="display:none">Name it<input id="att-other" placeholder="e.g. Police clearance"></label>
+     <label class="btn" style="align-self:flex-end">Upload photo or PDF<input type="file" accept="image/*,application/pdf" data-act="attfile" data-id="${a.id}" style="display:none"></label><span class="small muted" style="align-self:flex-end">Max 10 MB</span></div>`:""}`}
+async function attUpload(id,file){const a=S.applicants[id];if(!a||!file)return;const isPdf=file.type==="application/pdf"||/\.pdf$/i.test(file.name);
+  if(!isPdf&&!/^image\//.test(file.type))return toast("Only photos or PDF files.");if(file.size>10*1048576&&isPdf)return toast("PDF is over 10 MB.");
+  let lbl=$("#att-label")?.value||"Other";if(lbl==="Other")lbl=($("#att-other")?.value||"").trim()||"Other";
+  const fid="f"+uid();let blob=file,ext=isPdf?"pdf":"jpg",type=isPdf?"application/pdf":"image/jpeg";
+  try{if(!isPdf){const du=await shrinkImage(file);blob=await (await fetch(du)).blob()}
+    const path=`att/${id}/${fid}.${ext}`;toast("Uploading…");const {error}=await SB.storage.from("docs").upload(path,blob,{contentType:type,upsert:false});if(error)throw error;
+    const rec={id:fid,label:lbl,name:file.name,type,size:blob.size,path,at:new Date().toISOString(),by:S.uid};
+    await updateApplicant(id,x=>{x.attachments=[...(x.attachments||[]),rec]},`Attachment added: ${lbl}`);toast("Attachment saved")}
+  catch(e){console.error(e);toast("Upload failed: "+((e&&e.message)||e)+(/mime|type/i.test(String(e&&e.message))?" — run the storage update SQL to allow PDFs.":""))}}
+document.addEventListener("change",e=>{const t=e.target;if(t.id==="att-label"){const w=document.getElementById("att-otherw");if(w)w.style.display=t.value==="Other"?"":"none"}
+  if(t.dataset&&t.dataset.act==="attfile"){const f=t.files&&t.files[0];t.value="";if(f)attUpload(t.dataset.id,f)}});
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-act='attview'],[data-act='attdel']");if(!b)return;e.preventDefault();e.stopPropagation();
+  const a=S.applicants[b.dataset.id],f=(a?.attachments||[]).find(x=>x.id===b.dataset.v);if(!f)return;
+  if(b.dataset.act==="attview"){const w=window.open("","_blank");const {data,error}=await SB.storage.from("docs").createSignedUrl(f.path,300);if(error||!data){w&&w.close();return toast("Couldn't open the file.")}if(w)w.location=data.signedUrl;else location.href=data.signedUrl;return}
+  if(!can("verifier")||!confirm(`Remove "${f.label}"?`))return;await SB.storage.from("docs").remove([f.path]).catch(()=>{});
+  await updateApplicant(a.id,x=>{x.attachments=(x.attachments||[]).filter(y=>y.id!==f.id)},`Attachment removed: ${f.label}`)},true);
 function printRegistry(){const el=document.getElementById("reg-rec");if(!el)return;const w=window.open("","_blank");if(!w)return toast("Allow pop-ups to print.");
   w.document.write(`<html><head><title>Registry record</title><style>body{font:14px system-ui,sans-serif;color:#1d2240;padding:24px}.noprint{display:none}h3{margin:0 0 12px}h4{margin:14px 0 6px}.reg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}dl div{display:flex;gap:8px;margin:3px 0}dt{color:#667;min-width:120px}dd{margin:0}.tag{border:1px solid #ccd;border-radius:99px;padding:1px 8px;font-size:12px}.reg-docs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.reg-ph{width:100%;max-height:160px;object-fit:contain;border:1px solid #dde;border-radius:6px;margin-top:6px}ul{padding-left:18px}</style></head><body>${el.outerHTML}</body></html>`);
   w.document.close();setTimeout(()=>{w.focus();w.print()},400)}
@@ -1338,8 +1369,8 @@ function vImport(){
      <div class="grid2"><label class="f">Interview date<input id="mdate" type="date" value="${today()}" min="2025-01-01" max="2030-12-31" style="width:100%"></label>
       <label class="f">Interview time<select id="mtime">${Array.from({length:29},(_,i)=>6*60+i*30).map(m=>`<option value="${hhmm(m)}" ${m===540?"selected":""}>${fmtTime(hhmm(m))}</option>`).join("")}</select></label></div>
      <label class="f">Referral code (optional)<input id="mref"></label>
-     <details class="man-docs" open><summary><b>Documents</b> <span class="small muted">(optional — photos and details)</span></summary><div class="stack" style="margin-top:10px">
-      <div class="man-doc"><div class="lbl">Driver's license</div>${manPhoto("lic")}
+     <details class="man-docs" open><summary><b>Documents</b> <span class="small muted">(license photo required · NBI and medical optional)</span></summary><div class="stack" style="margin-top:10px">
+      <div class="man-doc"><div class="lbl">Driver's license <span style="color:var(--stop)">* required photo</span></div>${manPhoto("lic")}
        <div class="grid2"><label class="f">License number<input id="mlicno" placeholder="N01-23-456789"></label><label class="f">Expiration date<input id="mlicexp" type="date" min="2020-01-01" max="2040-12-31"></label></div>
        <div class="small muted" style="margin:6px 0 4px">DL codes</div><div class="cp-days">${LCODES.map(([c])=>`<label class="cp-day"><input type="checkbox" data-mcode="${c}"><span>${c}</span></label>`).join("")}</div></div>
       <div class="man-doc"><div class="lbl">NBI clearance</div>${manPhoto("nbi")}
@@ -2059,12 +2090,13 @@ document.addEventListener("click",async e=>{
      return render()}
    case"manclear":delete MAN[v];return manRedraw(v);
    case"addman":{const g=k=>($("#"+k)?.value||"").trim(),name=g("mname"),dt=g("mdate"),tm=g("mtime");
-     if(!name||name.split(/\s+/).length<2)return toast("Add the applicant's full name.");if(!/^\d{4}-\d{2}-\d{2}$/.test(dt))return toast("Pick the interview date.");
+     if(!name||name.split(/\s+/).length<2)return toast("Add the applicant's full name.");if(!/^\d{4}-\d{2}-\d{2}$/.test(dt))return toast("Pick the interview date.");if(!MAN.lic)return toast("Add a photo of the driver's license. It's required.");
      const c=campById(g("mcamp"))||camps()[0]||{},slot=new Date(dt+"T"+(tm||"09:00")),id2="a"+uid(),codes=[...document.querySelectorAll("[data-mcode]:checked")].map(x=>x.dataset.mcode);
      const a={id:id2,code:bookCode(),name,phone:g("mphone"),email:g("memail"),slot:slot.toISOString(),campaign:c.name||c.position||"",campaignId:c.id||"",position:c.position||"",hubName:c.hubName||"",location:c.location||"",
        refCode:g("mref"),source:"manual",booking:{status:"approved",auto:false,by:S.uid,at:now,manual:true},createdAt:now,log:[{t:now,by:S.uid,msg:"Added by hand"}]};
      const put=async img=>{if(!img)return[];const pid="p"+uid();try{await IDB.put(pid,img);PHOTOS[pid]=img;return[pid]}catch(e){toast("A photo couldn't be uploaded.");return[]}};
-     a.docs={};if(MAN.lic||g("mlicno"))a.docs.license={number:g("mlicno"),expiry:g("mlicexp"),restrictions:codes.join(", "),photos:await put(MAN.lic)};
+     a.docs={};a.docs.license={number:g("mlicno"),expiry:g("mlicexp"),restrictions:codes.join(", "),photos:await put(MAN.lic)};
+     if(!a.docs.license.photos.length)return toast("The license photo didn't upload. Check the internet and try again — nothing was saved.");
      if(MAN.nbi||g("mnbino"))a.docs.nbi={ref:g("mnbino"),expiry:g("mnbiexp"),photos:await put(MAN.nbi)};
      if(MAN.med||g("mmeddate"))a.docs.medical={date:g("mmeddate"),photos:await put(MAN.med)};
      Object.keys(MAN).forEach(k=>delete MAN[k]);S.applicants[id2]=a;render();await setDoc("applicants/"+id2,a);return toast(`Applicant added · code ${a.code}`)}
@@ -2415,7 +2447,7 @@ async function bookNow(){const c=campById(PUB.id),F=PUB.form;if(!c||!PUB.time)re
       answers:cq(c).map(q=>({q:q.text,a:q.opts[F.answers[q.id]]?.[0],pts:q.opts[F.answers[q.id]]?.[1],max:Math.max(...q.opts.map(o=>o[1]))})),score},
     booking:{status:auto?"approved":"pending",auto,reasons,at:now},createdAt:now,updatedAt:now,
     log:[{t:now,by:"applicant",msg:`Applied through campaign link and requested ${fmtDT(PUB.time)}. Pre-profile ${score}%.`+(auto?" Auto-approved.":" Waiting for approval.")}]};
-  try{await attachDocs(a,F);await setDoc("applicants/"+id,a)}catch(err){delete S.applicants[id];PUB.time=null;PUB.err=err.message;await loadSlots();return render()}PUB.form={};PUB.ocr={};PUB.day=PUB.time=null;location.hash="#ticket/"+id}
+  try{await attachDocs(a,F);await setDoc("applicants/"+id,a)}catch(err){delete S.applicants[id];if(/oras na/.test(err.message))PUB.time=null;PUB.err=err.message;await loadSlots();return render()}PUB.form={};PUB.ocr={};PUB.day=PUB.time=null;location.hash="#ticket/"+id}
 
 function appFacts(a){const ap=a.application||{},g=ap.geo,row=(k,v)=>`<div><dt>${k}</dt><dd>${v||"—"}</dd></div>`;
   return row("Age",ageOf(ap.birth)!=null?ageOf(ap.birth)+" yrs · born "+fmtD(ap.birth):"")+row("Lives in",esc([ap.address,ap.city].filter(Boolean).join(", ")))+
@@ -2565,10 +2597,12 @@ function docFields(kind){const F=PUB.form,f=(k,l,type,ph)=>`<label class="f">${l
   return `<div class="ap-form" style="margin-top:16px">${f("nbiNo","NBI clearance number","text")}${f("nbiExp","Valid until","date")}</div>
    <label class="row small" style="margin-top:10px"><input type="checkbox" id="ap-nbiHit" ${F.nbiHit?"checked":""}> May "hit" ang clearance</label>`}
 async function attachDocs(a,F){a.docs=a.docs||{};
-  const put=async img=>{if(!img)return[];const pid="p"+uid();try{await IDB.put(pid,img);PHOTOS[pid]=img;return[pid]}catch(e){return[]}};
-  if(F.licImg||F.licNo)a.docs.license={number:F.licNo||"",expiry:F.licExp||"",restrictions:(F.codes||[]).join(", "),photos:await put(F.licImg),fromApplicant:true};
-  if(F.medImg)a.docs.medical={date:F.medDate||"",clinic:F.medClinic||"",photos:await put(F.medImg),fromApplicant:true};
-  if(F.nbiImg||F.nbiNo)a.docs.nbi={ref:F.nbiNo||"",expiry:F.nbiExp||"",hit:!!F.nbiHit,photos:await put(F.nbiImg),fromApplicant:true}}
+  const errs={},put=async(img,k)=>{if(!img)return[];const pid="p"+uid();for(let t=0;t<2;t++){try{await IDB.put(pid,img);PHOTOS[pid]=img;return[pid]}catch(e){errs[k]=String(e&&e.message||e);console.error("photo upload",k,e)}}return[]};
+  if(F.licImg||F.licNo)a.docs.license={number:F.licNo||"",expiry:F.licExp||"",restrictions:(F.codes||[]).join(", "),photos:await put(F.licImg,"license"),fromApplicant:true};
+  if(F.medImg)a.docs.medical={date:F.medDate||"",clinic:F.medClinic||"",photos:await put(F.medImg,"medical"),fromApplicant:true};
+  if(F.nbiImg||F.nbiNo)a.docs.nbi={ref:F.nbiNo||"",expiry:F.nbiExp||"",hit:!!F.nbiHit,photos:await put(F.nbiImg,"nbi"),fromApplicant:true};
+  Object.entries(errs).forEach(([k,m])=>{if(a.docs[k]&&!(a.docs[k].photos||[]).length)a.docs[k].photoError=m.slice(0,200)});
+  if(!(a.docs.license?.photos||[]).length)throw new Error("Hindi na-upload ang photo ng license mo. I-check ang internet mo at subukan ulit. Naka-save pa rin ang mga sagot mo.")}
 function docFacts(a){const L=a.docs?.license,N=a.docs?.nbi,row=(k,v)=>`<div><dt>${k}</dt><dd>${v||"—"}</dd></div>`,t=today();
   return row("License no.",L&&L.number?esc(L.number)+(L.expiry?` · ${L.expiry<t?'<span style="color:var(--stop)">expired '+fmtD(L.expiry)+"</span>":"expires "+fmtD(L.expiry)}`:""):L?"Photo uploaded":"Not uploaded")+
    row("NBI clearance",N?(esc(N.ref||"Photo uploaded")+(N.expiry?` · valid to ${fmtD(N.expiry)}`:"")+(N.hit?' · <span style="color:var(--stop)">record hit</span>':" · no record")):"Not uploaded")}
@@ -2576,11 +2610,11 @@ document.addEventListener("change",e=>{const t=e.target;if(t.dataset.scan&&t.fil
   if(t.id==="ap-license"||t.id==="ap-licExp")setTimeout(render,0)});
 
 
-function vLicStep(c,err){const F=PUB.form,O=PUB.ocr.license||{},has=F.licImg||F.manual,reading=O.status==="reading";
+function vLicStep(c,err){const F=PUB.form,O=PUB.ocr.license||{},has=F.licImg,reading=O.status==="reading";
   const inp=(k,l,type,ph)=>`<label class="f">${l}<input id="ap-${k}" type="${type||"text"}" value="${esc(F[k]||"")}" placeholder="${ph||""}" ${type==="date"&&k==="birth"?`max="${today()}"`:""}></label>`;
   const codes=F.codes||[],sameAddr=F.addrOk;
   let body=`<h2 style="margin:0 0 4px">Driver's license mo</h2><p class="muted" style="margin:0 0 20px">Picturan ang harap ng license mo. Babasahin namin ang details para hindi mo na kailangang i-type.</p>${upCard("license")}`;
-  if(!has)body+=`<button class="ap-link" data-act="ap-manual">Hindi ako maka-upload ng photo, ita-type ko na lang</button>`;
+  if(!has)body+=`<p class="small muted" style="margin:10px 0 0">Kailangan ang photo ng license para makapag-apply. Walang camera? Gamitin ang <b>Upload mula sa gallery</b>.</p>`;
   if(has&&!reading){const exp=F.licExp&&F.licExp<today();
     body+=`<h3 class="ap-h3">I-check ang details mo</h3><p class="small muted" style="margin:-4px 0 14px">Itama mo kung may maling nabasa.</p>
     <div class="ap-form">${inp("name","Buong pangalan","text","Pangalan at apelyido")}<label class="f">Kasarian<select id="ap-sex"><option value="">Pumili…</option>${[["M","Lalaki"],["F","Babae"]].map(([v,l])=>`<option value="${v}" ${F.sex===v?"selected":""}>${l}</option>`).join("")}</select></label>
@@ -2594,7 +2628,7 @@ function vLicStep(c,err){const F=PUB.form,O=PUB.ocr.license||{},has=F.licImg||F.
     ${!F.licAddr||sameAddr===false||(sameAddr===true&&!F.licCity)?`<div class="ap-form" style="margin-top:14px"><label class="f">City o municipality<select id="ap-city"><option value="">Pumili…</option>${CITIES.map(o=>`<option ${F.city===o?"selected":""}>${o}</option>`).join("")}</select></label></div>`:""}`}
   return `<div class="ap-card ap-narrow">${body}${err}<div class="ap-actions"><button class="btn" data-act="ap-go" data-v="job">Bumalik</button>${has&&!reading?`<button class="btn primary lg" data-act="ap-go" data-v="form">Next: contact info</button>`:""}</div></div>`}
 function checkLic(){const F=PUB.form,age=ageOf(F.birth);
-  if(!F.licImg&&!F.manual)return"Mag-upload ng photo ng driver's license mo.";
+  if(!F.licImg)return"Kailangan ang photo ng driver's license mo. Picturan o i-upload ito para makatuloy.";
   if(!F.name||F.name.trim().split(/\s+/).length<2)return"Ilagay ang buong pangalan mo (pangalan at apelyido).";
   if(!F.birth)return"Ilagay ang birthday mo.";if(age<18)return"Dapat 18 years old pataas ka para makapag-apply.";if(age>80)return"Paki-check ang birthday mo.";
   if(!F.licNo)return"Ilagay ang license number mo.";if(!F.licExp)return"Ilagay ang expiration date ng license mo.";if(!(F.codes||[]).length)return"I-tick ang DL codes na nasa license mo.";
