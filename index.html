@@ -954,7 +954,7 @@ async function enterSession(user){
   if(msg){await SB.auth.signOut();return msg}
   try{await dbLoad()}catch(e){console.error(e);await SB.auth.signOut();return "Couldn't load data: "+e.message}
   subscribe();SB.from("profiles").update({last_login:new Date().toISOString()}).eq("id",user.id).then(()=>{});
-  S.ready=true;startSession(account()||profToAcc(p));return null}
+  S.ready=true;startSession(account()||profToAcc(p));sweepStale();return null}
 async function adminUsers(body){const {data,error}=await SB.functions.invoke("admin-users",{body});if(error)return{error:"The admin-users function isn't reachable. Check it's deployed."};return data||{}}
 const FIL_BY_TEXT=Object.fromEntries(STARTER_BANK.map(q=>[q.text,q.fil]));
 function addFilipino(){if(!S.bank||!S.bank.questions)return;let ch=false;S.bank.questions.forEach(q=>{if(!q.fil&&FIL_BY_TEXT[q.text]){q.fil=FIL_BY_TEXT[q.text];ch=true}});if(ch)localSave()}
@@ -971,10 +971,18 @@ const questions=()=>(S.bank&&S.bank.questions||[]).filter(q=>!q.archived);
 const account=()=>S.accounts.find(u=>u.id===S.uid);
 function me(){return account()?.name||"You"}
 function updateApplicant(id,fn,msg){
-  const a=clone(S.applicants[id]);fn(a);a.updatedAt=new Date().toISOString();
-  a.log=(a.log||[]);if(msg)a.log.unshift({t:a.updatedAt,by:S.uid,msg});a.log=a.log.slice(0,60);
+  const was=decide(S.applicants[id]).result,a=clone(S.applicants[id]);fn(a);a.updatedAt=new Date().toISOString();
+  const w=withdrawStale(a,was==="hired"&&decide(a).result!=="hired");
+  a.log=(a.log||[]);if(msg)a.log.unshift({t:a.updatedAt,by:S.uid,msg});if(w)a.log.unshift({t:a.updatedAt,by:S.uid,msg:w});a.log=a.log.slice(0,60);
   S.applicants[id]=a;return setDoc("applicants/"+id,a);
 }
+/* a "Passed" result already given is withdrawn when a step is no longer complete (document un-verified, test reopened) */
+function stepGap(a){return docsVerdict(a)!=="pass"||!a.orientation?.attended||!a.interview?.done||a.drive?.result!=="pass"}
+function withdrawStale(a,flipped){const r=a.released;if(!r?.pass||r.fail||!(flipped||stepGap(a)))return null;
+  const why=decide(a).checks.filter(c=>c.st!=="pass").map(c=>c.label).join(", ");delete r.pass;delete r.accredited;
+  const t=a.training;let extra="";if(t&&!(a.ojt?.days||[]).some(d=>d&&d.status)){if(t.slot)extra=` Training booking on ${fmtD(t.slot)} cancelled.`;delete a.training}
+  return `"Passed" result withdrawn: ${why||"a step is no longer complete"}.${extra} Check-in gives the result again when every step is complete.`}
+function sweepStale(){if(!can("verifier"))return;Object.values(S.applicants).forEach(a=>{if(withdrawStale(clone(a),false))updateApplicant(a.id,()=>{}).catch(e=>console.error(e))})}
 function saveFile(filename,data,type){const url=URL.createObjectURL(new Blob([data],{type:type||"text/plain"}));const l=document.createElement("a");l.href=url;l.download=filename;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 
 /* ============ accounts ============ */
@@ -1001,6 +1009,8 @@ function myRoles(){
   return account()?.roles||[];
 }
 const can=r=>{const m=myRoles();return m.includes(r)||m.includes("admin")};
+// who may see scores: interview results = Interviewer, Check-in, HR (+Admin); driving results = Check-in, HR (+Admin)
+const seeIv=()=>can("interviewer")||can("verifier")||can("hr"),seeDr=()=>can("verifier")||can("hr");
 
 /* ============ rules engine ============ */
 function monthsAgo(dateStr){const d=new Date(dateStr);if(isNaN(d))return Infinity;return (Date.now()-d)/(1000*60*60*24*30.44)}
@@ -1066,7 +1076,9 @@ function reached(a){const st=stage(a),r={booked:1};
   if(a.checkin?.status==="show")r.showed=1;if(docsVerdict(a)==="pass")r.docs=1;if(a.orientation?.attended)r.oriented=1;
   if(a.interview?.done&&!ivFail(a))r.interviewed=1;if(r.interviewed&&a.drive?.result==="pass")r.drove=1;if(decide(a).result==="hired")r.hired=1;
   if(r.hired&&a.training?.response==="accepted")r.accepted=1;if(r.accepted&&ojtVerdict(a)==="pass")r.ojt=1;return r}
-const stageTag=a=>{const[l,k]=STAGES[stage(a)];return tag(l,k)};
+// a result not yet given is only named to people who may see it
+const stageLabel=a=>{const st=stage(a);if((st==="iv_fail"&&!seeIv())||(["drive_fail","pass_inform"].includes(st)&&!(seeIv()&&seeDr())))return["Result to give","wait"];return STAGES[st]};
+const stageTag=a=>{const[l,k]=stageLabel(a);return tag(l,k)};
 
 /* ============ UI state ============ */
 const UI={view:"pipeline",id:null,campaign:"",q:"",csv:null,dayFilter:"today",resFilter:"all",editQ:null};
@@ -1179,8 +1191,8 @@ function applicantTable(rows,cols){
    `<tr class="click" data-open="${a.id}">${cols.map(c=>`<td>${c[1](a)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`}
 const COL={name:["Applicant",a=>`<b>${esc(a.name)}</b>${a.source==="sample"?'<span class="sample">Sample</span>':""}<div class="small muted">${esc(a.phone||a.email||"")}</div>`],
   slot:["Interview slot",a=>fmtDT(a.slot)],camp:["Campaign",a=>esc(a.campaign||"—")],stage:["Stage",stageTag],
-  score:["Interview",a=>{if(!a.interview?.done)return"—";const s=scoreInterview(a);return `${s.pct}% ${tag(s.overall+" risk",s.overall==="Low"?"go":s.overall==="Medium"?"wait":"stop")}`}],
-  drive:["Drive",a=>a.drive?.result?tag(a.drive.result==="pass"?"Pass":"Fail",a.drive.result==="pass"?"go":"stop"):"—"]};
+  score:["Interview",a=>{if(!a.interview?.done)return"—";if(!seeIv())return tag("Submitted","plain");const s=scoreInterview(a);return `${s.pct}% ${tag(s.overall+" risk",s.overall==="Low"?"go":s.overall==="Medium"?"wait":"stop")}`}],
+  drive:["Drive",a=>a.drive?.result&&!seeDr()?tag("Submitted","plain"):a.drive?.result?tag(a.drive.result==="pass"?"Pass":"Fail",a.drive.result==="pass"?"go":"stop"):"—"]};
 
 const STATUS_GROUPS=[["all","All statuses"],["wait","Waiting for approval",["requested"]],["booked","Booked (not arrived)",["booked"]],["noshow","No-show",["noshow"]],
   ["screen","In screening",["checkin","orientation","interview","drive"]],["passed","Passed · training",["pass_inform","training_invite","training_book","ojt","accr_inform"]],
@@ -1204,15 +1216,15 @@ function vApplicants(){const rows=filteredApplicants();
 
 /* ---- Registry: every applicant, a status column per step; click for the full record ---- */
 const T=(l,k)=>tag(l,k);
-function regCells(a){const st=stage(a),bk=a.booking?.status,ci=a.checkin?.status,docsAll=DOCS.map(([k])=>a.docs?.[k]?.status),iv=a.interview?.done?scoreInterview(a):null,d=decide(a).result,tr=a.training||{},ov=ojtVerdict(a);
+function regCells(a){const st=stage(a),bk=a.booking?.status,ci=a.checkin?.status,docsAll=DOCS.map(([k])=>a.docs?.[k]?.status),iv=a.interview?.done?scoreInterview(a):null,d=decide(a).result,tr=a.training||{},ov=ojtVerdict(a),sI=seeIv(),sD=seeDr();
   return {
    booking:bk==="pending"?T("Waiting","wait"):bk==="declined"?T("Declined","stop"):a.calendlyCanceled?T("Canceled","plain"):T(a.booking?.auto?"Auto-approved":"Approved","go"),
    checkin:ci==="show"?T("Arrived","go"):st==="noshow"||ci==="noshow"?T("No-show","stop"):"—",
    docs:docsAll.includes("rejected")?T("Rejected","stop"):docsAll.every(x=>x==="verified")?T("Cleared","go"):ci==="show"?T("In review","wait"):"—",
    orient:a.orientation?.attended?T("Done","go"):"—",
-   interview:iv?(ivFail(a)?T(`Fail ${iv.pct}%`,"stop"):T(`Pass ${iv.pct}%`,"go")):"—",
-   drive:a.drive?.result?T(a.drive.result==="pass"?`Pass${a.drive.pct!=null?" "+a.drive.pct+"%":""}`:"Fail",a.drive.result==="pass"?"go":"stop"):"—",
-   result:d==="hired"?T("Passed","go"):d==="not_hired"?T("Not passed","stop"):"—",
+   interview:iv&&!sI?T("Submitted","plain"):iv?(ivFail(a)?T(`Fail ${iv.pct}%`,"stop"):T(`Pass ${iv.pct}%`,"go")):"—",
+   drive:a.drive?.result&&!sD?T("Submitted","plain"):a.drive?.result?T(a.drive.result==="pass"?`Pass${a.drive.pct!=null?" "+a.drive.pct+"%":""}`:"Fail",a.drive.result==="pass"?"go":"stop"):"—",
+   result:!(sI&&sD)?"—":d==="hired"?T("Passed","go"):d==="not_hired"?T("Not passed","stop"):"—",
    training:tr.response==="declined"?T("Declined","stop"):tr.slot?T(fmtD(tr.slot),ov==="pass"?"go":ov==="fail"?"stop":"wait"):tr.response==="accepted"?T("Picking date","wait"):a.released?.pass?T("Invited","wait"):"—",
    accr:ov==="pass"?T(a.released?.accredited?"Accredited":"Passed · to tell","go"):ov==="fail"?T("Not passed","stop"):"—"}}
 function vRegistry(){const rows=filteredApplicants();
@@ -1224,7 +1236,7 @@ function vRegistry(){const rows=filteredApplicants();
   <div class="head"><div><h1>Registry</h1><p>Every applicant and the result of each step. ${rows.length} shown. Click a row for the full record.</p></div><div class="row"><button class="btn" data-act="exportcsv" style="align-self:flex-end">Export CSV</button></div></div>
   ${rec}${apFilters()}
   ${rows.length?`<div class="tablewrap reg-table"><table><thead><tr>${head.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>`:`<div class="tablewrap"><div class="empty">No applicants match these filters.</div></div>`}`}
-function regRecord(a){const c=regCells(a),L=a.docs?.license||{},N=a.docs?.nbi||{},M=a.docs?.medical||{},iv=a.interview?.done?scoreInterview(a):null,tr=a.training||{},nm=id=>esc(S.profiles[id]?.name||"—");
+function regRecord(a){const c=regCells(a),L=a.docs?.license||{},N=a.docs?.nbi||{},M=a.docs?.medical||{},iv=a.interview?.done&&seeIv()?scoreInterview(a):null,tr=a.training||{},nm=id=>esc(S.profiles[id]?.name||"—");
   const row=(k,v)=>`<div><dt>${k}</dt><dd>${v||"—"}</dd></div>`,ph=(p,d)=>(p||[]).length?(p||[]).map(x=>`<span role="button" tabindex="0" data-act="viewphoto" data-p="${x}" class="reg-phw"><img data-photo="${x}" alt="Photo" class="reg-ph"></span>`).join(""):`<div class="reg-noph">${d&&d.photoError?`⚠️ Photo upload failed: ${esc(d.photoError)}`:"No photo saved"}</div>`;
   const docStat=k=>{const d=a.docs?.[k];return d?.status==="verified"?T("Verified","go"):d?.status==="rejected"?T("Rejected","stop"):d?T("Not verified yet","wait"):T("Not submitted","plain")};
   return `<div class="sect reg-rec" id="reg-rec"><header><h3>${esc(a.name)} <span class="mono small muted">${esc(a.code||"")}</span></h3><div class="row noprint"><button class="btn sm" data-open="${a.id}">Open full profile</button><button class="btn sm" data-act="regprint">Print</button><button class="btn sm" data-act="regclose">Close</button></div></header>
@@ -1276,7 +1288,7 @@ function vResults(){
   const pill=(k,l)=>`<button class="btn sm" data-act="resf" data-v="${k}" aria-pressed="${f===k}" style="${f===k?"border-color:var(--ink)":""}">${l}</button>`;
   return `<div class="seg noprint">${[["applicants","All applicants"],["results","Results"]].map(([v,l])=>`<button data-go="${v}" aria-current="${UI.view===v}">${l}</button>`).join("")}</div><div class="head"><div><h1>Results</h1><p>Tabulated automatically from documents, interview, risk and driving test.</p></div>${campaignFilter()}</div>
    <div class="row" style="margin-bottom:12px">${pill("all",`All ${all.length}`)}${pill("hired",`Passed ${cnt("hired")}`)}${pill("not_hired",`Not passed ${cnt("not_hired")}`)}${pill("pending",`Pending ${cnt("pending")}`)}</div>
-   ${applicantTable(rows,[COL.name,COL.score,COL.drive,["Decision",a=>{const d=decide(a).result;return d==="hired"?tag("Passed","go"):d==="not_hired"?tag("Not passed","stop"):tag("Pending","wait")}],
+   ${applicantTable(rows,[COL.name,COL.score,COL.drive,["Decision",a=>{const d=decide(a).result;return !(seeIv()&&seeDr())?"—":d==="hired"?tag("Passed","go"):d==="not_hired"?tag("Not passed","stop"):tag("Pending","wait")}],
      ["Reason",a=>{const d=decide(a);const f=d.checks.filter(c=>c.st==="fail").map(c=>c.label+(c.why?` (${c.why})`:""));const p=d.checks.filter(c=>c.st==="pending").map(c=>c.label);
        return `<span class="small">${esc(f.length?f.join("; "):p.length?"Waiting: "+p.join(", "):"All criteria met")}</span>`}]])}`;
 }
@@ -1385,34 +1397,52 @@ function vImport(){
    </div></div>`;
 }
 
-/* ---- driving test items editor (Question bank tab; Admin + Driving instructor) ---- */
+/* ---- driving test items editor (Question bank tab). Driving instructor edits wording only;
+   Admin also sets weights, critical items, pass mark, and adds/removes items. Every save is logged. ---- */
 function vBankDrive(){if(!can("tester"))return `<div class="panel empty">Only Admins and driving instructors can edit the driving test.</div>`;
-  const E=UI.editDrive||(UI.editDrive={items:clone(driveItems()),pass:settings().drivePass});const tot=E.items.reduce((x,i)=>x+Math.max(1,+i.weight||1),0);
-  return `<p class="muted" style="margin:0 0 16px">What the instructor scores in the vehicle. Weight = points for the item. A failed <b>critical</b> item fails the whole test.</p>
-  <div class="sect"><header><h3>${E.items.length} items · ${tot} points</h3></header><div class="stack">
+  const isA=can("admin"),E=UI.editDrive||(UI.editDrive={items:clone(driveItems()),pass:settings().drivePass});const tot=E.items.reduce((x,i)=>x+Math.max(1,+i.weight||1),0);
+  const hist=(settings().driveLog||[]).slice(0,20);
+  return `<p class="muted" style="margin:0 0 16px">${isA?`What the instructor scores in the vehicle. Weight = points for the item. A failed <b>critical</b> item fails the whole test.`:`What you score in the vehicle. You can reword the items. Only an Admin can add or remove items or change how they are scored.`}</p>
+  <div class="sect"><header><h3>${E.items.length} items${isA?` · ${tot} points`:""}</h3></header><div class="stack">
    ${E.items.map((i,k)=>`<div class="row" style="gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px">
      <span class="muted small" style="width:22px">${k+1}</span>
      <input class="db-in" data-k="${k}" data-f="t" value="${esc(i.t)}" placeholder="What to check" style="flex:1;min-width:240px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel)">
-     <label class="small">Weight <select class="db-in" data-k="${k}" data-f="weight">${[1,2,3,4,5].map(w=>`<option ${(+i.weight||1)===w?"selected":""}>${w}</option>`).join("")}</select></label>
+     ${isA?`<label class="small">Weight <select class="db-in" data-k="${k}" data-f="weight">${[1,2,3,4,5].map(w=>`<option ${(+i.weight||1)===w?"selected":""}>${w}</option>`).join("")}</select></label>
      <span class="small muted" style="width:44px">${tot?Math.round(Math.max(1,+i.weight||1)/tot*100):0}%</span>
      <label class="row small"><input type="checkbox" class="db-in" data-k="${k}" data-f="crit" ${i.crit?"checked":""}> Critical</label>
      <button class="btn sm" data-act="db-up" data-v="${k}" ${k?"":"disabled"} aria-label="Move up">↑</button>
-     <button class="btn sm danger" data-act="db-del" data-v="${k}">Remove</button></div>`).join("")||`<p class="muted">No items yet.</p>`}
-   <div class="row"><button class="btn" data-act="db-add">Add item</button></div>
-   <label class="f" style="max-width:220px">Pass mark (%)<input type="number" class="db-pass" min="0" max="100" value="${E.pass}"></label>
+     <button class="btn sm danger" data-act="db-del" data-v="${k}">Remove</button>`:(i.crit?tag("Critical","stop"):"")}</div>`).join("")||`<p class="muted">No items yet.</p>`}
+   ${isA?`<div class="row"><button class="btn" data-act="db-add">Add item</button></div>
+   <label class="f" style="max-width:220px">Pass mark (%)<input type="number" class="db-pass" min="0" max="100" value="${E.pass}"></label>`:""}
    <p class="small muted" style="margin:0">Changes apply to new tests. Tests already submitted keep their result.</p>
    <div class="row"><button class="btn primary" data-act="db-save">Save driving test</button><button class="btn" data-act="db-reset">Undo changes</button></div>
-  </div></div>`}
+  </div></div>
+  ${isA?`<div class="sect"><header><h3>Change history</h3></header><div>${hist.length?`<ul class="checks">${hist.map(h=>`<li><span>${esc(h.msg)}</span><span class="small muted">${esc(S.profiles[h.by]?.name||"")} · ${fmtDT(h.t)}</span></li>`).join("")}</ul>`:`<p class="muted" style="margin:0">No changes saved yet.</p>`}</div></div>`:""}`}
+function driveDiff(o,n,op,np){const out=[],O=Object.fromEntries(o.map(i=>[i.id,i])),N=Object.fromEntries(n.map(i=>[i.id,i])),q=t=>`“${t.length>40?t.slice(0,38)+"…":t}”`;
+  n.forEach(i=>{const x=O[i.id];if(!x)return out.push(`added ${q(i.t)}${i.crit?" (critical)":""}`);
+    if(x.t!==i.t)out.push(`reworded ${q(x.t)} to ${q(i.t)}`);if((+x.weight||1)!==(+i.weight||1))out.push(`weight of ${q(i.t)} ${+x.weight||1} → ${+i.weight||1}`);
+    if(!!x.crit!==!!i.crit)out.push(`${q(i.t)} ${i.crit?"made critical":"no longer critical"}`)});
+  o.forEach(x=>{if(!N[x.id])out.push(`removed ${q(x.t)}`)});
+  if(o.map(i=>i.id).filter(id=>N[id]).join()!==n.map(i=>i.id).filter(id=>O[id]).join())out.push("changed the order");
+  if(op!==np)out.push(`pass mark ${op}% → ${np}%`);return out}
 document.addEventListener("input",e=>{const t=e.target;if(t.classList.contains("db-in")&&UI.editDrive){const i=UI.editDrive.items[+t.dataset.k];i[t.dataset.f]=t.type==="checkbox"?t.checked:t.dataset.f==="weight"?+t.value:t.value}
   if(t.classList.contains("db-pass")&&UI.editDrive)UI.editDrive.pass=Math.min(100,Math.max(0,+t.value||0))});
 document.addEventListener("change",e=>{const t=e.target;if((t.classList.contains("db-in")&&t.dataset.f!=="t")){const i=UI.editDrive.items[+t.dataset.k];i[t.dataset.f]=t.type==="checkbox"?t.checked:+t.value;render()}});
-document.addEventListener("click",async e=>{const b=e.target.closest("[data-act^='db-']");if(!b||!UI.editDrive)return;const A=b.dataset.act,k=+b.dataset.v,L=UI.editDrive.items;
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-act^='db-']");if(!b||!UI.editDrive)return;const A=b.dataset.act,k=+b.dataset.v,L=UI.editDrive.items,isA=can("admin");
+  if(A==="db-reset"){UI.editDrive=null;return render()}
+  if(A!=="db-save"&&!isA)return;
   if(A==="db-add"){L.push({id:"d"+uid(),t:"",weight:1,crit:false});render();const ins=document.querySelectorAll('.db-in[data-f="t"]');ins[ins.length-1]?.focus();return}
   if(A==="db-del"){if(!confirm("Remove this item from the driving test?"))return;L.splice(k,1);return render()}
   if(A==="db-up"&&k>0){[L[k-1],L[k]]=[L[k],L[k-1]];return render()}
-  if(A==="db-reset"){UI.editDrive=null;return render()}
-  if(A==="db-save"){const items=L.map(i=>({id:i.id,t:(i.t||"").trim(),weight:Math.min(5,Math.max(1,+i.weight||1)),crit:!!i.crit})).filter(i=>i.t);
-    if(!items.length)return toast("Add at least one item.");const ns=Object.assign({},S.settings||{},{driveItems:items,drivePass:UI.editDrive.pass});
+  if(A==="db-save"){const old=driveItems(),oldPass=settings().drivePass;
+    // the instructor can only change wording: everything else is taken from the saved test
+    const T=Object.fromEntries(L.map(i=>[i.id,(i.t||"").trim()]));
+    const items=isA?L.map(i=>({id:i.id,t:(i.t||"").trim(),weight:Math.min(5,Math.max(1,+i.weight||1)),crit:!!i.crit})).filter(i=>i.t)
+      :old.map(i=>({id:i.id,t:T[i.id]||i.t,weight:Math.min(5,Math.max(1,+i.weight||1)),crit:!!i.crit}));
+    if(!items.length)return toast("Add at least one item.");const pass=isA?UI.editDrive.pass:oldPass;
+    const ch=driveDiff(old,items,oldPass,pass);if(!ch.length){UI.editDrive=null;render();return toast("No changes to save")}
+    const msg=ch.join("; ");const log=[{t:new Date().toISOString(),by:S.uid,msg:msg.charAt(0).toUpperCase()+msg.slice(1)},...(settings().driveLog||[])].slice(0,50);
+    const ns=Object.assign({},S.settings||{},{driveItems:items,drivePass:pass,driveLog:log});
     S.settings=ns;UI.editDrive=null;render();await setDoc("admin/settings",ns);return toast("Driving test saved")}});
 /* ---- training calendar (Trainer + Admin edit; Marketing / Check-in view) ---- */
 function trBooked(ds){return Object.values(S.applicants).filter(a=>a.training?.slot===ds&&!a.released?.fail)}
@@ -1600,7 +1630,7 @@ function vReminders(){
   const cell=d=>{const L=dayApps(d),todo=L.filter(a=>chipState(a)==="todo").length,dn=+d.slice(8);
     return `<div class="cday ${d===tdy?"today":""} ${d===sel?"sel":""} ${d<tdy?"past":""} ${mode==="month"&&+d.slice(5,7)!==am?"out":""}" role="button" tabindex="0" data-act="remdate" data-v="${d}" aria-label="${new Date(d+"T12:00").toDateString()}, ${L.length} interview${L.length===1?"":"s"}">
       <div class="dh2"><span class="dn">${dn}</span>${L.length?`<span class="cnt2 ${todo?"todo":""}" title="${todo} reminder${todo===1?"":"s"} to send">${L.length}</span>`:""}</div>
-      ${L.slice(0,maxChips).map(a=>`<span class="chip ${chipState(a)}" title="${esc(a.name)} · ${esc(STAGES[stage(a)][0])}"><b>${new Date(a.slot).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})}</b> ${esc(a.name)}</span>`).join("")}
+      ${L.slice(0,maxChips).map(a=>`<span class="chip ${chipState(a)}" title="${esc(a.name)} · ${esc(stageLabel(a)[0])}"><b>${new Date(a.slot).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})}</b> ${esc(a.name)}</span>`).join("")}
       ${L.length>maxChips?`<span class="small muted" style="display:block;margin-top:4px">+${L.length-maxChips} more</span>`:""}</div>`};
   const cal=`<div class="calbar"><div class="row"><button class="btn sm" data-act="calnav" data-v="-1" aria-label="Previous">‹</button><h2>${title}</h2><button class="btn sm" data-act="calnav" data-v="1" aria-label="Next">›</button><button class="btn sm" data-act="caltoday">Today</button></div>
     <div class="pf" role="group" aria-label="Calendar view"><button class="p" data-act="calmode" data-v="week" aria-pressed="${mode==="week"}">Week</button><button class="p" data-act="calmode" data-v="month" aria-pressed="${mode==="month"}">Month</button></div></div>
@@ -1665,10 +1695,10 @@ function printSheet(kind,id){
     <table><thead><tr><th style="width:34%">Question</th><th>4</th><th>3</th><th>2</th><th>1</th></tr></thead><tbody>${Object.keys(CATS).map(c=>questions().filter(q=>q.cat===c).map(q=>
      `<tr><td><b>${esc(q.text)}</b>${q.fil?`<br><i>${esc(q.fil)}</i>`:""}<br><span style="font-size:11px">${CATS[c]} · ${DIMS[q.dim]}${q.red?" · RF":""}</span></td>${[4,3,2,1].map(sc=>`<td><span class="box"></span>${esc(q.o[sc-1])}</td>`).join("")}</tr>`).join("")).join("")}</tbody></table>
     <p style="margin-top:12px">Notes</p><div class="line"></div><div class="line"></div><p style="margin-top:18px">Interviewer signature ______________________</p></div>`}
-  if(kind==="drive"){h=`<div class="sheet">${head("Driving test sheet")}${meta([["Applicant",a.name],["Date",""],["Vehicle / plate",""],["Tester",""]])}
-    <p>Pass mark ${s.drivePass}%. A fail on any critical item fails the test.</p>
-    <table><thead><tr><th>Item</th><th style="width:70px">Pass</th><th style="width:70px">Fail</th></tr></thead><tbody>${driveItems().map(i=>`<tr><td>${esc(i.t)}${i.weight>1?` <span class="muted">(×${i.weight})</span>`:""}${i.crit?" <b>(critical)</b>":""}</td><td><span class="box"></span></td><td><span class="box"></span></td></tr>`).join("")}</tbody></table>
-    <p style="margin-top:12px">Result: <span class="box"></span> Pass &nbsp; <span class="box"></span> Fail</p><p>Notes</p><div class="line"></div><div class="line"></div><p style="margin-top:18px">Tester signature ______________________</p></div>`}
+  if(kind==="drive"){const sD=seeDr();h=`<div class="sheet">${head("Driving test sheet")}${meta([["Applicant",a.name],["Date",""],["Vehicle / plate",""],["Tester",""]])}
+    <p>${sD?`Pass mark ${s.drivePass}%. `:""}A fail on any critical item fails the test.</p>
+    <table><thead><tr><th>Item</th><th style="width:70px">Pass</th><th style="width:70px">Fail</th></tr></thead><tbody>${driveItems().map(i=>`<tr><td>${esc(i.t)}${sD&&i.weight>1?` <span class="muted">(×${i.weight})</span>`:""}${i.crit?" <b>(critical)</b>":""}</td><td><span class="box"></span></td><td><span class="box"></span></td></tr>`).join("")}</tbody></table>
+    ${sD?`<p style="margin-top:12px">Result: <span class="box"></span> Pass &nbsp; <span class="box"></span> Fail</p>`:""}<p>Notes</p><div class="line"></div><div class="line"></div><p style="margin-top:18px">Tester signature ______________________</p></div>`}
   if(kind==="orientation"){const L=list().filter(x=>stage(x)==="orientation");const rows=[...L.map(x=>x.name),...Array(Math.max(4,12-L.length)).fill("")];
     h=`<div class="sheet">${head("Orientation attendance")}${meta([["Date",""],["Facilitator",""]])}
     <p>Pulse: “How much do you want to join the team now?” 1 = not keen, 5 = really want to join.</p>
@@ -1687,11 +1717,11 @@ function stepInfo(a){
   I.docs=a.checkin?.status==="noshow"?{st:"fail",sum:"No-show"}:dv==="pass"?{st:"done",sum:"Cleared"}:dv==="fail"?{st:"fail",sum:"Rejected"}:{st:"now",sum:a.checkin?.status?`${DOCS.filter(([k])=>a.docs?.[k]?.status==="verified").length}/3 verified`:"Awaiting check-in"};
   I.orientation=o.attended?{st:"done",sum:`Pulse ${o.pulse}/5`}:dv==="pass"?{st:"now",sum:"Waiting"}:{st:"locked"};
   const ivOk=iv.pct>=s.interviewPass&&!(s.highRiskBlocks&&iv.overall==="High")&&!(s.redFlagBlocks&&iv.red.length);
-  I.interview=a.interview?.done?{st:ivOk?"done":"fail",sum:`${iv.pct}% · ${iv.overall} risk`}:o.attended?{st:"now",sum:`${iv.answered}/${iv.total} answered`}:{st:"locked"};
-  I.drive=a.drive?.result?{st:a.drive.result==="pass"?"done":"fail",sum:`${a.drive.result==="pass"?"Pass":"Fail"} · ${a.drive.pct}%`}:a.interview?.done?{st:"now",sum:`${scoreDrive(a).done}/${driveItems().length} scored`}:{st:"locked"};
-  I.decision=d.result==="hired"?{st:"done",sum:"Passed"}:d.result==="not_hired"?{st:"fail",sum:"Not passed"}:{st:"locked",sum:"Pending"};
+  I.interview=a.interview?.done&&!seeIv()?{st:"done",sum:"Submitted"}:a.interview?.done?{st:ivOk?"done":"fail",sum:`${iv.pct}% · ${iv.overall} risk`}:o.attended?{st:"now",sum:`${iv.answered}/${iv.total} answered`}:{st:"locked"};
+  I.drive=a.drive?.result&&!seeDr()?{st:"done",sum:"Submitted"}:a.drive?.result?{st:a.drive.result==="pass"?"done":"fail",sum:`${a.drive.result==="pass"?"Pass":"Fail"} · ${a.drive.pct}%`}:a.interview?.done?{st:"now",sum:`${scoreDrive(a).done}/${driveItems().length} scored`}:{st:"locked"};
+  I.decision=!(seeIv()&&seeDr())?{st:"locked",sum:"Check-in"}:d.result==="hired"?{st:"done",sum:"Passed"}:d.result==="not_hired"?{st:"fail",sum:"Not passed"}:{st:"locked",sum:"Pending"};
   const t=a.training||{};
-  I.training=t.slot?{st:"done",sum:fmtD(t.slot)}:t.response==="declined"?{st:"fail",sum:"Declined"}:a.released?.pass?{st:"now",sum:t.response==="accepted"?"Picking a date":"Waiting for reply"}:d.result==="hired"?{st:"now",sum:"Result to give"}:{st:"locked"};
+  I.training=t.slot?{st:"done",sum:fmtD(t.slot)}:t.response==="declined"?{st:"fail",sum:"Declined"}:a.released?.pass?{st:"now",sum:t.response==="accepted"?"Picking a date":"Waiting for reply"}:d.result==="hired"&&seeIv()&&seeDr()?{st:"now",sum:"Result to give"}:{st:"locked"};
   I.ojt=ov==="pass"?{st:"done",sum:a.released?.accredited?"Accredited":"Passed"}:ov==="fail"?{st:"fail",sum:"Not passed"}:t.slot?{st:"now",sum:fmtD(t.slot)}:{st:"locked"};
   I.offer=of.status==="accepted"?{st:"done",sum:"Accepted"}:of.status==="declined"?{st:"fail",sum:"Declined"}:ov==="pass"?{st:"now",sum:of.status==="sent"?"Sent":"To prepare"}:{st:"locked"};
   I.activity={st:"info",sum:`${(a.log||[]).length} entries`};return I;
@@ -1785,19 +1815,22 @@ function vProfile(){
     ivBody=chips+body+foot+run}
 
   // ---- driving test ----
-  const eT=can("tester"),di2=a.drive?.items||{},dLocked=!!a.drive?.result;
-  const drBody=!locked?`<p class="muted" style="margin:0">Opens after the interview is submitted.</p>`:`${eT&&!dLocked?`<div class="attend panel" style="margin-bottom:14px;padding:14px"><div><b>Scoring in the vehicle?</b><div class="small muted">Test mode shows one item at a time with large Pass / Fail buttons.</div></div><button class="btn primary" data-act="testmode" data-id="${id}">Start test mode</button></div>`:""}
+  const eT=can("tester"),di2=a.drive?.items||{},dLocked=!!a.drive?.result,sD=seeDr();
+  const drBody=!locked?`<p class="muted" style="margin:0">Opens after the interview is submitted.</p>`:dLocked&&!sD?`<div class="row">${tag("Submitted","go")}<span class="muted">Driving test submitted. The result is shown to Check-in, HR and Admin.</span></div>`:`${eT&&!dLocked?`<div class="attend panel" style="margin-bottom:14px;padding:14px"><div><b>Scoring in the vehicle?</b><div class="small muted">Test mode shows one item at a time with large Pass / Fail buttons.</div></div><button class="btn primary" data-act="testmode" data-id="${id}">Start test mode</button></div>`:""}
     <ul class="checks">${driveItems().map(i=>`<li><span>${esc(i.t)} ${(i.weight>1?tag("×"+i.weight+" points","plain")+" ":"")+(i.crit?tag("Critical","stop"):"")}</span>${pf("drv",id,di2[i.id],`data-i="${i.id}" ${eT&&!dLocked?"":"disabled"}`)}</li>`).join("")}</ul>
     <label class="f" style="margin-top:10px">Tester notes<textarea data-act="drnotes" data-id="${id}" ${eT&&!dLocked?"":"disabled"}>${esc(a.drive?.notes||"")}</textarea></label>
-    <div class="row" style="margin-top:12px">${dr.done?`<span>${dr.pct}% · pass mark ${s.drivePass}%</span>`:""}${dr.critFail.length?tag("Critical item failed","stop"):""}
-     ${eT?(dLocked?`${tag(a.drive.result==="pass"?"Passed":"Failed",a.drive.result==="pass"?"go":"stop")}<button class="btn sm" data-act="drreopen" data-id="${id}">Reopen</button>`:`<button class="btn primary" data-act="drsubmit" data-id="${id}" ${dr.result?"":"disabled"}>Submit driving test (${dr.done}/${driveItems().length})</button>`)
+    <div class="row" style="margin-top:12px">${sD&&dr.done?`<span>${dr.pct}% · pass mark ${s.drivePass}%</span>`:""}${sD&&dr.critFail.length?tag("Critical item failed","stop"):""}
+     ${eT?(dLocked?`${tag(a.drive.result==="pass"?"Passed":"Failed",a.drive.result==="pass"?"go":"stop")}${can("admin")?`<button class="btn sm" data-act="drreopen" data-id="${id}">Reopen</button>`:""}`:`<button class="btn primary" data-act="drsubmit" data-id="${id}" ${dr.result?"":"disabled"}>Submit driving test (${dr.done}/${driveItems().length})</button>`)
        :dLocked?tag(a.drive.result==="pass"?"Passed":"Failed",a.drive.result==="pass"?"go":"stop"):""}</div>`;
+
+  if(!seeIv())ivBody=`<p class="muted" style="margin:0">${a.interview?.done?"Interview submitted.":"Interview not submitted yet."} Interview results are only shown to Interviewers, Check-in, HR and Admin.</p>`;
 
   // ---- decision ----
   const vd=d.result;
   const decBody=`<div class="verdict ${vd==="hired"?"v-go":vd==="not_hired"?"v-stop":"v-wait"}"><b>${vd==="hired"?"Passed":vd==="not_hired"?"Not passed":"Pending"}</b>
     <span>${vd==="hired"?(a.released?.pass?"Result given. Invited to the 1-day paid training.":"Check-in gives the result, then the applicant is invited to the 1-day paid training."):vd==="not_hired"?(a.released?.fail?"Result given to the applicant.":"Check-in will tell the applicant."):"The result appears when every step is complete."}</span></div>
     <ul class="checks" style="margin-top:12px">${d.checks.map(c=>`<li><span>${c.label}</span><span class="small muted">${esc(c.why||"")}</span>${tag(c.st==="pass"?"Met":c.st==="fail"?"Not met":"Waiting",c.st==="pass"?"go":c.st==="fail"?"stop":"plain")}</li>`).join("")}</ul>`;
+  const decShown=seeIv()&&seeDr()?decBody:`<p class="muted" style="margin:0">The result is shown to Check-in, HR and Admin. Check-in gives it to the applicant.</p>`;
 
   // ---- OJT ----
   const eJ=can("trainer"),days=a.ojt?.days||[],ov=ojtVerdict(a);
@@ -1825,13 +1858,13 @@ function vProfile(){
 
   const tr=a.training||{},rl=a.released||{},eV=can("verifier");
   const trBody=`<ul class="checks">
-    <li><span>Result given to applicant</span>${rl.pass?tag("Given "+fmtDT(rl.pass.at),"go"):vd==="hired"?(eV?`<button class="btn sm primary" data-act="rel-pass" data-id="${id}">Passed</button>`:tag("Waiting for Check-in","wait")):tag("Not yet","plain")}</li>
+    <li><span>Result given to applicant</span>${rl.pass?tag("Given "+fmtDT(rl.pass.at),"go"):vd==="hired"&&seeIv()&&seeDr()?(eV?`<button class="btn sm primary" data-act="rel-pass" data-id="${id}">Passed</button>`:tag("Waiting for Check-in","wait")):tag("Not yet","plain")}</li>
     <li><span>Applicant's reply</span>${tr.response==="accepted"?tag("Accepted "+fmtDT(tr.respondedAt),"go"):tr.response==="declined"?tag("Declined "+fmtDT(tr.respondedAt),"stop"):tag(rl.pass?"Waiting":"Not yet","plain")}</li>
     <li><span>Training date</span>${tr.slot?`<b>${fmtD(tr.slot)}</b>${tr.changes?` <span class="small muted">(changed once)</span>`:""}`:tag("Not booked","plain")}</li>
     <li><span>Accredited result given</span>${rl.accredited?tag("Given "+fmtDT(rl.accredited.at),"go"):ov==="pass"?(eV?`<button class="btn sm primary" data-act="rel-accr" data-id="${id}">Accredited</button>`:tag("Waiting for Check-in","wait")):tag("Not yet","plain")}</li>
     ${failInfo(a)?`<li><span>"Not passed" result given</span>${rl.fail?tag("Given "+fmtDT(rl.fail.at),"stop"):eV?`<button class="btn sm danger" data-act="rel-fail" data-id="${id}">Failed</button>`:tag("Waiting for Check-in","wait")}</li>`:""}
    </ul><p class="small muted" style="margin:10px 0 0">The applicant sees each result on their phone only after Check-in taps the button.</p>`;
-  const bodies={docs:docsBody,orientation:oBody,interview:ivBody,drive:drBody,decision:decBody,training:trBody,ojt:ojtBody,offer:offBody,activity:actBody};
+  const bodies={docs:docsBody,orientation:oBody,interview:ivBody,drive:drBody,decision:decShown,training:trBody,ojt:ojtBody,offer:offBody,activity:actBody};
   const edits={docs:eD,orientation:eO,interview:eI,drive:eT,decision:true,training:true,ojt:eJ,offer:eH,activity:true};
   const extra={interview:o.attended&&qs.length?`<button class="btn sm noprint" data-act="printsheet" data-k="interview" data-id="${id}">Print sheet</button>`:"",
     drive:locked?`<button class="btn sm noprint" data-act="printsheet" data-k="drive" data-id="${id}">Print sheet</button>`:""};
@@ -1862,8 +1895,9 @@ function vTestMode(){
      <div class="tm-btns"><button class="tmb pass" data-act="tmans" data-v="pass" aria-pressed="${it[x.id]==="pass"}">PASS<small>key P</small></button><button class="tmb fail" data-act="tmans" data-v="fail" aria-pressed="${it[x.id]==="fail"}">FAIL<small>key F</small></button></div>
      <div class="tm-nav"><button class="btn" data-act="tmgo" data-v="${idx-1}" ${idx?"":"disabled"}>← Back</button><button class="btn" data-act="tmgo" data-v="${idx+1}">${it[x.id]?"Next":"Skip"} →</button></div>`}
   else{const res=dr.result,left=n-dr.done;
-    body=`<div class="tm-q">${left?`${left} item${left>1?"s":""} still to score`:res==="pass"?"Result: PASS":"Result: FAIL"}</div>
-     <div class="kpis"><div class="kpi"><b>${dr.pct??0}%</b><span>Score · pass mark ${s.drivePass}%</span></div><div class="kpi"><b>${dr.critFail.length}</b><span>Critical items failed</span></div></div>
+    const sD=seeDr();
+    body=`<div class="tm-q">${left?`${left} item${left>1?"s":""} still to score`:!sD?"All items scored":res==="pass"?"Result: PASS":"Result: FAIL"}</div>
+     ${sD?"":`<p class="muted" style="margin:8px 0 0">Press Submit to send the test. The result is calculated and shown to Check-in.</p>`}${sD?`<div class="kpis"><div class="kpi"><b>${dr.pct??0}%</b><span>Score · pass mark ${s.drivePass}%</span></div><div class="kpi"><b>${dr.critFail.length}</b><span>Critical items failed</span></div></div>`:""}
      <label class="f" style="margin-top:16px">Tester notes<textarea data-act="drnotes" data-id="${a.id}" rows="3">${esc(a.drive?.notes||"")}</textarea></label>
      <button class="btn primary" data-act="drsubmit" data-id="${a.id}" ${res?"":"disabled"} style="margin-top:16px;min-height:58px;font-size:18px;width:100%">Submit driving test</button>`}
   return `<div class="tm"><header><div><b>${esc(a.name)}</b><div class="small" style="opacity:.75">Driving test · ${esc(me())}</div></div><button class="btn" data-act="tmexit">Exit test mode</button></header><div class="tm-body">${body}${dots}</div></div>`;
@@ -1985,8 +2019,8 @@ document.addEventListener("click",async e=>{
    case"ivreopen":return updateApplicant(id,a=>{a.interview.done=false},"Interview reopened");
    case"drv":return updateApplicant(id,a=>{a.drive=a.drive||{};a.drive.items=a.drive.items||{};a.drive.items[b.dataset.i]=v});
    case"drsubmit":UI.testMode=null;UI.tab="drive";await updateApplicant(id,a=>{const r=scoreDrive(a);Object.assign(a.drive,{result:r.result,pct:r.pct,by:S.uid,at:now})},"Driving test submitted");
-     {const ap=S.applicants[id],dcs=decide(ap).result;markDone(id,"drive",`Driving test ${ap.drive.result==="pass"?"passed":"failed"} (${ap.drive.pct}%). Result: ${dcs==="hired"?"Passed":dcs==="not_hired"?"Not passed":"Pending"}. Sent to Check-in to give the result.`)}return;
-   case"drreopen":return updateApplicant(id,a=>{delete a.drive.result},"Driving test reopened");
+     {const ap=S.applicants[id],dcs=decide(ap).result;if(!seeDr()){markDone(id,"drive","Driving test submitted. Sent to Check-in.");return}markDone(id,"drive",`Driving test ${ap.drive.result==="pass"?"passed":"failed"} (${ap.drive.pct}%). Result: ${dcs==="hired"?"Passed":dcs==="not_hired"?"Not passed":"Pending"}. Sent to Check-in to give the result.`)}return;
+   case"drreopen":if(!can("admin"))return toast("Only an Admin can reopen a driving test.");if(!confirm("Reopen this driving test? Any result already given will be withdrawn."))return;return updateApplicant(id,a=>{delete a.drive.result},"Driving test reopened by Admin");
    case"ojtst":await updateApplicant(id,a=>{a.ojt=a.ojt||{days:[]};const i=+b.dataset.i;a.ojt.days[i]=Object.assign(a.ojt.days[i]||{},{status:v,by:S.uid})},`OJT day ${+b.dataset.i+1}: ${v}`);
      {const ov=ojtVerdict(S.applicants[id]);if(ov==="pass")markDone(id,"ojt","Training passed. Check-in will give the Accredited result.");else if(ov==="fail")markDone(id,"ojt","Training not passed. Sent to Check-in to tell the applicant.")}return;
    case"rel-fail":{const ap=S.applicants[id],f=failInfo(ap);if(!f)return;if(!confirm(`Tell ${ap.name} in person first. Show the "not passed" message on their phone now?`))return;
@@ -1999,7 +2033,7 @@ document.addEventListener("click",async e=>{
    case"print":return window.print();
    case"dlletter":{const a=S.applicants[id];saveFile(`Offer letter - ${a.name}.html`,`<!doctype html><meta charset="utf-8"><title>Offer letter</title><body style="font-family:Arial,sans-serif;max-width:720px;margin:40px auto;line-height:1.5">${letterHTML(a)}</body>`,"text/html");return}
    case"exportcsv":{const cols=["name","phone","email","campaign","referral code","slot","stage","interview %","risk","drive","decision","ojt","offer"];
-     const rows=list().map(a=>{const d=decide(a);return[a.name,a.phone,a.email,a.campaign,a.refCode||"",a.slot,STAGES[stage(a)][0],a.interview?.done?d.iv.pct:"",a.interview?.done?d.iv.overall:"",a.drive?.result||"",d.result,ojtVerdict(a),a.offer?.status||""]});
+     const sI=seeIv(),sD=seeDr(),rows=list().map(a=>{const d=decide(a);return[a.name,a.phone,a.email,a.campaign,a.refCode||"",a.slot,stageLabel(a)[0],a.interview?.done&&sI?d.iv.pct:"",a.interview?.done&&sI?d.iv.overall:"",sD?a.drive?.result||"":a.drive?.result?"submitted":"",sI&&sD?d.result:"",ojtVerdict(a),a.offer?.status||""]});
      const csv=[cols,...rows].map(r=>r.map(x=>`"${String(x??"").replace(/"/g,'""')}"`).join(",")).join("\n");
      saveFile(`mober-applicants-${today()}.csv`,"\ufeff"+csv,"text/csv");return}
    case"delapp":if(confirm("Delete this applicant and all their scores?")){await delDoc("applicants/"+id);go("applicants")}return;
