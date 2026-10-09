@@ -118,6 +118,7 @@ tbody tr:last-child td{border-bottom:0}
 .kpi{background:var(--panel);border:1px solid var(--line);border-left:6px solid var(--go);border-radius:6px;padding:12px 14px}
 .kpi b{display:block;font-family:var(--display);font-size:34px;line-height:1.05}
 .kpi span{font-size:14px;color:var(--mute)}
+.kpi .dk{display:block;font-size:12.5px;color:var(--mute);margin-top:4px}.kpi .dk.up{color:var(--go)}.kpi .dk.down{color:var(--stop)}.kpi.warn{border-left-color:var(--stop)}
 .sect{border:1px solid var(--line);border-radius:8px;background:var(--panel)}
 .sect>header{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
 .sect>div{padding:14px 16px}
@@ -1012,6 +1013,11 @@ function myRoles(){
 }
 const can=r=>{const m=myRoles();return m.includes(r)||m.includes("admin")};
 // who may see scores: interview results = Interviewer, Check-in, HR (+Admin); driving results = Check-in, HR (+Admin)
+// who may open each page (Admin, or Admin previewing a role, follows myRoles()). Pages not listed are open to all staff except Operations-only.
+const VIEW_ROLES={team:["admin"],settings:["admin"],reports:["hr"],import:["marketing"],reminders:["marketing","verifier"],bank:["interviewer","marketing","tester"],
+  trcal:["trainer","marketing","verifier"],campaigns:["marketing"],requests:["verifier"],jobs:["operations","marketing","hr"],checkin:["verifier"],scan:["verifier"],inform:["verifier"],
+  orientation:["orientation"],interview:["interviewer"],drive:["tester"],ojt:["trainer"],offers:["hr"]};
+const canView=v=>{const R=VIEW_ROLES[v];if(R)return R.some(r=>can(r));return !opsOnly()||v==="pipeline"};
 const opsOnly=()=>{const m=myRoles();return m.length>0&&m.every(r=>r==="operations")};
 const seeIv=()=>can("interviewer")||can("verifier")||can("hr"),seeDr=()=>can("verifier")||can("hr");
 
@@ -1103,19 +1109,19 @@ function queueCount(stages){return list().filter(a=>stages.includes(stage(a))).l
 function myQueues(){return QUEUES.filter(q=>can(q.role))}
 function moreItems(){const m=[];if(can("marketing"))m.push(["import","Import bookings"]);
   if(can("marketing")||can("verifier"))m.push(["reminders","Interview reminders",remindList().filter(a=>!a.reminder).length]);
-  if(can("interviewer")||can("marketing")||can("tester"))m.push(["bank","Question bank"]);if(can("trainer")||can("marketing")||can("verifier"))m.push(["trcal","Training calendar"]);if((can("marketing")||can("hr"))&&!can("operations"))m.push(["jobs","Job orders"]);if(S.isAdmin)m.push(["team","Accounts",S.accounts.filter(a=>a.pending).length],["settings","Rules & data"]);return m}
+  if(can("interviewer")||can("marketing")||can("tester"))m.push(["bank","Question bank"]);if(can("trainer")||can("marketing")||can("verifier"))m.push(["trcal","Training calendar"]);if((can("marketing")||can("hr"))&&!can("operations"))m.push(["jobs","Job orders"]);if(can("admin"))m.push(["team","Accounts",S.accounts.filter(a=>a.pending).length],["settings","Rules & data"]);return m}
 function renderNav(){
   const cur=UI.view==="profile"?(UI.back||"applicants"):UI.view==="results"?"applicants":UI.view;
   const btn=(v,l,n,isQ)=>`<button class="navbtn" data-go="${v}" aria-current="${cur===v}"><span>${l}</span>${n==null?"":isQ?(n?`<span class="rdy" aria-label="${n} ready">${n}</span>`:""):`<span class="n">${n}</span>`}</button>`;
   const qs=myQueues(),more=moreItems();
-  const tools=[...((can("hr")||S.isAdmin)?[["reports","Reports"]]:[]),...more];
+  const tools=[...(can("hr")?[["reports","Reports"]]:[]),...more];
   const qTotal=qs.reduce((n,q)=>n+readyList(q).length,0),qCur=qs.some(q=>q.view===cur),tCur=tools.some(([v])=>v===cur);
   const mbtn=(v,l,isCur,badge)=>`<button class="navbtn" data-act="menu" data-v="${v}" aria-haspopup="menu" aria-expanded="${UI.menu===v}" aria-current="${isCur}"><span>${l}</span>${badge?`<span class="rdy">${badge}</span>`:""}<span class="car" aria-hidden="true">▾</span></button>`;
   const srch=document.querySelector(".search");if(srch)srch.hidden=opsOnly();
-  if(opsOnly()){$("#nav").innerHTML=btn("jobs","Job orders");return renderUser()}
+  if(opsOnly()){$("#nav").innerHTML=btn("pipeline","Home")+btn("jobs","Job orders");return renderUser()}
   let h=btn("pipeline","Home")+btn("applicants","Applicants",Object.keys(S.applicants).length);if(can("operations"))h+=btn("jobs","Job orders");if(can("marketing"))h+=btn("campaigns","Campaigns",jobsWaiting().length||null,true);if(can("verifier"))h+=btn("requests","Requests",Object.values(S.applicants).filter(x=>stage(x)==="requested").length,true);
   if(qs.length)h+=mbtn("queues","My queues",qCur,qTotal);
-  if(tools.length)h+=mbtn("more","Tools",tCur,S.isAdmin?S.accounts.filter(a=>a.pending).length:0);
+  if(tools.length)h+=mbtn("more","Tools",tCur,can("admin")?S.accounts.filter(a=>a.pending).length:0);
   $("#nav").innerHTML=h;renderUser()}
 function renderUser(){
   const ini=me().split(" ").map(x=>x[0]).slice(0,2).join("").toUpperCase();$("#me").innerHTML=`<button class="navbtn userbtn" data-act="menu" data-v="user" aria-haspopup="menu"><span class="avatar">${esc(ini)}</span><span class="who2"><b>${esc(me())}</b><small>${S.isAdmin?(S.viewAs==="all"?"Admin":"Previewing: "+ROLES[S.viewAs]):myRoles().map(r=>ROLES[r]).join(", ")||"No role yet"}</small></span></button>`;
@@ -1128,7 +1134,7 @@ function renderMenu(){
   if(!anchor){UI.menu=null;dd.hidden=true;dd.innerHTML="";return}
   let h="";
   if(UI.menu==="queues")h=myQueues().map(q=>{const n=readyList(q).length;return `<button class="mi" role="menuitem" data-go="${q.view}"><span><span class="sn">${QUEUES.indexOf(q)+1}</span>${q.label}</span>${n?`<span class="rdy">${n}</span>`:`<span class="small muted">0</span>`}</button>`}).join("");
-  if(UI.menu==="more")h=[...((can("hr")||S.isAdmin)?[["reports","Reports"]]:[]),...moreItems()].map(([v,l,n])=>`<button class="mi" role="menuitem" data-go="${v}"><span>${l}</span>${n?`<span class="rdy">${n}</span>`:""}</button>`).join("");
+  if(UI.menu==="more")h=[...(can("hr")?[["reports","Reports"]]:[]),...moreItems()].map(([v,l,n])=>`<button class="mi" role="menuitem" data-go="${v}"><span>${l}</span>${n?`<span class="rdy">${n}</span>`:""}</button>`).join("");
   if(UI.menu==="user")h=`<div style="padding:8px 10px 10px"><b>${esc(me())}</b><div class="small muted">${S.isAdmin?"Admin":myRoles().map(r=>ROLES[r]).join(", ")||"No role yet"}</div></div>
     ${S.isAdmin?`<label class="f" style="padding:0 10px 10px">Preview the app as<select id="viewAs"><option value="all">Admin (everything)</option>${Object.entries(ROLES).filter(([k])=>k!=="admin").map(([k,v])=>`<option value="${k}" ${S.viewAs===k?"selected":""}>${v}</option>`).join("")}</select></label>`:""}
     <button class="mi" role="menuitem" data-act="mypw">Change password</button><button class="mi" role="menuitem" data-act="logout">Sign out</button>`;
@@ -1165,6 +1171,130 @@ function stationList(L){const k=UI.station;if(!k)return `<p class="small muted" 
   const lbl=(STATIONS.find(x=>x[0]===k)||[])[1],who=L.filter(a=>reached(a)[k]);
   return `<div style="margin-top:14px"><div class="row" style="justify-content:space-between"><b>${esc(lbl)} · ${who.length}</b><button class="btn sm" data-act="station" data-v="${k}">Close</button></div>
    ${who.length?`<ul class="checks" style="margin-top:8px">${who.map(a=>`<li><span><a href="#" data-open="${a.id}">${esc(a.name)}</a></span>${stageTag(a)}</li>`).join("")}</ul>`:`<p class="muted small">No one yet.</p>`}</div>`}
+/* ============ dashboards: one per role. Home shows the dashboard for the signed-in person's roles ============ */
+const PERIODS={today:"Today",week:"This week",month:"This month",d30:"Last 30 days"};
+const DASH_ROLES=["verifier","orientation","interviewer","tester","trainer","marketing","operations","hr"];
+function periodRange(k){const now=new Date();let s=new Date();s.setHours(0,0,0,0);
+  if(k==="week")s.setDate(s.getDate()-((s.getDay()+6)%7));else if(k==="month")s=new Date(now.getFullYear(),now.getMonth(),1);else if(k==="d30")s=new Date(Date.now()-30*864e5);
+  const len=now-s;return{from:s.toISOString(),to:now.toISOString(),pfrom:new Date(s.getTime()-len).toISOString()}}
+const inR=(t,r)=>!!t&&t>=r.from&&t<=r.to,inP=(t,r)=>!!t&&t>=r.pfrom&&t<r.from;
+const dayIso=ds=>ds?new Date(ds+"T17:00").toISOString():"";
+// when each step happened (ISO time), or "" if it hasn't
+function evT(a,k){switch(k){
+  case"applied":return a.createdAt||"";
+  case"arrived":return a.checkin?.status==="show"?a.checkin.at||"":"";
+  case"noshow":return a.checkin?.status==="noshow"?a.checkin.at||a.slot||"":"";
+  case"docs":return docsVerdict(a)==="pass"?DOCS.map(([k2])=>a.docs?.[k2]?.at||"").sort().pop():"";
+  case"oriented":return a.orientation?.attended?a.orientation.at||"":"";
+  case"interviewed":return a.interview?.done?a.interview.at||"":"";
+  case"tested":return a.drive?.result?a.drive.at||"":"";
+  case"told":return a.released?.pass?.at||a.released?.fail?.at||"";
+  case"accredited":return ojtVerdict(a)==="pass"&&!a.released?.fail?dayIso(a.training?.slot)||a.released?.accredited?.at||"":"";
+  case"trained":return ojtVerdict(a)!=="pending"&&a.training?.slot?dayIso(a.training.slot):"";}return""}
+const cnt=(L,k,r,prev)=>L.filter(a=>(prev?inP:inR)(evT(a,k),r)).length;
+const pctOf=(a,b)=>b?Math.round(a/b*100):null;
+const avgOf=x=>x.length?x.reduce((p,q)=>p+q,0)/x.length:null;
+const daysBetween=(x,y)=>(new Date(y)-new Date(x))/864e5;
+// a KPI tile; prev = same number for the previous period (▲▼). good: "up" or "down" = which direction is better
+function kpiTile(label,val,o={}){const v=val==null?"—":val,p=o.prev,u=o.unit||"";let d="";
+  if(val!=null&&p!=null&&o.cmp!==false){const diff=Math.round((+val-+p)*10)/10;if(diff){const better=(o.good||"up")==="up"?diff>0:diff<0;
+    d=`<small class="dk ${better?"up":"down"}">${diff>0?"▲":"▼"} ${Math.abs(diff)}${u} vs previous</small>`}else d=`<small class="dk">same as previous</small>`}
+  return `<div class="kpi ${o.tone||""}"><b>${v}${val!=null&&u?`<small style="font-size:16px">${u}</small>`:""}</b><span>${label}</span>${d}${o.hint?`<small class="muted" style="display:block">${o.hint}</small>`:""}</div>`}
+const hbar=(p,c)=>`<span class="bar" style="display:block"><i style="width:${Math.max(0,Math.min(100,p||0))}%;background:var(--${c||"go"})"></i></span>`;
+function barList(rows,o={}){const mx=Math.max(1,...rows.map(r=>+r[1]||0));
+  return rows.length?`<ul class="checks bars">${rows.map(([l,n,c,sub])=>`<li><span>${l}${sub?`<div class="small muted">${sub}</div>`:""}</span>${hbar(o.pct?n:(+n||0)/mx*100,c)}<b>${n==null?"—":n}${o.pct&&n!=null?"%":""}</b></li>`).join("")}</ul>`:`<p class="muted" style="margin:0">Nothing yet.</p>`}
+const dsect=(title,body,extra)=>`<div class="sect"><header><h3>${title}</h3>${extra||""}</header><div>${body}</div></div>`;
+// "Do now": what's waiting for this role, and the oldest wait
+function doNow(rows){rows=rows.filter(Boolean);if(!rows.length)return"";
+  return `<div class="sect"><header><h3>Do now</h3></header><div><ul class="checks">${rows.map(([l,n,go,old])=>`<li><span>${l}${old?`<div class="small muted">Oldest waiting ${old}</div>`:""}</span>${n?`<b>${n}</b>`:`<span class="small muted">0</span>`}${go&&n?`<button class="btn sm primary" data-go="${go}">Open</button>`:""}</li>`).join("")}</ul></div></div>`}
+const waitText=t=>{if(!t)return"";const d=daysBetween(t,new Date().toISOString());return d<1?Math.max(1,Math.round(d*24))+" h":Math.floor(d)+" day"+(Math.floor(d)===1?"":"s")};
+function queueRow(view){const q=QUEUES.find(x=>x.view===view),l=readyList(q);const old=l.map(readySince).filter(Boolean).sort()[0];return[q.label,l.length,q.view,waitText(old)]}
+function dropReasons(L){const reasons={},inc=k=>reasons[k]=(reasons[k]||0)+1;
+  L.forEach(a=>{const st=stage(a);if(st==="noshow")inc("No-show for interview");
+    if(st==="docs_fail"||(st==="failed_told"&&failInfo(a)&&docsVerdict(a)==="fail"))DOCS.forEach(([k,l])=>{if(a.docs?.[k]?.status==="rejected")inc("Document rejected: "+l)});
+    if(st==="iv_fail"||(st==="failed_told"&&ivFail(a)))inc("Interview not passed");
+    if(st==="drive_fail"||(st==="failed_told"&&a.drive?.result==="fail"))inc("Driving test failed");
+    if(st==="training_declined")inc("Declined training");if(st==="ojt_fail"||(st==="failed_told"&&ojtVerdict(a)==="fail"))inc("Did not pass training")});
+  return Object.entries(reasons).sort((a,b)=>b[1]-a[1])}
+
+const DASH={
+ overview(L,r){const st=QUEUES.map(q=>{const l=readyList(q);return[q.label,l.length,l.map(readySince).filter(Boolean).sort()[0]]}).sort((a,b)=>b[1]-a[1])[0];
+  const accT=L.filter(a=>inR(evT(a,"accredited"),r)&&a.createdAt).map(a=>daysBetween(a.createdAt,evT(a,"accredited")));
+  const sh=cnt(L,"arrived",r),ns=cnt(L,"noshow",r),psh=cnt(L,"arrived",r,1),pns=cnt(L,"noshow",r,1);
+  const counts={};STATIONS.forEach(([k])=>counts[k]=0);L.forEach(a=>Object.keys(reached(a)).forEach(k=>counts[k]++));
+  const route=`<div class="route"><ol>${STATIONS.map(([k,l],i)=>{const c=counts[k],prev=i?counts[STATIONS[i-1][0]]:c;
+    return `<li class="${c?"on":""}${UI.station===k?" sel":""}" data-act="station" data-v="${k}" style="cursor:pointer" title="Show who reached this step"><div class="cnt">${c}</div><div class="dot"></div><div class="lbl">${l}</div><div class="pct">${i&&prev?Math.round(c/prev*100)+"% of previous":i?"—":"applicants"}</div></li>`}).join("")}</ol></div>`;
+  return `<div class="kpis">${kpiTile("Applications",cnt(L,"applied",r),{prev:cnt(L,"applied",r,1)})}${kpiTile("Accredited drivers",cnt(L,"accredited",r),{prev:cnt(L,"accredited",r,1)})}
+    ${kpiTile("Applied → accredited (all time)",pctOf(L.filter(a=>evT(a,"accredited")).length,L.length),{unit:"%",cmp:false})}${kpiTile("Avg days, applied → accredited",accT.length?avgOf(accT).toFixed(1):null,{cmp:false})}
+    ${kpiTile("Show-up rate",pctOf(sh,sh+ns),{unit:"%",prev:pctOf(psh,psh+pns)})}${kpiTile("Biggest bottleneck",st&&st[1]?st[1]:0,{cmp:false,hint:st&&st[1]?`${esc(st[0])} · oldest ${waitText(st[2])}`:"Nothing waiting",tone:st&&st[1]>5?"warn":""})}</div>
+   ${dsect("Pipeline at a glance",L.length?route+stationList(L):`<p class="muted" style="margin:0">No applicants yet.</p>`)}
+   ${dsect("Waiting at each step",barList(QUEUES.map(q=>{const l=readyList(q);return[q.label,l.length,l.length>5?"stop":l.length?"wait":"go",l.length?"oldest "+waitText(l.map(readySince).filter(Boolean).sort()[0]):""]})))}`},
+ verifier(L,r){const td=today(),exp=L.filter(a=>localDay(a.slot)===td&&a.booking?.status!=="declined"&&!a.calendlyCanceled),arr=exp.filter(a=>a.checkin?.status==="show").length,nos=exp.filter(a=>a.checkin?.status==="noshow").length;
+  const sh=cnt(L,"arrived",r),ns=cnt(L,"noshow",r),psh=cnt(L,"arrived",r,1),pns=cnt(L,"noshow",r,1);
+  const ver=(rr,p)=>L.reduce((n,a)=>n+DOCS.filter(([k])=>a.docs?.[k]?.status==="verified"&&(p?inP:inR)(a.docs[k].at,rr)).length,0);
+  const toldT=L.filter(a=>inR(a.released?.pass?.at,r)&&a.drive?.at).map(a=>daysBetween(a.drive.at,a.released.pass.at));
+  const req=L.filter(a=>stage(a)==="requested");
+  return `${doNow([["Expected today",exp.length-arr-nos,"checkin"],queueRow("checkin"),["Requests to approve",req.length,"requests",waitText(req.map(a=>a.createdAt).sort()[0])],queueRow("inform"),["Interview reminders not sent (tomorrow)",remindList().filter(a=>!a.reminder).length,"reminders"]])}
+   <div class="kpis">${kpiTile("Arrived today",`${arr} of ${exp.length}`,{cmp:false,hint:nos?nos+" no-show":""})}${kpiTile("Arrivals",sh,{prev:psh})}${kpiTile("No-show rate",pctOf(ns,sh+ns),{unit:"%",prev:pctOf(pns,psh+pns),good:"down"})}
+    ${kpiTile("Documents verified",ver(r),{prev:ver(r,1)})}${kpiTile("Results given",cnt(L,"told",r),{prev:cnt(L,"told",r,1)})}${kpiTile("Avg days, passed → told",toldT.length?avgOf(toldT).toFixed(1):null,{cmp:false,good:"down"})}</div>`},
+ orientation(L,r){const P=L.filter(a=>inR(evT(a,"oriented"),r)&&a.orientation.pulse),pp=L.filter(a=>inP(evT(a,"oriented"),r)&&a.orientation.pulse);
+  const ori=L.filter(a=>a.orientation?.attended),went=ori.filter(a=>a.interview?.done).length;
+  return `${doNow([queueRow("orientation")])}
+   <div class="kpis">${kpiTile("Oriented",cnt(L,"oriented",r),{prev:cnt(L,"oriented",r,1)})}${kpiTile("Average pulse",P.length?avgOf(P.map(a=>+a.orientation.pulse)).toFixed(1):null,{unit:" /5",prev:pp.length?+avgOf(pp.map(a=>+a.orientation.pulse)).toFixed(1):null})}
+    ${kpiTile("Went on to interview (all time)",pctOf(went,ori.length),{unit:"%",cmp:false})}</div>
+   ${dsect("Pulse scores this period",barList([5,4,3,2,1].map(v=>[`${v} – ${["","not keen","","neutral","","really want to join"][v]||""}`.replace(/ – $/,""),P.filter(a=>+a.orientation.pulse===v).length,v>=4?"go":v===3?"wait":"stop"])))}`},
+ interviewer(L,r){const D=L.filter(a=>inR(evT(a,"interviewed"),r)),Dp=L.filter(a=>inP(evT(a,"interviewed"),r));const sc=D.map(scoreInterview),scp=Dp.map(scoreInterview);
+  const dims=Object.keys(DIMS).map(k=>{const v=sc.map(x=>x.dims[k]?.pct).filter(x=>x!=null);return[DIMS[k],v.length?Math.round(avgOf(v)):null]}).filter(x=>x[1]!=null);
+  return `${doNow([queueRow("interview")])}
+   <div class="kpis">${kpiTile("Interviews done",D.length,{prev:Dp.length})}${kpiTile("Pass rate",pctOf(D.filter(a=>!ivFail(a)).length,D.length),{unit:"%",prev:pctOf(Dp.filter(a=>!ivFail(a)).length,Dp.length)})}
+    ${kpiTile("Average score",sc.length?Math.round(avgOf(sc.map(x=>x.pct||0))):null,{unit:"%",prev:scp.length?Math.round(avgOf(scp.map(x=>x.pct||0))):null})}${kpiTile("With a red flag",pctOf(sc.filter(x=>x.red.length).length,sc.length),{unit:"%",prev:pctOf(scp.filter(x=>x.red.length).length,scp.length),good:"down"})}</div>
+   ${dsect("Average score by risk area (this period)",barList(dims.map(([l,v])=>[l,v,v>=75?"go":v>=50?"wait":"stop"]),{pct:true}))}`},
+ tester(L,r){const T=L.filter(a=>inR(evT(a,"tested"),r)),Tp=L.filter(a=>inP(evT(a,"tested"),r));const w=T.filter(a=>a.interview?.at).map(a=>daysBetween(a.interview.at,a.drive.at));
+  const days=Array.from({length:14},(_,i)=>{const d=new Date();d.setDate(d.getDate()-13+i);return localDay(d)});
+  return `${doNow([queueRow("drive")])}
+   <div class="kpis">${kpiTile("Tests done",T.length,{prev:Tp.length})}${kpiTile("Tests by you",T.filter(a=>a.drive.by===S.uid).length,{prev:Tp.filter(a=>a.drive.by===S.uid).length})}
+    ${kpiTile("Avg days, interview → driving test",w.length?avgOf(w).toFixed(1):null,{cmp:false,good:"down"})}</div>
+   ${dsect("Driving tests per day, last 14 days",barList(days.map(d=>[fmtD(d),L.filter(a=>localDay(evT(a,"tested"))===d).length,"go"])))}`},
+ trainer(L,r){const t=trainOf(null),days=Array.from({length:7},(_,i)=>addDays(today(),i));const toRec=L.filter(a=>stage(a)==="ojt"&&a.training?.slot&&a.training.slot<=today());
+  const R=L.filter(a=>inR(evT(a,"trained"),r)),Rp=L.filter(a=>inP(evT(a,"trained"),r));
+  return `${doNow([["Trainees today",trBooked(today()).length,"ojt"],["Training results to record",toRec.length,"ojt",waitText(toRec.map(a=>dayIso(a.training.slot)).sort()[0])]])}
+   <div class="kpis">${kpiTile("Booked, next 7 days",days.reduce((n,d)=>n+trBooked(d).length,0),{cmp:false})}${kpiTile("Trainings done",R.length,{prev:Rp.length})}
+    ${kpiTile("Training pass rate",pctOf(R.filter(a=>ojtVerdict(a)==="pass").length,R.length),{unit:"%",prev:pctOf(Rp.filter(a=>ojtVerdict(a)==="pass").length,Rp.length)})}</div>
+   ${dsect("Training bookings vs seats, next 7 days",barList(days.map(d=>{const b=trBooked(d).length,s=trSeats(t,d);return[fmtD(d),b,!s?"plain":b>=s?"stop":"go",s?`${s} seats`:"No training"]})),`<button class="btn sm" data-go="trcal">Training calendar</button>`)}`},
+ marketing(L,r){const A=L.filter(a=>inR(a.createdAt,r)),Ap=L.filter(a=>inP(a.createdAt,r));const sh=cnt(L,"arrived",r),ns=cnt(L,"noshow",r),psh=cnt(L,"arrived",r,1),pns=cnt(L,"noshow",r,1);
+  const refs={};A.forEach(a=>{const c=(a.refCode||"").trim();if(c&&!/^(na|n\/a|none)$/i.test(c))refs[c]=(refs[c]||0)+1});const top=Object.entries(refs).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const C=camps().slice().sort((a,b)=>campOpen(b)-campOpen(a));
+  return `${doNow([["Job orders waiting for a campaign",jobsWaiting().length,"campaigns"]])}
+   <div class="kpis">${kpiTile("Applications",A.length,{prev:Ap.length})}${kpiTile("Auto-approved",pctOf(A.filter(a=>a.booking?.auto).length,A.length),{unit:"%",prev:pctOf(Ap.filter(a=>a.booking?.auto).length,Ap.length)})}
+    ${kpiTile("Show-up rate",pctOf(sh,sh+ns),{unit:"%",prev:pctOf(psh,psh+pns)})}${kpiTile("Applied → accredited (all time)",pctOf(L.filter(a=>evT(a,"accredited")).length,L.length),{unit:"%",cmp:false})}</div>
+   ${C.length?`<div class="tablewrap"><table><thead><tr><th>Campaign</th><th>Applied (period)</th><th>Applied (total)</th><th>Showed up</th><th>Passed screening</th><th>Accredited</th><th>Status</th></tr></thead><tbody>${C.map(c=>{const G=campApplicants(c);
+     return `<tr><td>${esc(c.name)}</td><td>${G.filter(a=>inR(a.createdAt,r)).length}</td><td>${G.length}</td><td>${G.filter(a=>a.checkin?.status==="show").length}</td><td>${G.filter(a=>decide(a).result==="hired").length}</td><td>${campHired(c)}</td><td>${campStatus(c)}${campOpen(c)&&c.endDate?`<div class="small muted">${Math.max(0,dayDiff(today(),c.endDate))} days left</div>`:""}</td></tr>`}).join("")}</tbody></table></div>`:""}
+   ${dsect("Top referral codes (this period)",barList(top.map(([k,n])=>[esc(k),n,"go"])))}`},
+ operations(L,r){const J=jobs().filter(j=>j.status!=="cancelled");
+  const pace=j=>{const done=jobHired(j),left=dayDiff(today(),j.neededBy),since=addDays(today(),-14);
+    const rec=jobCamps(j).flatMap(campApplicants).filter(a=>{const t=evT(a,"accredited");return t&&localDay(t)>=since}).length;
+    if(done>=+j.needed)return["Filled","go"];if(left<0)return["Overdue","stop"];return done+rec/14*left>=+j.needed?["On track","go"]:["At risk","stop"]};
+  const open=J.filter(j=>jobHired(j)<+j.needed),risk=open.filter(j=>pace(j)[0]!=="On track");
+  return `<div class="kpis">${kpiTile("Open job orders",open.length,{cmp:false})}${kpiTile("Drivers still needed",open.reduce((n,j)=>n+Math.max(0,+j.needed-jobHired(j)),0),{cmp:false})}
+    ${kpiTile("At risk or overdue",risk.length,{cmp:false,tone:risk.length?"warn":""})}${kpiTile("Waiting for Marketing",jobsWaiting().length,{cmp:false})}</div>
+   ${J.length?`<div class="tablewrap"><table><thead><tr><th>Client · position</th><th>Accredited</th><th>Needed by</th><th>Pace</th></tr></thead><tbody>${J.map(j=>{const [pl,pk]=pace(j),left=dayDiff(today(),j.neededBy);
+     return `<tr><td><b>${esc(j.client)}</b><div class="small muted">${esc(j.position)}</div></td><td><b>${jobHired(j)} of ${+j.needed}</b><div style="max-width:160px;margin-top:6px">${hbar(pctOf(jobHired(j),+j.needed),pk)}</div></td><td>${fmtD(j.neededBy)}<div class="small muted">${left>=0?left+" days left":Math.abs(left)+" days ago"}</div></td><td>${tag(pl,pk)}</td></tr>`}).join("")}</tbody></table></div>
+     <p class="small muted" style="margin:0">On track = drivers accredited so far, plus the pace of the last 14 days, reaches the number needed by the date.</p>`:`<div class="tablewrap"><div class="empty">No job orders yet. <button class="btn sm primary" data-go="jobs">Add a job order</button></div></div>`}`},
+ hr(L,r){const accT=L.filter(a=>inR(evT(a,"accredited"),r)&&a.createdAt).map(a=>daysBetween(a.createdAt,evT(a,"accredited"))),accP=L.filter(a=>inP(evT(a,"accredited"),r)&&a.createdAt).map(a=>daysBetween(a.createdAt,evT(a,"accredited")));
+  const R=L.map(reached),n=k=>R.filter(x=>x[k]).length,steps=[["Showed up","showed","booked"],["Documents cleared","docs","showed"],["Oriented","oriented","docs"],["Interview passed","interviewed","oriented"],["Driving test passed","drove","interviewed"],["Accredited","ojt","drove"]];
+  const dr=dropReasons(L);
+  return `<div class="kpis">${kpiTile("Accredited drivers",cnt(L,"accredited",r),{prev:cnt(L,"accredited",r,1)})}${kpiTile("Avg days, applied → accredited",accT.length?+avgOf(accT).toFixed(1):null,{prev:accP.length?+avgOf(accP).toFixed(1):null,good:"down"})}
+    ${kpiTile("Applied → accredited (all time)",pctOf(L.filter(a=>evT(a,"accredited")).length,L.length),{unit:"%",cmp:false})}</div>
+   <div class="grid2">${dsect("Pass rate at each step (all time)",barList(steps.map(([l,k,p])=>[l,pctOf(n(k),n(p)),(pctOf(n(k),n(p))||0)>=70?"go":(pctOf(n(k),n(p))||0)>=40?"wait":"stop",`${n(k)} of ${n(p)}`]),{pct:true}))}
+   ${dsect("Why applicants dropped out",barList(dr.map(([k,v])=>[esc(k),v,"stop"])),`<button class="btn sm" data-go="reports">Full reports</button>`)}</div>`}};
+const DASH_LABEL={overview:"Overview",verifier:"Check-in",orientation:"Orientation",interviewer:"Interviewer",tester:"Driving instructor",trainer:"Trainer",marketing:"Marketing",operations:"Operations",hr:"HR"};
+function dashTabs(){const m=myRoles();if(S.isAdmin&&S.viewAs==="all")return["overview",...DASH_ROLES];return DASH_ROLES.filter(k=>m.includes(k))}
+function vDash(){const T=dashTabs();if(!T.length)return vPipeline();const tab=T.includes(UI.dashTab)?UI.dashTab:T[0],per=PERIODS[UI.period]?UI.period:"week",r=periodRange(per);
+  const L=tab==="operations"?Object.values(S.applicants):list();
+  return `<div class="head"><div><h1>${tab==="overview"?"Dashboard":"My dashboard"}</h1><p>${tab==="operations"?"Progress on every job order, updated live.":`${PERIODS[per]}${UI.campaign?" · "+esc(UI.campaign):""}. Arrows compare with the period before.`}</p></div>
+   <div class="row" style="align-items:flex-end">${tab==="operations"?"":`<label class="f">Period<select data-act="dperiod">${Object.entries(PERIODS).map(([k,l])=>`<option value="${k}" ${k===per?"selected":""}>${l}</option>`).join("")}</select></label>${campaignFilter()}`}</div></div>
+   ${T.length>1?`<div class="qb-tabs" role="tablist" style="flex-wrap:wrap">${T.map(k=>`<button role="tab" aria-selected="${k===tab}" data-act="dtab" data-v="${k}">${DASH_LABEL[k]}</button>`).join("")}</div>`:""}
+   <div class="stack">${DASH[tab](L,r)}</div>`}
 function vPipeline(){
   const L=list(),n=L.length,counts={};STATIONS.forEach(([k])=>counts[k]=0);
   L.forEach(a=>{const r=reached(a);Object.keys(r).forEach(k=>counts[k]++)});
@@ -1985,8 +2115,8 @@ function render(){
   document.documentElement.dataset.ready="1";
   renderNav();
   document.documentElement.style.setProperty("--hh",$("#rail").offsetHeight+"px");
-  const noRole=!S.isAdmin&&!myRoles().length;if(opsOnly()&&UI.view!=="jobs")UI.view="jobs";
-  const V={pipeline:vPipeline,applicants:vApplicants,results:vResults,checkin:vCheckin,orientation:vOrientation,interview:vInterview,bank:vBank,
+  const noRole=!S.isAdmin&&!myRoles().length;if(!canView(UI.view)&&UI.view!=="profile")UI.view="pipeline";if(UI.view==="profile"&&opsOnly())UI.view="pipeline";
+  const V={pipeline:vDash,applicants:vApplicants,results:vResults,checkin:vCheckin,orientation:vOrientation,interview:vInterview,bank:vBank,
     import:vImport,drive:vDrive,jobs:vJobs,registry:vRegistry,trcal:vTrCal,ojt:vOjt,offers:vOffers,inform:vInform,team:vTeam,settings:vSettings,profile:vProfile,reports:vReports,reminders:vReminders,campaigns:vCampaigns,scan:vScan,requests:vRequests};
   const act=document.activeElement,keep=act&&act.dataset&&act.dataset.act&&["INPUT","TEXTAREA"].includes(act.tagName)?{a:act.dataset.act,id:act.dataset.id,k:act.dataset.k,f:act.dataset.f,i:act.dataset.i,pos:act.selectionStart}:null;
   if(keep&&UI.typing)return; // don't repaint under someone mid-typing
@@ -2046,6 +2176,7 @@ document.addEventListener("click",async e=>{
      saveFile(`mober-applicants-${today()}.csv`,"\ufeff"+csv,"text/csv");return}
    case"delapp":if(confirm("Delete this applicant and all their scores?")){await delDoc("applicants/"+id);go("applicants")}return;
    case"station":UI.station=UI.station===v?null:v;return render();
+   case"dtab":UI.dashTab=v;UI.station=null;return render();
    case"apclear":UI.apStat="all";UI.apFrom="";UI.apTo="";UI.q="";return render();
    case"regopen":UI.regId=id;render();return window.scrollTo(0,0);
    case"regclose":UI.regId=null;return render();
@@ -2148,6 +2279,7 @@ document.addEventListener("change",async e=>{
   const t=e.target,A=t.dataset&&t.dataset.act;if(!A)return;const id=t.dataset.id;UI.typing=false;
   switch(A){
    case"campaign":UI.campaign=t.value;return render();
+   case"dperiod":UI.period=t.value;return render();
    case"manphoto":{const f=t.files&&t.files[0];if(!f)return;try{MAN[t.dataset.v]=await shrinkImage(f);manRedraw(t.dataset.v)}catch(err){toast("That file isn't a photo we can open.")}return}
    case"apsort":UI.apSort=t.value;return render();
    case"apstat":UI.apStat=t.value;return render();
