@@ -1267,7 +1267,7 @@ const DASH={
   const refs={};A.forEach(a=>{const c=(a.refCode||"").trim();if(c&&!/^(na|n\/a|none)$/i.test(c))refs[c]=(refs[c]||0)+1});const top=Object.entries(refs).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const C=camps().slice().sort((a,b)=>campOpen(b)-campOpen(a));
   return `${doNow([["Job orders waiting for a campaign",jobsWaiting().length,"campaigns"]])}
-   <div class="kpis">${kpiTile("Applications",A.length,{prev:Ap.length})}${kpiTile("Auto-approved",pctOf(A.filter(a=>a.booking?.auto).length,A.length),{unit:"%",prev:pctOf(Ap.filter(a=>a.booking?.auto).length,Ap.length)})}
+   <div class="kpis">${kpiTile("Applications",A.length,{prev:Ap.length})}${kpiTile("Walk-ins",A.filter(a=>a.booking?.walkin).length,{prev:Ap.filter(a=>a.booking?.walkin).length,good:"none"})}${kpiTile("Auto-approved",pctOf(A.filter(a=>a.booking?.auto).length,A.length),{unit:"%",prev:pctOf(Ap.filter(a=>a.booking?.auto).length,Ap.length)})}
     ${kpiTile("Show-up rate",pctOf(sh,sh+ns),{unit:"%",prev:pctOf(psh,psh+pns)})}${kpiTile("Applied → accredited (all time)",pctOf(L.filter(a=>evT(a,"accredited")).length,L.length),{unit:"%",cmp:false})}</div>
    <div class="kpis">${kpiTile("Ad spend",peso(sp),{prev:spp,good:"none",fmt:peso,cmpRaw:sp})}${kpiTile("Cost per applicant",peso(perOf(sp,A.length)),{prev:perOf(spp,Ap.length),good:"down",fmt:peso,cmpRaw:perOf(sp,A.length)})}
     ${kpiTile("Cost per accredited driver",peso(perOf(sp,ac)),{prev:perOf(spp,acp),good:"down",fmt:peso,cmpRaw:perOf(sp,ac),hint:"Ad spend ÷ drivers accredited in the same period"})}</div>
@@ -1517,7 +1517,8 @@ function vImport(){
   <div class="stack">
    ${c?body:`<label class="panel" style="display:block;border-style:dashed;text-align:center;padding:30px;cursor:pointer"><b>Choose Calendly CSV</b><div class="small muted">Calendly → Meetings → choose dates → Export</div><input type="file" accept=".csv,text/csv" data-act="csv" style="display:none"></label>`}
    <div class="grid2">
-    <div class="sect"><header><h3>Add an applicant by hand</h3></header><div class="stack">
+    ${can("admin")?`<div class="sect"><header><h3>Add an applicant by hand</h3><span class="small muted">Admin only · backup</span></header><div class="stack">
+     <p class="small muted" style="margin:0">Walk-ins should use the campaign's <b>Walk-in QR</b> so they go through the same application. Use this only for someone with no smartphone, or fill in the walk-in link for them on a desk tablet.</p>
      <label class="f">Full name<input id="mname" placeholder="First and last name"></label><div class="grid2"><label class="f">Mobile<input id="mphone" inputmode="tel" placeholder="0917 123 4567"></label><label class="f">Email<input id="memail" type="email"></label></div>
      <label class="f">Campaign<select id="mcamp">${camps().map(x=>`<option value="${esc(x.id)}">${esc(x.name||x.position||x.id)}</option>`).join("")}</select></label>
      <div class="grid2"><label class="f">Interview date<input id="mdate" type="date" value="${today()}" min="2025-01-01" max="2030-12-31" style="width:100%"></label>
@@ -1532,7 +1533,7 @@ function vImport(){
       <div class="man-doc"><div class="lbl">Medical certificate</div>${manPhoto("med")}
        <label class="f">Date issued<input id="mmeddate" type="date" min="2020-01-01" max="2040-12-31"></label></div>
      </div></details>
-     <button class="btn primary" data-act="addman">Add applicant</button></div></div>
+     <button class="btn primary" data-act="addman">Add applicant</button></div></div>`:`<div class="sect"><header><h3>Walk-ins</h3></header><div class="stack"><p class="muted" style="margin:0">Walk-ins scan the campaign's <b>Walk-in QR</b> at the desk and fill in the same application on their phone. Find the QR on Campaigns → Edit → Walk-in QR.</p></div></div>`}
     <div class="sect"><header><h3>Campaigns</h3></header><div class="stack"><p class="muted" style="margin:0">Imported bookings go to the campaign in their UTM, or the one picked above. Create, close or reopen campaigns on the Campaigns page.</p><div><button class="btn" data-go="campaigns">Open Campaigns</button></div></div></div>
    </div></div>`;
 }
@@ -2071,7 +2072,7 @@ function vProfile(){
     banner=`<div class="banner" role="status"><span>✓ ${esc(UI.justDone.msg)}</span><div class="row">${q?(nx?`<button class="btn primary" data-open="${nx.id}" data-sec="${q.sec}">Next: ${esc(nx.name)} →</button>`:`<span class="small">No one else is waiting for ${q.label.toLowerCase()}.</span>`)+`<button class="btn" data-go="${q.view}">Back to queue</button>`:""}</div></div>`}
   const fromQ=QUEUES.find(q=>q.view===UI.back),nq=fromQ?readyList(fromQ).filter(x=>x.id!==id):[];
   return `${banner}<div class="head"><div><button class="btn sm noprint" data-go="${UI.back||"applicants"}">← ${fromQ?fromQ.short:UI.back==="pipeline"?"Home":UI.back==="scan"?"Scanner":"Applicants"}</button>
-    <h1 style="margin-top:10px">${esc(a.name)}${a.source==="sample"?'<span class="sample">Sample</span>':""}${ageTxt(a)}</h1>
+    <h1 style="margin-top:10px">${esc(a.name)}${a.source==="sample"?'<span class="sample">Sample</span>':""}${ageTxt(a)}${a.booking?.walkin?" "+tag("Walk-in","plain"):""}</h1>
     <p>${a.phone?esc(a.phone):(can("verifier")||can("marketing")?`<input data-act="setphone" data-id="${id}" placeholder="Add mobile number" aria-label="Mobile number" style="padding:3px 8px;border:1px solid var(--wait);border-radius:6px;background:var(--panel);width:170px">`:"No mobile number")}${a.email?" · "+esc(a.email):""} · Interview ${fmtDT(a.slot)} · ${esc(a.campaign||"No campaign")}</p>
     <p class="small" style="margin:4px 0 0">Referral code: ${a.refCode?`<b>${esc(a.refCode)}</b>`:""}${can("marketing")?`<input data-act="setref" data-id="${id}" value="" placeholder="${a.refCode?"Change":"Add code"}" aria-label="Referral code" style="margin-left:6px;padding:2px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);width:110px">`:a.refCode?"":`<span class="muted">none</span>`}</p></div>
     <div class="row">${stageTag(a)}<button class="btn sm noprint" data-act="tab" data-v="activity" aria-pressed="${tab==="activity"}">Activity (${(a.log||[]).length})</button>${fromQ&&nq.length&&!banner?`<button class="btn sm noprint" data-open="${nq[0].id}" data-sec="${fromQ.sec}">Next in queue →</button>`:""}${S.isAdmin?`<button class="btn sm danger noprint" data-act="delapp" data-id="${id}">Delete</button>`:""}</div></div>
@@ -2323,7 +2324,7 @@ document.addEventListener("click",async e=>{
        UI.remDate=up||tomorrowDay();UI.calAnchor=UI.remDate;UI.calMode=UI.calMode||"week";return go("reminders")}
      return render()}
    case"manclear":delete MAN[v];return manRedraw(v);
-   case"addman":{const g=k=>($("#"+k)?.value||"").trim(),name=g("mname"),dt=g("mdate"),tm=g("mtime");
+   case"addman":{if(!can("admin"))return toast("Only an Admin can add applicants by hand. Walk-ins use the Walk-in QR.");const g=k=>($("#"+k)?.value||"").trim(),name=g("mname"),dt=g("mdate"),tm=g("mtime");
      if(!name||name.split(/\s+/).length<2)return toast("Add the applicant's full name.");if(!/^\d{4}-\d{2}-\d{2}$/.test(dt))return toast("Pick the interview date.");if(!MAN.lic)return toast("Add a photo of the driver's license. It's required.");
      if(!g("mlicno"))return toast("Add the driver's license number. It's required.");if(!licOk(g("mlicno")))return toast("Check the license number: 1 letter and 10 digits, e.g. N01-23-456789.");
      {let chk=null;try{chk=(await SB.rpc("check_license",{p_number:g("mlicno")})).data}catch(e){}
@@ -2433,13 +2434,21 @@ function autoCloseCamps(){if(!S.uid||!S.settings)return;let ch=false;const now=n
     if(c.endDate&&today()>c.endDate){ch=true;return Object.assign({},c,{active:false,closedReason:"ended",closedAt:now})}return c});
   if(ch)saveCamps(L).then(()=>softRender()).catch(e=>console.error(e))}
 const campUrl=c=>location.href.split("#")[0]+"#apply/"+c.id;
+const walkUrl=c=>campUrl(c)+"/walkin";
+/* walk-in link: on an interview day, during interview hours, books "now" (or the next free slot today). Otherwise it's the normal link. */
+function walkSlot(c){if(!PUB.walkin||!c||!campOpen(c)||(c.startDate&&today()<c.startDate))return null;
+  const d=new Date(),ds=today(),nowMin=d.getHours()*60+d.getMinutes();if(!c.days.includes(d.getDay()))return null;
+  for(const t of allTimes(c).filter(t=>!(c.offTimes||[]).includes(t))){const [h,mi]=t.split(":").map(Number),m=h*60+mi;if(m+c.len<=nowMin)continue;
+    const iso=new Date(ds+"T"+t).toISOString();if(c.seats-(PUB_TAKEN[c.id+"|"+iso]||0)<1)continue;
+    return m<=nowMin?{now:true,label:"Ngayon na"}:{now:false,iso,label:new Date(iso).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})}}
+  return null}
 const linesOf=s=>String(s||"").split(/\n+/).map(x=>x.replace(/^[-•*]\s*/,"").trim()).filter(Boolean);
 const fmtTime=t=>{const [hh,mm]=String(t||"0:0").split(":");const d=new Date();d.setHours(+hh,+mm,0,0);return d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})};
 const loadScript=src=>new Promise((res,rej)=>{const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)});
 function qrSvg(text,cell){if(!window.qrcode)return `<div class="small muted" style="padding:20px;text-align:center">QR unavailable offline. Code: ${esc(text)}</div>`;const q=qrcode(0,"M");q.addData(text);q.make();return q.createSvgTag({cellSize:cell||4,margin:2,scalable:true})}
 function qrPng(text){if(!window.qrcode)return"";const q=qrcode(0,"M");q.addData(text);q.make();return q.createDataURL(10,20)}
 const PUB={route:null,id:null,step:"job",form:{},month:null,day:null,time:null,err:""};
-function parseHash(){const m=location.hash.match(/^#(apply|ticket)\/([\w-]+)/);PUB.route=m?m[1]:/^#status/.test(location.hash)?"status":null;PUB.id=m?m[2]:null}
+function parseHash(){const m=location.hash.match(/^#(apply|ticket)\/([\w-]+)(\/walkin)?/);PUB.route=m?m[1]:/^#status/.test(location.hash)?"status":null;PUB.id=m?m[2]:null;PUB.walkin=!!(m&&m[1]==="apply"&&m[3])}
 parseHash();
 window.addEventListener("hashchange",async()=>{parseHash();PUB.step="job";PUB.day=PUB.time=null;PUB.err="";if(SB&&PUB.route==="ticket")await loadTicket(PUB.id);if(SB&&PUB.route==="apply"&&!S.uid){if(!S.settings)await publicLoad();else await loadSlots()}render();window.scrollTo(0,0)});
 async function saveCamps(list){const s=Object.assign({},S.settings||{});s.camps=list;s.campaigns=list.map(c=>c.name);S.settings=s;await setDoc("admin/settings",s)}
@@ -2602,7 +2611,11 @@ function vCampEdit(){const c=UI.editCamp,isNew=!c.id,jo=c.jobId&&jobById(c.jobId
    <div class="row"><button class="btn primary lg" data-act="cp-save">${isNew?"Create campaign and get link":"Save changes"}</button><button class="btn" data-act="cp-cancel">Cancel</button>${!isNew&&can("admin")?`<button class="btn danger" data-act="cp-del" data-id="${c.id}" style="margin-left:auto">Delete campaign</button>`:""}</div>
   </div>
   <aside class="cp-side">${c.id?campLinkCard(c):`<div class="panel"><h3 style="margin:0 0 6px">Campaign link</h3><p class="small muted" style="margin:0">The link and its QR code appear here once you create the campaign.</p></div>`}</aside></div>`}
-function campLinkCard(c){const u=campUrl(c);return `<div class="panel stack"><h3 style="margin:0">Campaign link</h3><div class="cp-url">${esc(u)}</div>
+function campLinkCard(c){return campLinkCardBase(c)+`<div class="panel stack" style="margin-top:14px"><h3 style="margin:0">Walk-in QR (for the desk)</h3>
+  <p class="small muted" style="margin:0">Print this and put it at the check-in desk. Walk-ins fill in the same application on their phone and are booked for today, now (or the next free slot today). Works on interview days during interview hours; at other times it's the normal link.</p>
+  <div class="cp-url">${esc(walkUrl(c))}</div><div class="row"><button class="btn sm" data-act="cp-copywalk" data-id="${c.id}">Copy walk-in link</button>${qrPng(walkUrl(c))?`<a class="btn sm" href="${qrPng(walkUrl(c))}" download="${esc(c.id)}-walkin-qr.gif">Download QR</a>`:""}</div>
+  <div class="cp-qr">${qrSvg(walkUrl(c),4)}</div></div>`}
+function campLinkCardBase(c){const u=campUrl(c);return `<div class="panel stack"><h3 style="margin:0">Campaign link</h3><div class="cp-url">${esc(u)}</div>
   <div class="row"><button class="btn primary sm" data-act="cp-copy" data-id="${c.id}">Copy link</button><a class="btn sm" href="#apply/${c.id}" target="_blank" rel="noopener">Preview</a></div>
   <div class="cp-qr">${qrSvg(u,4)}</div>${qrPng(u)?`<a class="btn sm" style="align-self:flex-start" href="${qrPng(u)}" download="${esc(c.id)}-qr.gif">Download QR</a>`:""}<p class="small muted" style="margin:0">Put this QR on posters or Facebook posts. Scanning it opens this campaign's booking page.</p></div>`}
 function readCampForm(){const c=readCampFormBase();c.endDate=+c.runDays?addDays(c.startDate,+c.runDays-1):"";constg=k=>{const el=document.getElementById("cp-"+k);return el?el.value.trim():""};const tb=[...document.querySelectorAll("[data-tday]")];if(!tb.length)return c;
@@ -2652,6 +2665,13 @@ function vPublic(){
   if(st==="quiz"){const A=F.answers||{};return pubShell(`${bar}<div class="ap-card ap-narrow"><h2 style="margin:0 0 4px">Ilang tanong lang</h2><p class="muted" style="margin:0 0 10px">Sagutin mo lang nang tapat. Walang trick dito.</p>
     ${cq(c).map((q,i)=>`<fieldset class="ap-q"><legend>${i+1}. ${esc(q.text)}</legend><div class="ap-qo">${q.opts.map((o,j)=>`<label><input type="radio" name="pq_${q.id}" value="${j}" ${A[q.id]===j?"checked":""}><span>${esc(o[0])}</span></label>`).join("")}</div></fieldset>`).join("")}
     ${err}<div class="ap-actions"><button class="btn" data-act="ap-go" data-v="form">Bumalik</button><button class="btn primary lg" data-act="ap-go" data-v="time">Next: pumili ng oras</button></div></div>`,c)}
+  const W=walkSlot(c);
+  if(W)return pubShell(`${bar}<div class="ap-card ap-narrow"><div class="ap-eyebrow">Walk-in</div><h2 style="margin:10px 0 6px">${W.now?"Interview mo: ngayon na":"Interview mo ngayong araw: "+W.label}</h2>
+    <p class="muted" style="margin:0 0 14px">${esc(c.hubName||"")}${c.location?", "+esc(c.location):""}. Pagka-book, lalabas ang QR ticket mo. Ipakita ito sa check-in desk.</p>
+    <div class="ap-sec ap-note"><b>Tama ba ang contact info mo?</b><div class="small" style="margin:6px 0">Mobile: <b>${esc(F.phone||"")}</b><br>Email: <b>${esc(F.email||"")}</b></div>
+     <label class="row small" style="align-items:flex-start;flex-wrap:nowrap"><input type="checkbox" id="ap-cconf" ${F.contactOk?"checked":""} style="margin-top:3px"> <span>Oo, tama ang mobile number at email ko.</span></label>
+     <button class="ap-link" data-act="ap-go" data-v="form" style="margin-top:6px">Baguhin ang contact info</button></div>
+    ${err}<div class="ap-actions"><button class="btn" data-act="ap-go" data-v="quiz">Bumalik</button><button class="btn primary lg" data-act="ap-book">Kunin ang QR ticket ko</button></div></div>`,c);
   const base=PUB.month?new Date(PUB.month+"-01T00:00"):new Date();base.setDate(1);base.setHours(0,0,0,0);
   const y=base.getFullYear(),m=base.getMonth(),first=new Date(y,m,1).getDay(),n=new Date(y,m+1,0).getDate();
   const curM=new Date();curM.setDate(1);curM.setHours(0,0,0,0);const lim=new Date();lim.setDate(lim.getDate()+c.window);
@@ -2785,12 +2805,15 @@ async function apGo(v,b){const c=campById(PUB.id),F=PUB.form;PUB.err="";
     if(!geo){const g=await geocode(q)||await geocode(`${String(F.city).replace(/\s*\(.*\)/,"")}, Philippines`);geo=Object.assign({q},g||{})}
     const t=travel(parseGeo(c.hubGeo),geo.lat!=null?geo:null,F.transport);F.geo=Object.assign(geo,t||{km:null,mins:null})}
   if(v==="time"){const A=F.answers||{},miss=cq(c).findIndex(q=>A[q.id]==null);if(miss>=0){PUB.err=`Sagutin muna ang tanong #${miss+1}.`;return render()}
+    if(walkSlot(c)){PUB.step=v;render();return window.scrollTo(0,0)}
     const d=new Date();let found=null;for(let i=0;i<=c.window&&!found;i++){const x=new Date(d);x.setDate(d.getDate()+i);const ds=localDay(x);if(dayOpen(c,ds))found=ds}
     PUB.month=(found||today()).slice(0,7);if(!found)PUB.err="Wala pang bakanteng interview slot ngayon. Balikan mo na lang mamaya."}
   PUB.step=v;render();window.scrollTo(0,0)}
-async function bookNow(){const c=campById(PUB.id),F=PUB.form;if(!c||!PUB.time)return;
+async function bookNow(){const c=campById(PUB.id),F=PUB.form,W=walkSlot(c);
+  if(W){PUB.day=today();PUB.time=W.now?new Date(Math.ceil((Date.now()+60000)/60000)*60000).toISOString():W.iso}
+  if(!c||!PUB.time)return;
   if(!F.contactOk){PUB.err="I-check ang mobile number at email mo, tapos i-tick ang “Oo, tama” na box bago mag-book.";return render()}
-  const sl=campSlots(c,PUB.day).find(s=>s.iso===PUB.time);if(!sl||sl.left<1){PUB.time=null;PUB.err="Kaka-book lang ng iba sa oras na 'yan. Pumili ng iba.";return render()}
+  const sl=W?{left:1}:campSlots(c,PUB.day).find(s=>s.iso===PUB.time);if(!sl||sl.left<1){PUB.time=null;PUB.err="Kaka-book lang ng iba sa oras na 'yan. Pumili ng iba.";return render()}
   const now=new Date().toISOString(),id="a"+uid(),score=pqScore(c,F.answers),age=ageOf(F.birth);
   const ageOk=age>=(c.minAge??18)&&(!c.maxAge||age<=c.maxAge),auto=c.autoApprove!==false&&score>=(c.passScore??70)&&ageOk&&!(F.licExp&&F.licExp<today())&&!F.nbiHit;
   const reasons=[];if(score<(c.passScore??70))reasons.push(`score ${score}% below ${c.passScore??70}%`);if(!ageOk)reasons.push(`age ${age} outside ${c.minAge??18}${c.maxAge?"–"+c.maxAge:"+"}`);if(c.autoApprove===false)reasons.push("manual approval on");const licExpired=F.licExp&&F.licExp<today();if(licExpired)reasons.push("license expired "+fmtD(F.licExp));if(F.nbiHit)reasons.push("NBI shows a record hit");
@@ -2798,8 +2821,8 @@ async function bookNow(){const c=campById(PUB.id),F=PUB.form;if(!c||!PUB.time)re
     refCode:(F.ref||"").trim(),source:"campaign",
     application:{birth:F.birth,sex:F.sex||"",licAddress:F.licAddr||"",city:F.city,address:F.address.trim(),transport:F.transport,license:F.license,codes:F.codes||[],years:F.years,geo:F.geo||null,
       answers:cq(c).map(q=>({q:q.text,a:q.opts[F.answers[q.id]]?.[0],pts:q.opts[F.answers[q.id]]?.[1],max:Math.max(...q.opts.map(o=>o[1]))})),score},
-    booking:{status:auto?"approved":"pending",auto,reasons,at:now},createdAt:now,updatedAt:now,
-    log:[{t:now,by:"applicant",msg:`Applied through campaign link and requested ${fmtDT(PUB.time)}. Pre-profile ${score}%.`+(auto?" Auto-approved.":" Waiting for approval.")}]};
+    booking:Object.assign({status:auto?"approved":"pending",auto,reasons,at:now},W?{walkin:true}:{}),createdAt:now,updatedAt:now,
+    log:[{t:now,by:"applicant",msg:`${W?"Walk-in: applied at the desk":"Applied through campaign link"} and requested ${fmtDT(PUB.time)}. Pre-profile ${score}%.`+(auto?" Auto-approved.":" Waiting for approval.")}]};
   try{await attachDocs(a,F);await setDoc("applicants/"+id,a)}catch(err){delete S.applicants[id];if(/oras na/.test(err.message))PUB.time=null;PUB.err=err.message;await loadSlots();return render()}PUB.form={};PUB.ocr={};PUB.day=PUB.time=null;location.hash="#ticket/"+id}
 
 function appFacts(a){const ap=a.application||{},g=ap.geo,row=(k,v)=>`<div><dt>${k}</dt><dd>${v||"—"}</dd></div>`;
@@ -2812,11 +2835,11 @@ function smsText(a){const first=(a.name||"").split(" ")[0],d=new Date(a.slot),c=
   const where=[a.hubName||c.hubName,a.location||c.location].filter(x=>x&&!/set the address/i.test(x)).join(", ");
   if(a.booking?.status==="declined")return `DRAYBERFLX: Hi ${first}, salamat sa pag-apply. Sa ngayon, hindi namin ma-confirm ang interview mo.${a.booking.note?" "+a.booking.note:""}`;
   return `DRAYBERFLX: Hi ${first}, approved na ang interview mo sa ${when}${where?", "+where:""}. Code mo: ${a.code}. Ipakita ang SMS na ito sa check-in desk. Dalhin ang original NBI, medical cert at driver's license.`}
-function vRequests(){const P=Object.values(S.applicants).filter(a=>stage(a)==="requested").sort((a,b)=>(a.slot||"").localeCompare(b.slot||""));
+function vRequests(){const P=Object.values(S.applicants).filter(a=>stage(a)==="requested").sort((a,b)=>(!!b.booking?.walkin-!!a.booking?.walkin)||(a.slot||"").localeCompare(b.slot||""));
   const recent=Object.values(S.applicants).filter(a=>a.booking&&a.booking.status!=="pending").sort((a,b)=>(b.booking.at||"").localeCompare(a.booking.at||"")).slice(0,8);
   return `<div class="head"><div><h1>Booking requests</h1><p>Applicants who didn't pass the automatic check. Review their pre-profile, then approve or decline the interview.</p></div></div>
   ${P.length?`<div class="stack">${P.map(a=>{const ap=a.application||{},c=campById(a.campaignId),pass=c?.passScore??70;return `<div class="panel rq">
-   <div class="rq-h"><div><div class="small muted">${esc(a.campaign)} · requested ${fmtDT(a.slot)}</div><h2 style="margin:4px 0 0">${esc(a.name)}${ageTxt(a)}</h2></div>
+   <div class="rq-h"><div><div class="small muted">${esc(a.campaign)} · requested ${fmtDT(a.slot)}</div><h2 style="margin:4px 0 0">${esc(a.name)}${ageTxt(a)}${a.booking?.walkin?" "+tag("Walk-in · waiting at the desk","wait"):""}</h2></div>
     <div class="rq-score ${ap.score>=pass?"ok":"low"}"><b>${ap.score??"—"}%</b><small>pass ${pass}%</small></div></div>
    ${a.booking?.reasons?.length?`<p class="small" style="margin:0;color:var(--wait)">Needs review: ${esc(a.booking.reasons.join("; "))}</p>`:""}
    <dl class="sc-dl">${appFacts(a)}<div><dt>Contact</dt><dd>${esc(a.phone)}<br>${esc(a.email)}</dd></div></dl>
@@ -3258,6 +3281,7 @@ function scanCard(a){const s=settings(),day=localDay(a.slot),t=today();
 document.addEventListener("click",async e=>{const b=e.target.closest("[data-act]");if(!b||b.disabled)return;const A=b.dataset.act,v=b.dataset.v,id=b.dataset.id;
   if(!/^(cp|ap|sc)-/.test(A))return;e.preventDefault();
   switch(A){
+   case"cp-copywalk":{await copyText(walkUrl(campById(id)));return toast("Walk-in link copied")}
    case"cp-new":UI.editCamp=newCamp();render();return window.scrollTo(0,0);
    case"cp-fromjob":{const j=jobById(id);if(!j)return;UI.view="campaigns";const C=jobCamps(j),left=dayDiff(today(),j.neededBy);
      UI.editCamp=Object.assign(newCamp(),{jobId:j.id,name:`${j.client} – ${j.position}${C.length?" "+(C.length+1):""}`,position:j.position,jd:j.jd||"",reqs:j.reqs||"",perks:j.perks||"",
