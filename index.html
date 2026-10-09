@@ -835,7 +835,7 @@ main#main:has(.reg-table){max-width:min(1680px,100%)}
 <script>
 /* ============ constants ============ */
 const ROLES={admin:"Admin",marketing:"Marketing",verifier:"Document check",orientation:"Orientation",interviewer:"Interviewer",tester:"Driving tester",trainer:"OJT trainer",hr:"HR offers",operations:"Operations"};
-const DEFAULT_SETTINGS={interviewPass:70,drivePass:80,highRiskBlocks:true,redFlagBlocks:true,ojtDays:5,ojtMinPass:5,medicalMaxMonths:6,requirePro:true,
+const DEFAULT_SETTINGS={reapplyDocs:0,reapplyInterview:3,reapplyDrive:1,reapplyTraining:3,interviewPass:70,drivePass:80,highRiskBlocks:true,redFlagBlocks:true,ojtDays:5,ojtMinPass:5,medicalMaxMonths:6,requirePro:true,
   campaigns:["Facebook – Manila","Facebook – Cebu","Referral","Walk-in"],position:"Delivery Driver (EV)",company:"",idleMinutes:15,hubAddress:"Hub (set the address in Rules & data)",
   reminderText:"DRAYBERFLX: Paalala {first}, interview mo sa {date}, {time}, {address}. Code: {code}. Dalhin ang original NBI, medical cert at driver's license. Salamat!"};
 const DIMS={absenteeism:"Absenteeism",safety:"Road safety",integrity:"Integrity",customer:"Customer handling",retention:"Commitment & retention"};
@@ -931,7 +931,8 @@ async function submitPublic(a){
   if(error)throw new Error("Hindi namin naipadala ang request mo. I-check ang internet mo at subukan ulit.");
   if(data&&data.error==="full")throw new Error("Kaka-book lang ng iba sa oras na 'yan. Pumili ng iba.");
   if(data&&data.error==="nophoto")throw new Error("Kailangan ang photo ng driver's license mo. Bumalik sa step 2 at i-upload ito.");
-  if(data&&data.error==="dup")throw new Error(`May interview request ka na para sa ${fmtDT(data.slot)}. <a href="#ticket/${data.id}">Tingnan ang status</a>.`);
+  if(data&&data.error==="dup")throw new Error(`May interview request ka na para sa ${fmtDT(data.slot)}. <a href="#status">Tingnan ang status</a>.`);
+  if(data&&["nolicense","active","wait","blocked"].includes(data.error))throw new Error(licMsg(data));
   if(data&&data.error==="notyet")throw new Error("Hindi pa bukas ang applications para sa campaign na 'to. Balikan mo lang ang link sa araw ng pagbubukas.");
   if(data&&data.error)throw new Error("Hindi tumatanggap ng booking ang campaign na 'to sa ngayon.");
 }
@@ -1524,7 +1525,7 @@ function vImport(){
      <label class="f">Referral code (optional)<input id="mref"></label>
      <details class="man-docs" open><summary><b>Documents</b> <span class="small muted">(license photo required · NBI and medical optional)</span></summary><div class="stack" style="margin-top:10px">
       <div class="man-doc"><div class="lbl">Driver's license <span style="color:var(--stop)">* required photo</span></div>${manPhoto("lic")}
-       <div class="grid2"><label class="f">License number<input id="mlicno" placeholder="N01-23-456789"></label><label class="f">Expiration date<input id="mlicexp" type="date" min="2020-01-01" max="2040-12-31"></label></div>
+       <div class="grid2"><label class="f">License number (required)<input id="mlicno" placeholder="N01-23-456789"></label><label class="f">Expiration date<input id="mlicexp" type="date" min="2020-01-01" max="2040-12-31"></label></div>
        <div class="small muted" style="margin:6px 0 4px">DL codes</div><div class="cp-days">${LCODES.map(([c])=>`<label class="cp-day"><input type="checkbox" data-mcode="${c}"><span>${c}</span></label>`).join("")}</div></div>
       <div class="man-doc"><div class="lbl">NBI clearance</div>${manPhoto("nbi")}
        <div class="grid2"><label class="f">NBI number<input id="mnbino"></label><label class="f">Valid until<input id="mnbiexp" type="date" min="2020-01-01" max="2040-12-31"></label></div></div>
@@ -1670,6 +1671,9 @@ function vSettings(){const s=settings();
    <div class="sect"><header><h3>Decision</h3></header><div class="stack">${num("interviewPass","Minimum interview score (%)",0,100)}${num("drivePass","Minimum driving test score (%)",0,100)}
     ${chk("highRiskBlocks","High overall risk means Not hired")}${chk("redFlagBlocks","Any red-flag answer means Not hired")}
     <p class="small muted" style="margin:0">Risk per area: 75%+ Low, 50–74% Medium, below 50% High. Critical driving items (hazard awareness, traffic rules) fail the test on their own.</p></div></div>
+   <div class="sect"><header><h3>Reapplying</h3></header><div class="stack"><p class="small muted" style="margin:0">One person = one driver's license number. After a "Failed" result, how many months before they can apply again (0 = right away):</p>
+    <div class="grid2">${num("reapplyDocs","Failed documents",0,24)}${num("reapplyInterview","Failed interview",0,24)}${num("reapplyDrive","Failed driving test",0,24)}${num("reapplyTraining","Failed 1-day training",0,24)}</div>
+    <p class="small muted" style="margin:0">Never again (Admin can allow): a red-flag interview answer, an NBI clearance with a record “hit” that was rejected, a document rejected as fake or tampered, or a critical driving item failed on two applications. Two no-shows within 30 days = wait 30 days.</p></div></div>
    <div class="sect"><header><h3>Documents</h3></header><div class="stack">${num("medicalMaxMonths","Medical certificate: max age (months)",1,24)}${chk("requirePro","Require a professional driver's license")}</div></div>
    <div class="sect"><header><h3>OJT & offer</h3></header><div class="stack">${num("ojtDays","OJT length (days)",1,10)}${num("ojtMinPass","Days that must pass",1,10)}
     <label class="f">Position on offer letter<input data-act="sett" data-k="position" value="${esc(s.position)}"></label>
@@ -1881,6 +1885,28 @@ function pf(act,id,val,extra=""){return `<div class="pf" role="group">${["pass",
 const STEPS=[["docs","Check-in & documents","verifier"],["orientation","Orientation","orientation"],["interview","Interview","interviewer"],["drive","Driving test","tester"],["decision","Result",null],["training","Training booking",null],["ojt","1-day training","trainer"],["activity","Activity",null]];
 const STAGE_STEP={iv_fail:"interview",drive_fail:"drive",pass_inform:"training",training_invite:"training",training_declined:"training",training_book:"training",accr_inform:"ojt",accredited:"ojt",booked:"docs",checkin:"docs",noshow:"docs",docs_fail:"docs",orientation:"orientation",interview:"interview",drive:"drive",not_hired:"decision",ojt:"ojt",ojt_fail:"ojt",offer:"offer",offer_sent:"offer",offer_accepted:"offer",offer_declined:"offer"};
 const DOCS=[["nbi","NBI clearance"],["medical","Medical certificate"],["license","Driver's license"]];
+/* one person = one driver's license number, compared without spaces or dashes */
+const licKey=n=>String(n||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+const licOk=n=>/^[A-Z][0-9]{10}$/.test(licKey(n));
+const licOf=a=>licKey(a.docs?.license?.key||a.docs?.license?.number);
+const licHistory=a=>{const k=licOf(a);return k?Object.values(S.applicants).filter(x=>x.id!==a.id&&licOf(x)===k).sort((x,y)=>(y.createdAt||y.slot||"").localeCompare(x.createdAt||x.slot||"")):[]};
+const addMonths=(ds,m)=>{const d=new Date(ds+"T00:00");d.setMonth(d.getMonth()+m);return localDay(d)};
+// what a "Failed" result means for reapplying: months to wait, or blocked for good
+function reapplyRule(a){const st=stageRaw(a),s=settings(),why=[];
+  if(st==="docs_fail"){if(DOCS.some(([k])=>a.docs?.[k]?.fraud))why.push("document rejected as fake or tampered");if(a.docs?.nbi?.status==="rejected"&&a.docs.nbi.hit)why.push("NBI clearance with a record “hit”");
+    return why.length?{permanent:true,why:why.join(", ")}:{months:+s.reapplyDocs||0}}
+  if(st==="iv_fail"){const iv=scoreInterview(a);if(iv.red.length)return{permanent:true,why:"red-flag interview answer"};return{months:+s.reapplyInterview||0}}
+  if(st==="drive_fail"){const crit=scoreDrive(a).critFail.length,before=licHistory(a).some(x=>x.drive?.result==="fail"&&(x.drive?.critFail||scoreDrive(x).critFail.length));
+    if(crit&&before)return{permanent:true,why:"critical driving item failed on two applications"};return{months:+s.reapplyDrive||0}}
+  if(st==="ojt_fail")return{months:+s.reapplyTraining||0};return{months:0}}
+function licWarn(a){const H=licHistory(a),ph=(a.phone||"").replace(/[\s-]/g,""),k=licOf(a);
+  const P=ph?Object.values(S.applicants).filter(x=>x.id!==a.id&&(x.phone||"").replace(/[\s-]/g,"")===ph&&licOf(x)!==k):[];
+  const f=a.released?.fail,wait=f&&!f.permanent&&f.waitUntil>today();
+  if(!H.length&&!P.length&&!f?.permanent&&!wait)return"";
+  return `<div class="panel" style="border-left:4px solid var(--wait);padding:12px 14px;margin:0 0 14px">
+   ${f?.permanent?`<div><b style="color:var(--stop)">Cannot reapply</b>: ${esc(f.why||"")}${can("admin")?` <button class="btn sm" data-act="lic-allow" data-id="${a.id}">Allow to reapply</button>`:""}</div>`:wait?`<div><b>Can reapply from ${fmtD(f.waitUntil)}</b>${can("admin")?` <button class="btn sm" data-act="lic-allow" data-id="${a.id}">Allow now</button>`:""}</div>`:""}
+   ${H.length?`<div><b>Applied before with this license</b> (${H.length}):</div><ul class="small" style="margin:4px 0 0;padding-left:18px">${H.slice(0,5).map(x=>`<li><a href="#" data-open="${x.id}">${esc(x.name||"")}</a> · ${fmtD(x.createdAt||x.slot)} · ${esc(stageLabel(x)[0])}</li>`).join("")}</ul>`:""}
+   ${P.length?`<div class="small" style="margin-top:6px"><b>Same mobile number</b> as ${P.slice(0,3).map(x=>`<a href="#" data-open="${x.id}">${esc(x.name||"")}</a>`).join(", ")} (different license). Check it's not the same person.</div>`:""}</div>`}
 function stepInfo(a){
   const s=settings(),dv=docsVerdict(a),o=a.orientation||{},iv=scoreInterview(a),d=decide(a),ov=ojtVerdict(a),of=a.offer||{},I={};
   I.docs=a.checkin?.status==="noshow"?{st:"fail",sum:"No-show"}:dv==="pass"?{st:"done",sum:"Cleared"}:dv==="fail"?{st:"fail",sum:"Rejected"}:{st:"now",sum:a.checkin?.status?`${DOCS.filter(([k])=>a.docs?.[k]?.status==="verified").length}/3 verified`:"Awaiting check-in"};
@@ -1930,7 +1956,7 @@ function vProfile(){
        <li><i class="${ph.length?"y":"u"}">${ph.length?"✓":"·"}</i><span>Photo on file <span class="muted small">(recommended)</span></span></li></ul>
        <div class="thumbs">${ph.map(pid=>`<span class="thumb" role="button" tabindex="0" data-act="viewphoto" data-p="${pid}" aria-label="View photo"><img data-photo="${pid}" alt="${title} photo">${eD?`<button class="x" data-act="delphoto" data-id="${id}" data-k="${k}" data-p="${pid}" aria-label="Remove photo">✕</button>`:""}</span>`).join("")}
         ${eD?`<button class="addphoto cambtn" data-act="camera" data-id="${id}" data-k="${k}" aria-label="Take photo of ${title}">📷<br>Take photo</button><label class="addphoto">Upload<input type="file" accept="image/*" data-act="photo" data-id="${id}" data-k="${k}" style="display:none"></label>`:ph.length?"":`<span class="small muted">No photo</span>`}</div>
-       ${eD?`<div class="row" style="margin-top:14px"><button class="btn primary" data-act="docst" data-id="${id}" data-k="${k}" data-v="verified" ${ready&&stt!=="verified"?"":"disabled"}>${stt==="verified"?"Verified":"Verify "+title.toLowerCase()}</button><button class="btn danger" data-act="docst" data-id="${id}" data-k="${k}" data-v="rejected" ${stt==="rejected"?"disabled":""}>Reject</button></div>
+       ${eD?`<div class="row" style="margin-top:14px"><button class="btn primary" data-act="docst" data-id="${id}" data-k="${k}" data-v="verified" ${ready&&stt!=="verified"?"":"disabled"}>${stt==="verified"?"Verified":"Verify "+title.toLowerCase()}</button><button class="btn danger" data-act="docst" data-id="${id}" data-k="${k}" data-v="rejected" ${stt==="rejected"?"disabled":""}>Reject</button><button class="btn sm danger" data-act="docfraud" data-id="${id}" data-k="${k}" ${dd.fraud?"disabled":""}>Fake or tampered</button></div>
         ${!ready&&stt!=="verified"?`<p class="small muted" style="margin:6px 0 0">Complete the checklist to verify, or reject if the document isn't acceptable.</p>`:""}`:""}</div></div>`:""}</div>`};
   const docsBody=!a.checkin?.status?`<div class="attend"><div><b>Did ${esc(first)} show up?</b><div class="muted small">Interview booked ${fmtDT(a.slot)}</div></div>${eD?`<div class="row"><button class="btn primary" data-act="show" data-id="${id}">Showed up</button><button class="btn" data-act="noshow" data-id="${id}">No-show</button></div>`:""}</div>`
     :a.checkin.status==="noshow"?`<div class="attend"><div>${tag("No-show","stop")} <span class="muted small">Marked ${fmtDT(a.checkin.at)}</span></div>${eD?`<button class="btn" data-act="undoshow" data-id="${id}">Undo</button>`:""}</div>`
@@ -2049,7 +2075,7 @@ function vProfile(){
     <p>${a.phone?esc(a.phone):(can("verifier")||can("marketing")?`<input data-act="setphone" data-id="${id}" placeholder="Add mobile number" aria-label="Mobile number" style="padding:3px 8px;border:1px solid var(--wait);border-radius:6px;background:var(--panel);width:170px">`:"No mobile number")}${a.email?" · "+esc(a.email):""} · Interview ${fmtDT(a.slot)} · ${esc(a.campaign||"No campaign")}</p>
     <p class="small" style="margin:4px 0 0">Referral code: ${a.refCode?`<b>${esc(a.refCode)}</b>`:""}${can("marketing")?`<input data-act="setref" data-id="${id}" value="" placeholder="${a.refCode?"Change":"Add code"}" aria-label="Referral code" style="margin-left:6px;padding:2px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);width:110px">`:a.refCode?"":`<span class="muted">none</span>`}</p></div>
     <div class="row">${stageTag(a)}<button class="btn sm noprint" data-act="tab" data-v="activity" aria-pressed="${tab==="activity"}">Activity (${(a.log||[]).length})</button>${fromQ&&nq.length&&!banner?`<button class="btn sm noprint" data-open="${nq[0].id}" data-sec="${fromQ.sec}">Next in queue →</button>`:""}${S.isAdmin?`<button class="btn sm danger noprint" data-act="delapp" data-id="${id}">Delete</button>`:""}</div></div>
-  <div class="steps noprint" role="tablist" aria-label="Hiring steps">${STEPS.filter(x=>x[0]!=="activity").map(([k,l],i)=>{const inf=info[k];return `<button class="step ${inf.st}" role="tab" aria-selected="${tab===k}" data-act="tab" data-v="${k}"><span class="ic">${inf.st==="done"?"✓":inf.st==="fail"?"✕":k==="activity"?"≡":i+1}</span><b>${l}</b><small>${esc(inf.sum||"Not yet")}</small></button>`}).join("")}</div>
+  ${licWarn(a)}<div class="steps noprint" role="tablist" aria-label="Hiring steps">${STEPS.filter(x=>x[0]!=="activity").map(([k,l],i)=>{const inf=info[k];return `<button class="step ${inf.st}" role="tab" aria-selected="${tab===k}" data-act="tab" data-v="${k}"><span class="ic">${inf.st==="done"?"✓":inf.st==="fail"?"✕":k==="activity"?"≡":i+1}</span><b>${l}</b><small>${esc(inf.sum||"Not yet")}</small></button>`}).join("")}</div>
   <section class="sect" style="margin-top:12px" role="tabpanel"><header><h3>${title}</h3><div class="row">${extra[tab]||""}${edits[tab]?"":tag("View only","plain")}</div></header><div>${task}${bodies[tab]}</div></section>`;
 }
 
@@ -2192,8 +2218,13 @@ document.addEventListener("click",async e=>{
    case"drreopen":if(!can("admin"))return toast("Only an Admin can reopen a driving test.");if(!confirm("Reopen this driving test? Any result already given will be withdrawn."))return;return updateApplicant(id,a=>{delete a.drive.result},"Driving test reopened by Admin");
    case"ojtst":await updateApplicant(id,a=>{a.ojt=a.ojt||{days:[]};const i=+b.dataset.i;a.ojt.days[i]=Object.assign(a.ojt.days[i]||{},{status:v,by:S.uid})},`OJT day ${+b.dataset.i+1}: ${v}`);
      {const ov=ojtVerdict(S.applicants[id]);if(ov==="pass")markDone(id,"ojt","Training passed. Check-in will give the Accredited result.");else if(ov==="fail")markDone(id,"ojt","Training not passed. Sent to Check-in to tell the applicant.")}return;
-   case"rel-fail":{const ap=S.applicants[id],f=failInfo(ap);if(!f)return;if(!confirm(`Tell ${ap.name} in person first. Show the "not passed" message on their phone now?`))return;
-     return updateApplicant(id,a=>{a.released=Object.assign(a.released||{},{fail:{stage:f[0],at:now,by:S.uid}})},`Result given: did not pass the ${f[0]}`)}
+   case"rel-fail":{const ap=S.applicants[id],f=failInfo(ap);if(!f)return;const R=reapplyRule(ap),until=R.months?addMonths(today(),R.months):"";
+     if(!confirm(`Tell ${ap.name} in person first. Show the "not passed" message on their phone now?\n\n${R.permanent?`They will NOT be able to apply again (${R.why}). An Admin can allow it later.`:until?`They can apply again from ${fmtD(until)}.`:"They can apply again right away."}`))return;
+     return updateApplicant(id,a=>{a.released=Object.assign(a.released||{},{fail:Object.assign({stage:f[0],at:now,by:S.uid},R.permanent?{permanent:true,why:R.why}:{},until?{waitUntil:until}:{})})},`Result given: did not pass the ${f[0]}${R.permanent?" · cannot reapply: "+R.why:until?" · can reapply from "+fmtD(until):""}`)}
+   case"lic-allow":{if(!can("admin"))return;const why=prompt("Why are you allowing this person to apply again? (saved in Activity)");if(!why||!why.trim())return;
+     return updateApplicant(id,a=>{const f=a.released.fail;delete f.permanent;f.waitUntil=today();f.override={by:S.uid,at:now,why:why.trim()}},`Admin allowed reapplying: ${why.trim()}`)}
+   case"docfraud":{if(!confirm("Reject this document as fake or tampered? The person won't be able to apply again unless an Admin allows it."))return;UI.docOpen=null;
+     return updateApplicant(id,a=>{a.docs=a.docs||{};a.docs[b.dataset.k]=Object.assign(a.docs[b.dataset.k]||{},{status:"rejected",fraud:true,by:S.uid,at:now})},`${({nbi:"NBI clearance",medical:"Medical certificate",license:"Driver's license"})[b.dataset.k]} rejected: fake or tampered`)}
    case"rel-pass":return updateApplicant(id,a=>{a.released=Object.assign(a.released||{},{pass:{at:now,by:S.uid}})},"Result given: passed, invited to 1-day paid training");
    case"rel-accr":return updateApplicant(id,a=>{a.released=Object.assign(a.released||{},{accredited:{at:now,by:S.uid}})},"Result given: accredited Drayber Flex driver");
    case"offst":await updateApplicant(id,a=>{a.offer=Object.assign(a.offer||{},{status:v,[v+"At"]:now})},`Offer ${v}`);
@@ -2294,11 +2325,15 @@ document.addEventListener("click",async e=>{
    case"manclear":delete MAN[v];return manRedraw(v);
    case"addman":{const g=k=>($("#"+k)?.value||"").trim(),name=g("mname"),dt=g("mdate"),tm=g("mtime");
      if(!name||name.split(/\s+/).length<2)return toast("Add the applicant's full name.");if(!/^\d{4}-\d{2}-\d{2}$/.test(dt))return toast("Pick the interview date.");if(!MAN.lic)return toast("Add a photo of the driver's license. It's required.");
+     if(!g("mlicno"))return toast("Add the driver's license number. It's required.");if(!licOk(g("mlicno")))return toast("Check the license number: 1 letter and 10 digits, e.g. N01-23-456789.");
+     {let chk=null;try{chk=(await SB.rpc("check_license",{p_number:g("mlicno")})).data}catch(e){}
+      if(chk&&chk.error&&chk.error!=="nolicense"){const msg=chk.error==="active"?"This license already has an application in progress (or is accredited).":chk.error==="wait"?`This person can only reapply from ${fmtD(chk.until)}.`:"This person can't apply again (blocked).";
+        if(!can("admin"))return toast(msg+" Ask an Admin.");if(!confirm(msg+" Add anyway as Admin?"))return}}
      const c=campById(g("mcamp"))||camps()[0]||{},slot=new Date(dt+"T"+(tm||"09:00")),id2="a"+uid(),codes=[...document.querySelectorAll("[data-mcode]:checked")].map(x=>x.dataset.mcode);
      const a={id:id2,code:bookCode(),name,phone:g("mphone"),email:g("memail"),slot:slot.toISOString(),campaign:c.name||c.position||"",campaignId:c.id||"",position:c.position||"",hubName:c.hubName||"",location:c.location||"",
        refCode:g("mref"),source:"manual",booking:{status:"approved",auto:false,by:S.uid,at:now,manual:true},createdAt:now,log:[{t:now,by:S.uid,msg:"Added by hand"}]};
      const put=async img=>{if(!img)return[];const pid="p"+uid();try{await IDB.put(pid,img);PHOTOS[pid]=img;return[pid]}catch(e){toast("A photo couldn't be uploaded.");return[]}};
-     a.docs={};a.docs.license={number:g("mlicno"),expiry:g("mlicexp"),restrictions:codes.join(", "),photos:await put(MAN.lic)};
+     a.docs={};a.docs.license={key:licKey(g("mlicno")),number:g("mlicno"),expiry:g("mlicexp"),restrictions:codes.join(", "),photos:await put(MAN.lic)};
      if(!a.docs.license.photos.length)return toast("The license photo didn't upload. Check the internet and try again — nothing was saved.");
      if(MAN.nbi||g("mnbino"))a.docs.nbi={ref:g("mnbino"),expiry:g("mnbiexp"),photos:await put(MAN.nbi)};
      if(MAN.med||g("mmeddate"))a.docs.medical={date:g("mmeddate"),photos:await put(MAN.med)};
@@ -2316,7 +2351,7 @@ document.addEventListener("change",async e=>{
    case"apfrom":UI.apFrom=t.value;return render();
    case"apto":UI.apTo=t.value;return render();
    case"dayf":UI.dayFilter=t.value;return render();
-   case"docf":return updateApplicant(id,a=>{a.docs=a.docs||{};const d=a.docs[t.dataset.k]=a.docs[t.dataset.k]||{};d[t.dataset.f]=t.value;if(d.status==="verified")delete d.status});
+   case"docf":return updateApplicant(id,a=>{a.docs=a.docs||{};const d=a.docs[t.dataset.k]=a.docs[t.dataset.k]||{};d[t.dataset.f]=t.value;if(t.dataset.k==="license"&&t.dataset.f==="number")d.key=licKey(t.value);if(d.status==="verified")delete d.status});
    case"docb":return updateApplicant(id,a=>{a.docs=a.docs||{};const d=a.docs[t.dataset.k]=a.docs[t.dataset.k]||{};d[t.dataset.f]=t.checked;if(d.status==="verified")delete d.status});
    case"setref":{const v=t.value.trim();if(!v)return;return updateApplicant(id,a=>{a.refCode=v},"Referral code set to "+v)}
    case"setphone":{const v=t.value.trim();if(!v)return;return updateApplicant(id,a=>{a.phone=v},"Mobile number added")}
@@ -2916,7 +2951,7 @@ function docFields(kind){const F=PUB.form,f=(k,l,type,ph)=>`<label class="f">${l
    <label class="row small" style="margin-top:10px"><input type="checkbox" id="ap-nbiHit" ${F.nbiHit?"checked":""}> May "hit" ang clearance</label>`}
 async function attachDocs(a,F){a.docs=a.docs||{};
   const errs={},put=async(img,k)=>{if(!img)return[];const pid="p"+uid();for(let t=0;t<2;t++){try{await IDB.put(pid,img);PHOTOS[pid]=img;return[pid]}catch(e){errs[k]=String(e&&e.message||e);console.error("photo upload",k,e)}}return[]};
-  if(F.licImg||F.licNo)a.docs.license={number:F.licNo||"",expiry:F.licExp||"",restrictions:(F.codes||[]).join(", "),photos:await put(F.licImg,"license"),fromApplicant:true};
+  if(F.licImg||F.licNo)a.docs.license={key:licKey(F.licNo),number:F.licNo||"",expiry:F.licExp||"",restrictions:(F.codes||[]).join(", "),photos:await put(F.licImg,"license"),fromApplicant:true};
   if(F.medImg)a.docs.medical={date:F.medDate||"",clinic:F.medClinic||"",photos:await put(F.medImg,"medical"),fromApplicant:true};
   if(F.nbiImg||F.nbiNo)a.docs.nbi={ref:F.nbiNo||"",expiry:F.nbiExp||"",hit:!!F.nbiHit,photos:await put(F.nbiImg,"nbi"),fromApplicant:true};
   Object.entries(errs).forEach(([k,m])=>{if(a.docs[k]&&!(a.docs[k].photos||[]).length)a.docs[k].photoError=m.slice(0,200)});
@@ -2949,7 +2984,7 @@ function checkLic(){const F=PUB.form,age=ageOf(F.birth);
   if(!F.licImg)return"Kailangan ang photo ng driver's license mo. Picturan o i-upload ito para makatuloy.";
   if(!F.name||F.name.trim().split(/\s+/).length<2)return"Ilagay ang buong pangalan mo (pangalan at apelyido).";
   if(!F.birth)return"Ilagay ang birthday mo.";if(age<18)return"Dapat 18 years old pataas ka para makapag-apply.";if(age>80)return"Paki-check ang birthday mo.";
-  if(!F.licNo)return"Ilagay ang license number mo.";if(!F.licExp)return"Ilagay ang expiration date ng license mo.";if(!(F.codes||[]).length)return"I-tick ang DL codes na nasa license mo.";
+  if(!F.licNo)return"Ilagay ang license number mo.";if(!licOk(F.licNo))return"Paki-check ang license number mo. Ganito dapat: 1 letra at 10 numero, hal. N01-23-456789.";if(!F.licExp)return"Ilagay ang expiration date ng license mo.";if(!(F.codes||[]).length)return"I-tick ang DL codes na nasa license mo.";
   if(F.licAddr&&F.addrOk==null)return"Sabihin kung dito ka pa rin nakatira (yung address sa license mo).";
   if(F.licAddr&&F.addrOk===true){F.address=F.licAddr;if(F.licCity)F.city=F.licCity}
   if(!F.address||F.address.trim().length<6)return"Ilagay ang kasalukuyang address mo.";if(!F.city)return"Piliin ang city o municipality mo.";return""}
@@ -2961,7 +2996,14 @@ function checkForm(){const F=PUB.form,ph=(F.phone||"").replace(/[\s-]/g,"");
   const dup=Object.values(S.applicants).find(a=>a.phone&&a.phone.replace(/[\s-]/g,"")===ph&&a.code&&!a.checkin?.status&&a.booking?.status!=="declined"&&(a.slot||"")>new Date().toISOString());
   if(dup)return `May interview request ka na para sa ${fmtDT(dup.slot)}. <a href="#ticket/${dup.id}">Tingnan ang status</a>.`;return""}
 const _apGo=apGo;
-apGo=async function(v,b){if(v==="form"&&PUB.step==="lic"){PUB.err=checkLic();if(PUB.err)return render();PUB.step="form";render();return window.scrollTo(0,0)}return _apGo(v,b)};
+apGo=async function(v,b){if(v==="form"&&PUB.step==="lic"){PUB.err=checkLic();if(PUB.err)return render();
+  if(SB){b.disabled=true;try{const {data}=await SB.rpc("check_license",{p_number:PUB.form.licNo});PUB.err=licMsg(data)}catch(e){/* offline: checked again when booking */}if(PUB.err)return render()}
+  PUB.step="form";render();return window.scrollTo(0,0)}return _apGo(v,b)};
+function licMsg(d){if(!d||!d.error)return"";
+  if(d.error==="nolicense")return"Paki-check ang license number mo. Ganito dapat: 1 letra at 10 numero, hal. N01-23-456789.";
+  if(d.error==="active")return`May application ka na gamit ang license na 'to (o accredited ka na). <a href="#status">Tingnan ang status mo dito</a>.`;
+  if(d.error==="wait")return`Salamat sa interes mo! Puwede ka ulit mag-apply simula <b>${fmtD(d.until)}</b>.`;
+  if(d.error==="blocked")return"Pasensya na, hindi namin ma-process ang application mo sa ngayon. Makipag-ugnayan sa amin para sa detalye.";return""}
 document.addEventListener("click",e=>{if(e.target.closest("[data-act='ap-manual']")){e.preventDefault();PUB.form.manual=true;render()}},true);
 document.addEventListener("change",e=>{const t=e.target;if(t.name==="ap-addrOk"){PUB.form.addrOk=t.value==="yes";render()}if(t.id==="ap-sex")PUB.form.sex=t.value});
 
