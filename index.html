@@ -1196,9 +1196,9 @@ const pctOf=(a,b)=>b?Math.round(a/b*100):null;
 const avgOf=x=>x.length?x.reduce((p,q)=>p+q,0)/x.length:null;
 const daysBetween=(x,y)=>(new Date(y)-new Date(x))/864e5;
 // a KPI tile; prev = same number for the previous period (▲▼). good: "up" or "down" = which direction is better
-function kpiTile(label,val,o={}){const v=val==null?"—":val,p=o.prev,u=o.unit||"";let d="";
-  if(val!=null&&p!=null&&o.cmp!==false){const diff=Math.round((+val-+p)*10)/10;if(diff){const better=(o.good||"up")==="up"?diff>0:diff<0;
-    d=`<small class="dk ${better?"up":"down"}">${diff>0?"▲":"▼"} ${Math.abs(diff)}${u} vs previous</small>`}else d=`<small class="dk">same as previous</small>`}
+function kpiTile(label,val,o={}){const v=val==null?"—":val,p=o.prev,u=o.unit||"";let d="";const raw="cmpRaw" in o?o.cmpRaw:val;
+  if(val!=null&&raw!=null&&p!=null&&o.cmp!==false){const diff=Math.round((+raw-+p)*10)/10;if(diff){const better=(o.good||"up")==="up"?diff>0:diff<0,fmt=o.fmt||(x=>x+u);
+    d=`<small class="dk ${o.good==="none"?"":better?"up":"down"}">${diff>0?"▲":"▼"} ${fmt(Math.abs(diff))} vs previous</small>`}else d=`<small class="dk">same as previous</small>`}
   return `<div class="kpi ${o.tone||""}"><b>${v}${val!=null&&u?`<small style="font-size:16px">${u}</small>`:""}</b><span>${label}</span>${d}${o.hint?`<small class="muted" style="display:block">${o.hint}</small>`:""}</div>`}
 const hbar=(p,c)=>`<span class="bar" style="display:block"><i style="width:${Math.max(0,Math.min(100,p||0))}%;background:var(--${c||"go"})"></i></span>`;
 function barList(rows,o={}){const mx=Math.max(1,...rows.map(r=>+r[1]||0));
@@ -1226,7 +1226,7 @@ const DASH={
     return `<li class="${c?"on":""}${UI.station===k?" sel":""}" data-act="station" data-v="${k}" style="cursor:pointer" title="Show who reached this step"><div class="cnt">${c}</div><div class="dot"></div><div class="lbl">${l}</div><div class="pct">${i&&prev?Math.round(c/prev*100)+"% of previous":i?"—":"applicants"}</div></li>`}).join("")}</ol></div>`;
   return `<div class="kpis">${kpiTile("Applications",cnt(L,"applied",r),{prev:cnt(L,"applied",r,1)})}${kpiTile("Accredited drivers",cnt(L,"accredited",r),{prev:cnt(L,"accredited",r,1)})}
     ${kpiTile("Applied → accredited (all time)",pctOf(L.filter(a=>evT(a,"accredited")).length,L.length),{unit:"%",cmp:false})}${kpiTile("Avg days, applied → accredited",accT.length?avgOf(accT).toFixed(1):null,{cmp:false})}
-    ${kpiTile("Show-up rate",pctOf(sh,sh+ns),{unit:"%",prev:pctOf(psh,psh+pns)})}${kpiTile("Biggest bottleneck",st&&st[1]?st[1]:0,{cmp:false,hint:st&&st[1]?`${esc(st[0])} · oldest ${waitText(st[2])}`:"Nothing waiting",tone:st&&st[1]>5?"warn":""})}</div>
+    ${kpiTile("Show-up rate",pctOf(sh,sh+ns),{unit:"%",prev:pctOf(psh,psh+pns)})}${kpiTile("Cost per accredited driver",peso(perOf(spendIn(r),cnt(L,"accredited",r))),{prev:perOf(spendIn(r,1),cnt(L,"accredited",r,1)),good:"down",fmt:peso,cmpRaw:perOf(spendIn(r),cnt(L,"accredited",r))})}${kpiTile("Biggest bottleneck",st&&st[1]?st[1]:0,{cmp:false,hint:st&&st[1]?`${esc(st[0])} · oldest ${waitText(st[2])}`:"Nothing waiting",tone:st&&st[1]>5?"warn":""})}</div>
    ${dsect("Pipeline at a glance",L.length?route+stationList(L):`<p class="muted" style="margin:0">No applicants yet.</p>`)}
    ${dsect("Waiting at each step",barList(QUEUES.map(q=>{const l=readyList(q);return[q.label,l.length,l.length>5?"stop":l.length?"wait":"go",l.length?"oldest "+waitText(l.map(readySince).filter(Boolean).sort()[0]):""]})))}`},
  verifier(L,r){const td=today(),exp=L.filter(a=>localDay(a.slot)===td&&a.booking?.status!=="declined"&&!a.calendlyCanceled),arr=exp.filter(a=>a.checkin?.status==="show").length,nos=exp.filter(a=>a.checkin?.status==="noshow").length;
@@ -1261,14 +1261,16 @@ const DASH={
    <div class="kpis">${kpiTile("Booked, next 7 days",days.reduce((n,d)=>n+trBooked(d).length,0),{cmp:false})}${kpiTile("Trainings done",R.length,{prev:Rp.length})}
     ${kpiTile("Training pass rate",pctOf(R.filter(a=>ojtVerdict(a)==="pass").length,R.length),{unit:"%",prev:pctOf(Rp.filter(a=>ojtVerdict(a)==="pass").length,Rp.length)})}</div>
    ${dsect("Training bookings vs seats, next 7 days",barList(days.map(d=>{const b=trBooked(d).length,s=trSeats(t,d);return[fmtD(d),b,!s?"plain":b>=s?"stop":"go",s?`${s} seats`:"No training"]})),`<button class="btn sm" data-go="trcal">Training calendar</button>`)}`},
- marketing(L,r){const A=L.filter(a=>inR(a.createdAt,r)),Ap=L.filter(a=>inP(a.createdAt,r));const sh=cnt(L,"arrived",r),ns=cnt(L,"noshow",r),psh=cnt(L,"arrived",r,1),pns=cnt(L,"noshow",r,1);
+ marketing(L,r){const A=L.filter(a=>inR(a.createdAt,r)),Ap=L.filter(a=>inP(a.createdAt,r)),sp=spendIn(r),spp=spendIn(r,1),ac=cnt(L,"accredited",r),acp=cnt(L,"accredited",r,1);const sh=cnt(L,"arrived",r),ns=cnt(L,"noshow",r),psh=cnt(L,"arrived",r,1),pns=cnt(L,"noshow",r,1);
   const refs={};A.forEach(a=>{const c=(a.refCode||"").trim();if(c&&!/^(na|n\/a|none)$/i.test(c))refs[c]=(refs[c]||0)+1});const top=Object.entries(refs).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const C=camps().slice().sort((a,b)=>campOpen(b)-campOpen(a));
   return `${doNow([["Job orders waiting for a campaign",jobsWaiting().length,"campaigns"]])}
    <div class="kpis">${kpiTile("Applications",A.length,{prev:Ap.length})}${kpiTile("Auto-approved",pctOf(A.filter(a=>a.booking?.auto).length,A.length),{unit:"%",prev:pctOf(Ap.filter(a=>a.booking?.auto).length,Ap.length)})}
     ${kpiTile("Show-up rate",pctOf(sh,sh+ns),{unit:"%",prev:pctOf(psh,psh+pns)})}${kpiTile("Applied → accredited (all time)",pctOf(L.filter(a=>evT(a,"accredited")).length,L.length),{unit:"%",cmp:false})}</div>
-   ${C.length?`<div class="tablewrap"><table><thead><tr><th>Campaign</th><th>Applied (period)</th><th>Applied (total)</th><th>Showed up</th><th>Passed screening</th><th>Accredited</th><th>Status</th></tr></thead><tbody>${C.map(c=>{const G=campApplicants(c);
-     return `<tr><td>${esc(c.name)}</td><td>${G.filter(a=>inR(a.createdAt,r)).length}</td><td>${G.length}</td><td>${G.filter(a=>a.checkin?.status==="show").length}</td><td>${G.filter(a=>decide(a).result==="hired").length}</td><td>${campHired(c)}</td><td>${campStatus(c)}${campOpen(c)&&c.endDate?`<div class="small muted">${Math.max(0,dayDiff(today(),c.endDate))} days left</div>`:""}</td></tr>`}).join("")}</tbody></table></div>`:""}
+   <div class="kpis">${kpiTile("Ad spend",peso(sp),{prev:spp,good:"none",fmt:peso,cmpRaw:sp})}${kpiTile("Cost per applicant",peso(perOf(sp,A.length)),{prev:perOf(spp,Ap.length),good:"down",fmt:peso,cmpRaw:perOf(sp,A.length)})}
+    ${kpiTile("Cost per accredited driver",peso(perOf(sp,ac)),{prev:perOf(spp,acp),good:"down",fmt:peso,cmpRaw:perOf(sp,ac),hint:"Ad spend ÷ drivers accredited in the same period"})}</div>
+   ${C.length?`<div class="tablewrap"><table><thead><tr><th>Campaign</th><th>Applied (period)</th><th>Applied (total)</th><th>Showed up</th><th>Passed screening</th><th>Accredited</th><th>Ad spend (total)</th><th>Cost per accredited</th><th>Status</th></tr></thead><tbody>${C.map(c=>{const G=campApplicants(c);
+     return `<tr><td>${esc(c.name)}</td><td>${G.filter(a=>inR(a.createdAt,r)).length}</td><td>${G.length}</td><td>${G.filter(a=>a.checkin?.status==="show").length}</td><td>${G.filter(a=>decide(a).result==="hired").length}</td><td>${campHired(c)}</td><td>${peso(campSpend(c))||"—"}</td><td>${peso(perOf(campSpend(c),campHired(c)))||"—"}</td><td>${campStatus(c)}${campOpen(c)&&c.endDate?`<div class="small muted">${Math.max(0,dayDiff(today(),c.endDate))} days left</div>`:""}</td></tr>`}).join("")}</tbody></table></div>`:""}
    ${dsect("Top referral codes (this period)",barList(top.map(([k,n])=>[esc(k),n,"go"])))}`},
  operations(L,r){const J=jobs().filter(j=>j.status!=="cancelled");
   const pace=j=>{const done=jobHired(j),left=dayDiff(today(),j.neededBy),since=addDays(today(),-14);
@@ -1284,7 +1286,7 @@ const DASH={
   const R=L.map(reached),n=k=>R.filter(x=>x[k]).length,steps=[["Showed up","showed","booked"],["Documents cleared","docs","showed"],["Oriented","oriented","docs"],["Interview passed","interviewed","oriented"],["Driving test passed","drove","interviewed"],["Accredited","ojt","drove"]];
   const dr=dropReasons(L);
   return `<div class="kpis">${kpiTile("Accredited drivers",cnt(L,"accredited",r),{prev:cnt(L,"accredited",r,1)})}${kpiTile("Avg days, applied → accredited",accT.length?+avgOf(accT).toFixed(1):null,{prev:accP.length?+avgOf(accP).toFixed(1):null,good:"down"})}
-    ${kpiTile("Applied → accredited (all time)",pctOf(L.filter(a=>evT(a,"accredited")).length,L.length),{unit:"%",cmp:false})}</div>
+    ${kpiTile("Applied → accredited (all time)",pctOf(L.filter(a=>evT(a,"accredited")).length,L.length),{unit:"%",cmp:false})}${kpiTile("Cost per accredited driver",peso(perOf(spendIn(r),cnt(L,"accredited",r))),{prev:perOf(spendIn(r,1),cnt(L,"accredited",r,1)),good:"down",fmt:peso,cmpRaw:perOf(spendIn(r),cnt(L,"accredited",r))})}</div>
    <div class="grid2">${dsect("Pass rate at each step (all time)",barList(steps.map(([l,k,p])=>[l,pctOf(n(k),n(p)),(pctOf(n(k),n(p))||0)>=70?"go":(pctOf(n(k),n(p))||0)>=40?"wait":"stop",`${n(k)} of ${n(p)}`]),{pct:true}))}
    ${dsect("Why applicants dropped out",barList(dr.map(([k,v])=>[esc(k),v,"stop"])),`<button class="btn sm" data-go="reports">Full reports</button>`)}</div>`}};
 const DASH_LABEL={overview:"Overview",verifier:"Check-in",orientation:"Orientation",interviewer:"Interviewer",tester:"Driving instructor",trainer:"Trainer",marketing:"Marketing",operations:"Operations",hr:"HR"};
@@ -2335,6 +2337,13 @@ const DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const camps=()=>(settings().camps||[]);
 const campById=id=>camps().find(c=>c.id===id);
 const jobs=()=>(S.jobs&&S.jobs.orders)||[];
+/* ad spend: dated amounts per campaign, kept in the staff-only "jobs" row (campaign settings are public) */
+const spends=()=>(S.jobs&&S.jobs.spend)||[];
+const peso=n=>n==null||!isFinite(n)?null:"₱"+Math.round(n).toLocaleString("en-PH");
+const campSpend=c=>spends().filter(x=>x.campId===c.id).reduce((n,x)=>n+(+x.amount||0),0);
+function spendIn(r,prev){const ids=UI.campaign?camps().filter(c=>c.name===UI.campaign).map(c=>c.id):null;
+  return spends().filter(x=>(!ids||ids.includes(x.campId))&&(prev?inP:inR)(new Date(x.date+"T00:00").toISOString(),r)).reduce((n,x)=>n+(+x.amount||0),0)}
+const perOf=(money,n)=>n?money/n:null;
 const jobById=id=>jobs().find(j=>j.id===id);
 const jobCamps=j=>camps().filter(c=>c.jobId===j.id);
 const jobHired=j=>jobCamps(j).reduce((n,c)=>n+campHired(c),0);
@@ -2412,7 +2421,7 @@ document.addEventListener("click",async e=>{const b=e.target.closest("[data-act^
   const L=jobs().slice(),now=new Date().toISOString(),lg=(j,msg)=>{j.log=[{t:now,by:S.uid,msg},...(j.log||[])].slice(0,40)};
   if(A==="jo-kill"){const j=clone(jobById(b.dataset.id)),C=jobCamps(j).filter(c=>c.active);
     if(!confirm(`Cancel the job order for ${j.client}?${C.length?` Its ${C.length} open campaign${C.length>1?"s":""} will close. Applicants already in progress continue.`:""}`))return;
-    j.status="cancelled";j.cancelledAt=now;lg(j,"Cancelled");L[L.findIndex(x=>x.id===j.id)]=j;UI.editJob=null;await setDoc("jobs/orders",{orders:L});autoCloseCamps();render();return toast("Job order cancelled")}
+    j.status="cancelled";j.cancelledAt=now;lg(j,"Cancelled");L[L.findIndex(x=>x.id===j.id)]=j;UI.editJob=null;await setDoc("jobs/orders",Object.assign({},S.jobs||{},{orders:L}));autoCloseCamps();render();return toast("Job order cancelled")}
   if(A==="jo-save"){const g=k=>(document.getElementById("jo-"+k)?.value||"").trim(),E=UI.editJob,isNew=!E.id;
     const j=Object.assign({},E,{client:g("client"),position:g("position"),needed:Math.max(0,parseInt(g("needed"))||0),neededBy:g("neededBy"),hubName:g("hubName"),location:g("location"),jd:g("jd"),reqs:g("reqs"),perks:g("perks"),notes:g("notes")});
     if(!j.client)return toast("Add the client name.");if(!j.position)return toast("Add the position.");if(!j.needed)return toast("How many drivers are needed?");
@@ -2423,7 +2432,7 @@ document.addEventListener("click",async e=>{const b=e.target.closest("[data-act^
     else{const ch=[];if(E.needed!==j.needed)ch.push(`drivers needed ${E.needed} → ${j.needed}`);if(E.neededBy!==j.neededBy)ch.push(`needed by ${fmtD(E.neededBy)} → ${fmtD(j.neededBy)}`);
       if(["client","position","hubName","location","jd","reqs","perks","notes"].some(k=>(E[k]||"")!==(j[k]||"")))ch.push("details edited");if(!ch.length){UI.editJob=null;return render()}
       lg(j,ch.join("; ").replace(/^./,x=>x.toUpperCase()));L[L.findIndex(x=>x.id===j.id)]=j}
-    UI.editJob=null;await setDoc("jobs/orders",{orders:L});autoCloseCamps();render();return toast(isNew?"Job order sent to Marketing":"Job order saved")}});
+    UI.editJob=null;await setDoc("jobs/orders",Object.assign({},S.jobs||{},{orders:L}));autoCloseCamps();render();return toast(isNew?"Job order sent to Marketing":"Job order saved")}});
 
 function vCampaigns(){
   if(UI.editCamp)return vCampEdit();
@@ -2434,11 +2443,12 @@ function vCampaigns(){
     <td><b>${esc(j.client)}</b><div class="small muted">${esc(j.position)}</div></td><td>${+j.needed} drivers<div class="small muted">by ${fmtD(j.neededBy)}</div></td>
     <td>${C.length?esc(C.map(c=>c.name).join(", ")):tag("New","wait")}<div class="small muted">${jobHired(j)} of ${+j.needed} accredited</div></td>
     <td><button class="btn sm primary" data-act="cp-fromjob" data-id="${j.id}">Create campaign</button></td></tr>`}).join("")}</tbody></table></div></div>`:""}
-  ${L.length?`<div class="tablewrap"><table><thead><tr><th>Campaign</th><th>Interview schedule</th><th>Applicants</th><th>Hired</th><th>Status</th><th>Link</th><th></th></tr></thead><tbody>${L.map(c=>{const n=campApplicants(c),up=n.filter(a=>(a.slot||"")>nowIso).length;return `<tr>
+  ${L.length?`<div class="tablewrap"><table><thead><tr><th>Campaign</th><th>Interview schedule</th><th>Applicants</th><th>Hired</th><th>Ad spend</th><th>Status</th><th>Link</th><th></th></tr></thead><tbody>${L.map(c=>{const n=campApplicants(c),up=n.filter(a=>(a.slot||"")>nowIso).length;return `<tr>
    <td><div>${esc(c.name)}</div><div class="small muted">${esc(c.position)}${c.jobId&&jobById(c.jobId)?` · Job order: ${esc(jobById(c.jobId).client)}`:""}</div></td>
    <td class="small">${c.days.map(d=>DOW[d]).join(", ")}<div class="muted">${fmtTime(c.start)}–${fmtTime(c.end)} · ${c.seats} per slot</div></td>
    <td>${n.length}${up?`<div class="small muted">${up} upcoming</div>`:""}</td>
    <td>${(j=>j?`<b>${campHired(c)}</b><div class="small muted">job order: ${jobHired(j)} of ${+j.needed}</div>`:`${+c.needed?`<b>${campHired(c)}</b> of ${+c.needed}`:campHired(c)}<div class="small muted">${+c.needed?"accredited":"accredited · no target"}</div>`)(c.jobId&&jobById(c.jobId))}</td>
+   <td>${campSpend(c)?`${peso(campSpend(c))}${campHired(c)?`<div class="small muted">${peso(campSpend(c)/campHired(c))} per accredited</div>`:""}`:`<span class="muted">—</span>`}</td>
    <td>${campStatus(c)}${c.startDate||c.endDate?`<div class="small muted">${c.startDate?fmtD(c.startDate):"Now"} – ${c.endDate?fmtD(c.endDate):"no end date"}</div>`:""}</td>
    <td><div class="row"><button class="btn sm" data-act="cp-copy" data-id="${c.id}">Copy link</button><a class="btn sm" href="#apply/${c.id}" target="_blank" rel="noopener">Open</a>${qrPng(campUrl(c))?`<a class="btn sm" href="${qrPng(campUrl(c))}" download="${esc(c.id)}-qr.gif">QR</a>`:""}</div></td>
    <td><button class="btn sm" data-act="cp-edit" data-id="${c.id}">Edit</button></td></tr>`}).join("")}</tbody></table></div>`
@@ -2468,6 +2478,20 @@ function pqScore(c,ans){const Q=cq(c);let got=0,max=0;Q.forEach(q=>{const mx=Mat
 
 function campEndText(sd,rd,jo){if(!+rd)return `<span class="muted">No end date. Leave "Runs for" blank to keep it open until you close it.</span>`;
   const end=addDays(sd||today(),+rd-1);return `Ends <b>${fmtD(end)}</b>${jo&&end>jo.neededBy?` <span style="color:var(--stop)">· This is after the job order's needed-by date (${fmtD(jo.neededBy)}).</span>`:""}`}
+function vSpend(c){const L=spends().filter(x=>x.campId===c.id).sort((a,b)=>b.date.localeCompare(a.date)),tot=campSpend(c),G=campApplicants(c),h=campHired(c);
+  return `<div class="sect"><header><h3>7. Ad spend</h3><span class="small muted">Private: staff only, never shown to applicants</span></header><div class="stack">
+   <div class="kpis">${kpiTile("Total ad spend",peso(tot)||"₱0",{cmp:false})}${kpiTile("Cost per applicant",peso(perOf(tot,G.length)),{cmp:false})}${kpiTile("Cost per accredited driver",peso(perOf(tot,h)),{cmp:false})}</div>
+   ${L.length?`<ul class="checks">${L.map(x=>`<li><span><b>${peso(+x.amount)}</b> · ${fmtD(x.date)}${x.note?` · ${esc(x.note)}`:""}${S.profiles[x.by]?.name?`<div class="small muted">Added by ${esc(S.profiles[x.by].name)}</div>`:""}</span><button class="btn sm danger" data-act="sp-del" data-v="${x.id}">Remove</button></li>`).join("")}</ul>`:`<p class="muted" style="margin:0">No ad spend recorded yet.</p>`}
+   <div class="cp-3"><label class="f">Date<input id="sp-date" type="date" value="${today()}" max="${today()}"></label><label class="f">Amount (₱)<input id="sp-amount" type="number" min="1" step="1" placeholder="e.g. 5000"></label><label class="f">Note (optional)<input id="sp-note" placeholder="e.g. Facebook ads, week 1"></label></div>
+   <div><button class="btn" data-act="sp-add" data-id="${c.id}">Add ad spend</button></div>
+   <p class="small muted" style="margin:0">Add each payment or each week's spend on the day it was spent. Dashboards use the dates to show spend and cost per hire for any period.</p></div></div>`}
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-act^='sp-']");if(!b)return;if(!can("marketing"))return toast("Only Marketing or Admin can record ad spend.");
+  if(UI.editCamp)UI.editCamp=readCampForm(); // keep unsaved campaign edits when the page redraws
+  const A=b.dataset.act,L=spends().slice(),save=list=>setDoc("jobs/orders",Object.assign({},S.jobs||{},{orders:jobs(),spend:list}));
+  if(A==="sp-add"){const date=document.getElementById("sp-date").value,amount=Math.round(+document.getElementById("sp-amount").value||0),note=document.getElementById("sp-note").value.trim();
+    if(!date)return toast("Pick the date it was spent.");if(date>today())return toast("The date can't be in the future.");if(!(amount>0))return toast("Enter the amount in pesos.");
+    L.push({id:"sp"+uid().slice(0,8),campId:b.dataset.id,date,amount,note,by:S.uid,at:new Date().toISOString()});await save(L);return toast(`${peso(amount)} added`)}
+  if(A==="sp-del"){const x=L.find(y=>y.id===b.dataset.v);if(!x||!confirm(`Remove ${peso(+x.amount)} spent on ${fmtD(x.date)}?`))return;await save(L.filter(y=>y.id!==x.id));return toast("Removed")}});
 function vCampEdit(){const c=UI.editCamp,isNew=!c.id,jo=c.jobId&&jobById(c.jobId);
   const sd=c.startDate||(c.endDate&&c.endDate<today()?c.endDate:today()),rd=c.runDays||(c.endDate?Math.max(1,dayDiff(sd,c.endDate)+1):"");
   const f=(id,l,v,type,extra)=>`<label class="f">${l}<input id="cp-${id}" type="${type||"text"}" value="${esc(v??"")}" ${extra||""}></label>`;
@@ -2502,6 +2526,7 @@ function vCampEdit(){const c=UI.editCamp,isNew=!c.id,jo=c.jobId&&jobById(c.jobId
      <label class="row"><input type="checkbox" id="cp-autoApprove" ${c.autoApprove!==false?"checked":""}> Approve the interview automatically when the applicant passes</label>
      <div class="cp-3">${f("passScore","Passing pre-profile score (%)",c.passScore??70,"number",'min="0" max="100"')}${f("minAge","Minimum age",c.minAge??21,"number",'min="18" max="70"')}${f("maxAge","Maximum age (optional)",c.maxAge??"","number",'min="18" max="80"')}</div>
      <p class="small muted" style="margin:0">Applicants under 18 can't apply. Anyone below the passing score or outside the age range goes to Requests for Document check to approve or decline.</p></div></div>
+   ${c.id?vSpend(c):""}
    <div class="row"><button class="btn primary lg" data-act="cp-save">${isNew?"Create campaign and get link":"Save changes"}</button><button class="btn" data-act="cp-cancel">Cancel</button>${!isNew&&can("admin")?`<button class="btn danger" data-act="cp-del" data-id="${c.id}" style="margin-left:auto">Delete campaign</button>`:""}</div>
   </div>
   <aside class="cp-side">${c.id?campLinkCard(c):`<div class="panel"><h3 style="margin:0 0 6px">Campaign link</h3><p class="small muted" style="margin:0">The link and its QR code appear here once you create the campaign.</p></div>`}</aside></div>`}
