@@ -932,6 +932,7 @@ async function submitPublic(a){
   if(data&&data.error==="full")throw new Error("Kaka-book lang ng iba sa oras na 'yan. Pumili ng iba.");
   if(data&&data.error==="nophoto")throw new Error("Kailangan ang photo ng driver's license mo. Bumalik sa step 2 at i-upload ito.");
   if(data&&data.error==="dup")throw new Error(`May interview request ka na para sa ${fmtDT(data.slot)}. <a href="#ticket/${data.id}">Tingnan ang status</a>.`);
+  if(data&&data.error==="notyet")throw new Error("Hindi pa bukas ang applications para sa campaign na 'to. Balikan mo lang ang link sa araw ng pagbubukas.");
   if(data&&data.error)throw new Error("Hindi tumatanggap ng booking ang campaign na 'to sa ngayon.");
 }
 function isTyping(){const el=document.activeElement;return !!(el&&el.closest&&el.closest("#main")&&(el.tagName==="TEXTAREA"||el.tagName==="SELECT"||(el.tagName==="INPUT"&&!/checkbox|radio|button|file/.test(el.type))))}
