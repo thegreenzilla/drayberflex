@@ -30,11 +30,11 @@ create index if not exists applicants_campaign_slot on public.applicants ((data-
 
 -- settings (campaigns, rules) and bank (interview question bank)
 create table if not exists public.app_config (
-  key        text primary key check (key in ('settings','bank')),
+  key        text primary key check (key in ('settings','bank','jobs')),
   data       jsonb not null default '{}',
   updated_at timestamptz not null default now()
 );
-insert into public.app_config(key) values ('settings'),('bank') on conflict do nothing;
+insert into public.app_config(key) values ('settings'),('bank'),('jobs') on conflict do nothing;
 
 -- ---------- role helpers ----------
 create or replace function public.is_staff() returns boolean
