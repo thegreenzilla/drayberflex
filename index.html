@@ -2436,6 +2436,11 @@ function autoCloseCamps(){if(!S.uid||!S.settings)return;let ch=false;const now=n
 const campUrl=c=>location.href.split("#")[0]+"#apply/"+c.id;
 const walkUrl=c=>campUrl(c)+"/walkin";
 /* walk-in link: on an interview day, during interview hours, books "now" (or the next free slot today). Otherwise it's the normal link. */
+// walk-in link used when "now" isn't possible: say why, instead of silently showing the calendar
+function walkNote(c){const d=new Date(),nowMin=d.getHours()*60+d.getMinutes(),[eh,em]=c.end.split(":").map(Number);
+  const hrs=`${c.days.slice().sort((a,b)=>((a+6)%7)-((b+6)%7)).map(x=>DOW[x]).join(", ")}, ${fmtTime(c.start)}–${fmtTime(c.end)}`;
+  const during=c.days.includes(d.getDay())&&nowMin<eh*60+em;
+  return `<div class="ap-note" style="margin:0 0 14px"><b>Walk-in interviews: ${esc(hrs)}.</b><div class="small" style="margin-top:4px">${during?"Puno na ang walk-in slots ngayong araw.":"Wala pang walk-in interview ngayon."} Sa ngayon, pumili ng oras sa calendar sa ibaba.</div></div>`}
 function walkSlot(c){if(!PUB.walkin||!c||!campOpen(c)||(c.startDate&&today()<c.startDate))return null;
   const d=new Date(),ds=today(),nowMin=d.getHours()*60+d.getMinutes();if(!c.days.includes(d.getDay()))return null;
   for(const t of allTimes(c).filter(t=>!(c.offTimes||[]).includes(t))){const [h,mi]=t.split(":").map(Number),m=h*60+mi;if(m+c.len<=nowMin)continue;
@@ -2679,7 +2684,7 @@ function vPublic(){
   for(let d=1;d<=n;d++){const ds=localDay(new Date(y,m,d)),open=dayOpen(c,ds);cells+=`<button class="ap-d${open?" open":""}${PUB.day===ds?" sel":""}${ds===today()?" today":""}" ${open?`data-act="ap-day" data-v="${ds}"`:"disabled"} aria-label="${ds}${open?", available":""}">${d}</button>`}
   const slots=PUB.day?campSlots(c,PUB.day).filter(s=>s.left>0):[];
   const dayLbl=PUB.day?new Date(PUB.day+"T00:00").toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"}):"";const tv=F.geo&&F.geo.km!=null?F.geo:null;
-  return pubShell(`${bar}<div class="ap-card"><div class="ap-cal">
+  return pubShell(`${bar}${PUB.walkin?walkNote(c):""}<div class="ap-card"><div class="ap-cal">
    <div class="ap-info"><h2 style="margin:4px 0 14px">${esc(c.position)} interview</h2>
     <p class="ap-meta">${c.len} minutes</p><p class="ap-meta">${hub}, ${esc(c.location)}</p>${tv?`<p class="ap-meta">Mga ${tv.km} km · ${fmtMins(tv.mins)} (${esc((F.transport||"").toLowerCase())})</p>`:""}<p class="ap-meta">Para kay ${esc(F.name||"")}</p>
     <div class="ap-sec ap-note" style="margin-top:14px"><b>Tama ba ang contact info mo?</b><div class="small" style="margin:6px 0">Mobile: <b>${esc(F.phone||"")}</b><br>Email: <b>${esc(F.email||"")}</b></div>
