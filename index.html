@@ -833,7 +833,7 @@ main#main:has(.reg-table){max-width:min(1680px,100%)}
 <div id="gres" hidden></div>
 <script>
 /* ============ constants ============ */
-const ROLES={admin:"Admin",marketing:"Marketing",verifier:"Document check",orientation:"Orientation",interviewer:"Interviewer",tester:"Driving tester",trainer:"OJT trainer",hr:"HR offers"};
+const ROLES={admin:"Admin",marketing:"Marketing",verifier:"Document check",orientation:"Orientation",interviewer:"Interviewer",tester:"Driving tester",trainer:"OJT trainer",hr:"HR offers",operations:"Operations"};
 const DEFAULT_SETTINGS={interviewPass:70,drivePass:80,highRiskBlocks:true,redFlagBlocks:true,ojtDays:5,ojtMinPass:5,medicalMaxMonths:6,requirePro:true,
   campaigns:["Facebook – Manila","Facebook – Cebu","Referral","Walk-in"],position:"Delivery Driver (EV)",company:"",idleMinutes:15,hubAddress:"Hub (set the address in Rules & data)",
   reminderText:"DRAYBERFLX: Paalala {first}, interview mo sa {date}, {time}, {address}. Code: {code}. Dalhin ang original NBI, medical cert at driver's license. Salamat!"};
@@ -888,7 +888,7 @@ function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeou
 const tag=(txt,kind)=>`<span class="tag t-${kind}">${esc(txt)}</span>`;
 
 /* ============ store: one source of truth ============ */
-const S={mode:"db",uid:null,isAdmin:false,accounts:[],applicants:{},bank:null,settings:null,profiles:{},viewAs:"all",ready:false};
+const S={mode:"db",uid:null,isAdmin:false,accounts:[],applicants:{},bank:null,jobs:null,settings:null,profiles:{},viewAs:"all",ready:false};
 const LS="mober-das-pilot-v1",SESS="mober-das-pilot-session";
 /* ---- Supabase data layer ---- */
 const canon=v=>JSON.stringify(v,(k,x)=>x&&typeof x==="object"&&!Array.isArray(x)?Object.keys(x).sort().reduce((o,kk)=>(o[kk]=x[kk],o),{}):x);
@@ -902,7 +902,7 @@ async function fetchAllApplicants(){let out=[],from=0;for(;;){const {data,error}
 async function dbLoad(){
   const [rows,cfg]=await Promise.all([fetchAllApplicants(),SB.from("app_config").select("key,data")]);
   S.applicants={};_lastApp={};_bstat={};rows.forEach(r=>{S.applicants[r.id]=r.data;_lastApp[r.id]=canon(r.data);_bstat[r.id]=r.data?.booking?.status});
-  (cfg.data||[]).forEach(r=>{_lastCfg[r.key]=canon(r.data);if(r.key==="settings")S.settings=cfgVal(r.data);else if(r.key==="bank")S.bank=cfgVal(r.data)});
+  (cfg.data||[]).forEach(r=>{_lastCfg[r.key]=canon(r.data);if(r.key==="settings")S.settings=cfgVal(r.data);else if(r.key==="bank")S.bank=cfgVal(r.data);else if(r.key==="jobs")S.jobs=cfgVal(r.data)});
   await loadProfiles();addFilipino()}
 async function publicLoad(){const {data}=await SB.from("app_config").select("data").eq("key","settings").maybeSingle();S.settings=cfgVal(data&&data.data);await loadSlots()}
 let PUB_TAKEN={};
@@ -917,7 +917,8 @@ let _syncT=null;function localSave(){if(!SB||!S.uid)return;clearTimeout(_syncT);
 async function syncDirty(){
   for(const [k,v] of [["settings",S.settings],["bank",S.bank]]){if(!v)continue;const j=canon(v);if(j===_lastCfg[k])continue;await saveCfg(k,v)}
   for(const [id,a] of Object.entries(S.applicants)){if(!a||a.id==null&&!id)continue;if(canon(a)!==_lastApp[id])await saveApp(id,a)}}
-async function saveCfg(k,v){const j=canon(v);_lastCfg[k]=j;remember("cfg:"+k,j);const {error}=await SB.from("app_config").upsert({key:k,data:v,updated_at:new Date().toISOString()});if(error){_lastCfg[k]="";dbErr(error)}}
+async function saveCfg(k,v){const j=canon(v);_lastCfg[k]=j;remember("cfg:"+k,j);const {error}=await SB.from("app_config").upsert({key:k,data:v,updated_at:new Date().toISOString()});if(error){_lastCfg[k]="";
+  if(k==="jobs"&&/app_config_key_check|check constraint/i.test(error.message||""))return toast("Job orders need a one-time database update. Ask an Admin to run the 2026-10-09 job orders SQL in Supabase.");dbErr(error)}}
 async function saveApp(id,data){const j=canon(data);_lastApp[id]=j;remember(id,j);
   const prev=_bstat[id],now=data&&data.booking&&data.booking.status;_bstat[id]=now;
   const {error}=await SB.from("applicants").upsert({id,code:data.code||null,data,updated_at:new Date().toISOString()});
@@ -944,7 +945,7 @@ function subscribe(){unsubscribe();
     S.applicants[r.id]=r.data;_lastApp[r.id]=j;_bstat[r.id]=r.data?.booking?.status;softRender()})
   .on("postgres_changes",{event:"*",schema:"public",table:"app_config"},pl=>{
     const r=pl.new;if(!r||!r.key)return;const j=canon(r.data);if((_mine["cfg:"+r.key]||[]).includes(j)||_lastCfg[r.key]===j)return;_lastCfg[r.key]=j;
-    if(r.key==="settings")S.settings=cfgVal(r.data);else if(r.key==="bank")S.bank=cfgVal(r.data);softRender()})
+    if(r.key==="settings")S.settings=cfgVal(r.data);else if(r.key==="bank")S.bank=cfgVal(r.data);else if(r.key==="jobs"){S.jobs=cfgVal(r.data);autoCloseCamps()}softRender()})
   .on("postgres_changes",{event:"*",schema:"public",table:"profiles"},async()=>{await loadProfiles();const acc=account();
     if(S.uid&&(!acc||!acc.active))return logout("Your account was changed. Sign in again.");if(acc)S.isAdmin=acc.roles.includes("admin");softRender()})
   .subscribe()}
@@ -961,6 +962,7 @@ function addFilipino(){if(!S.bank||!S.bank.questions)return;let ch=false;S.bank.
 function syncProfiles(){S.profiles={sample:{name:"Sample"},applicant:{name:"Applicant"}};S.accounts.forEach(u=>S.profiles[u.id]={name:u.name})}
 function setDoc(path,data){const [c,id]=path.split("/");
   if(c==="applicants"){S.applicants[id]=data;if(PUB.route==="apply"||!S.uid)return submitPublic(data);render();return saveApp(id,data)}
+  if(path==="jobs/orders"){S.jobs=data;render();return saveCfg("jobs",data)}
   if(path==="bank/questions")S.bank=data;else if(path==="admin/settings")S.settings=data;render();
   return saveCfg(path==="bank/questions"?"bank":"settings",data)}
 async function delDoc(path){const id=path.split("/")[1],a=S.applicants[id];delete S.applicants[id];delete _lastApp[id];render();
@@ -997,7 +999,7 @@ async function hashPw(pw,salt){let h=salt+"|"+pw;for(let i=0;i<2000;i++)h=sha256
 async function checkPw(u,pw){return (await hashPw(pw,u.salt))===u.hash}
 async function makeAccount(name,username,pw,roles){const salt=uid()+uid();return{id:"u"+uid(),name,username:username.toLowerCase(),salt,hash:await hashPw(pw,salt),roles,active:true,mustChange:false,createdAt:new Date().toISOString()}}
 function startSession(u){S.uid=u.id;S.isAdmin=u.roles.includes("admin");S.viewAs="all";try{sessionStorage.setItem(SESS,JSON.stringify({uid:u.id,t:Date.now()}))}catch(e){}UI.view="pipeline";UI.auth=u.mustChange?"change":null;touch();render()}
-function logout(msg){if(SB){SB.auth.signOut().catch(()=>{});unsubscribe();S.applicants={};S.bank=null;S.accounts=[];_lastApp={};_mine={};_bstat={}}UI.signedUp=null;setTimeout(()=>{if(!S.uid&&UI.auth==="login"){UI.auth="landing";render()}},0);if(typeof closeCam==="function"&&$(".cam"))closeCam();S.uid=null;S.isAdmin=false;UI.auth="login";UI.view="pipeline";UI.id=null;try{sessionStorage.removeItem(SESS)}catch(e){}render();if(msg)toast(msg)}
+function logout(msg){if(SB){SB.auth.signOut().catch(()=>{});unsubscribe();S.applicants={};S.bank=null;S.jobs=null;S.accounts=[];_lastApp={};_mine={};_bstat={}}UI.signedUp=null;setTimeout(()=>{if(!S.uid&&UI.auth==="login"){UI.auth="landing";render()}},0);if(typeof closeCam==="function"&&$(".cam"))closeCam();S.uid=null;S.isAdmin=false;UI.auth="login";UI.view="pipeline";UI.id=null;try{sessionStorage.removeItem(SESS)}catch(e){}render();if(msg)toast(msg)}
 let lastAct=Date.now();function touch(){lastAct=Date.now();try{if(S.uid)sessionStorage.setItem(SESS,JSON.stringify({uid:S.uid,t:lastAct}))}catch(e){}}
 ["click","keydown","pointermove"].forEach(ev=>document.addEventListener(ev,()=>{if(Date.now()-lastAct>5000)touch()},{passive:true}));
 setInterval(()=>{if(S.uid&&Date.now()-lastAct>settings().idleMinutes*60000)logout("Signed out after being idle.")},20000);
@@ -1010,6 +1012,7 @@ function myRoles(){
 }
 const can=r=>{const m=myRoles();return m.includes(r)||m.includes("admin")};
 // who may see scores: interview results = Interviewer, Check-in, HR (+Admin); driving results = Check-in, HR (+Admin)
+const opsOnly=()=>{const m=myRoles();return m.length>0&&m.every(r=>r==="operations")};
 const seeIv=()=>can("interviewer")||can("verifier")||can("hr"),seeDr=()=>can("verifier")||can("hr");
 
 /* ============ rules engine ============ */
@@ -1082,7 +1085,7 @@ const stageTag=a=>{const[l,k]=stageLabel(a);return tag(l,k)};
 
 /* ============ UI state ============ */
 const UI={view:"pipeline",id:null,campaign:"",q:"",csv:null,dayFilter:"today",resFilter:"all",editQ:null};
-function go(view,id){if(view==="scan")view="checkin";if(view==="drivebank"){view="bank";UI.bankTab="drive"}if(view==="checkin"&&can("verifier")){UI.view="checkin";UI.mci={screen:"scan"};UI.menu=null;render();return window.scrollTo(0,0)}if(view!=="campaigns")UI.editCamp=null;UI.view=view;UI.id=id||null;UI.tab=UI.sec||null;UI.sec=null;UI.justDone=null;UI.menu=null;UI.testMode=null;UI.ivIdx=0;UI.ivStep=null;UI.ivFor=null;render();window.scrollTo(0,0)}
+function go(view,id){if(view==="scan")view="checkin";if(view==="drivebank"){view="bank";UI.bankTab="drive"}if(view==="checkin"&&can("verifier")){UI.view="checkin";UI.mci={screen:"scan"};UI.menu=null;render();return window.scrollTo(0,0)}if(view!=="campaigns")UI.editCamp=null;if(view!=="jobs")UI.editJob=null;UI.view=view;UI.id=id||null;UI.tab=UI.sec||null;UI.sec=null;UI.justDone=null;UI.menu=null;UI.testMode=null;UI.ivIdx=0;UI.ivStep=null;UI.ivFor=null;render();window.scrollTo(0,0)}
 const list=()=>Object.values(S.applicants).filter(a=>!UI.campaign||a.campaign===UI.campaign);
 
 /* ============ queues: what is ready for each role ============ */
@@ -1100,7 +1103,7 @@ function queueCount(stages){return list().filter(a=>stages.includes(stage(a))).l
 function myQueues(){return QUEUES.filter(q=>can(q.role))}
 function moreItems(){const m=[];if(can("marketing"))m.push(["import","Import bookings"]);
   if(can("marketing")||can("verifier"))m.push(["reminders","Interview reminders",remindList().filter(a=>!a.reminder).length]);
-  if(can("interviewer")||can("marketing")||can("tester"))m.push(["bank","Question bank"]);if(can("trainer")||can("marketing")||can("verifier"))m.push(["trcal","Training calendar"]);if(S.isAdmin)m.push(["team","Accounts",S.accounts.filter(a=>a.pending).length],["settings","Rules & data"]);return m}
+  if(can("interviewer")||can("marketing")||can("tester"))m.push(["bank","Question bank"]);if(can("trainer")||can("marketing")||can("verifier"))m.push(["trcal","Training calendar"]);if((can("marketing")||can("hr"))&&!can("operations"))m.push(["jobs","Job orders"]);if(S.isAdmin)m.push(["team","Accounts",S.accounts.filter(a=>a.pending).length],["settings","Rules & data"]);return m}
 function renderNav(){
   const cur=UI.view==="profile"?(UI.back||"applicants"):UI.view==="results"?"applicants":UI.view;
   const btn=(v,l,n,isQ)=>`<button class="navbtn" data-go="${v}" aria-current="${cur===v}"><span>${l}</span>${n==null?"":isQ?(n?`<span class="rdy" aria-label="${n} ready">${n}</span>`:""):`<span class="n">${n}</span>`}</button>`;
@@ -1108,10 +1111,13 @@ function renderNav(){
   const tools=[...((can("hr")||S.isAdmin)?[["reports","Reports"]]:[]),...more];
   const qTotal=qs.reduce((n,q)=>n+readyList(q).length,0),qCur=qs.some(q=>q.view===cur),tCur=tools.some(([v])=>v===cur);
   const mbtn=(v,l,isCur,badge)=>`<button class="navbtn" data-act="menu" data-v="${v}" aria-haspopup="menu" aria-expanded="${UI.menu===v}" aria-current="${isCur}"><span>${l}</span>${badge?`<span class="rdy">${badge}</span>`:""}<span class="car" aria-hidden="true">▾</span></button>`;
-  let h=btn("pipeline","Home")+btn("applicants","Applicants",Object.keys(S.applicants).length);if(can("marketing"))h+=btn("campaigns","Campaigns");if(can("verifier"))h+=btn("requests","Requests",Object.values(S.applicants).filter(x=>stage(x)==="requested").length,true);
+  const srch=document.querySelector(".search");if(srch)srch.hidden=opsOnly();
+  if(opsOnly()){$("#nav").innerHTML=btn("jobs","Job orders");return renderUser()}
+  let h=btn("pipeline","Home")+btn("applicants","Applicants",Object.keys(S.applicants).length);if(can("operations"))h+=btn("jobs","Job orders");if(can("marketing"))h+=btn("campaigns","Campaigns",jobsWaiting().length||null,true);if(can("verifier"))h+=btn("requests","Requests",Object.values(S.applicants).filter(x=>stage(x)==="requested").length,true);
   if(qs.length)h+=mbtn("queues","My queues",qCur,qTotal);
   if(tools.length)h+=mbtn("more","Tools",tCur,S.isAdmin?S.accounts.filter(a=>a.pending).length:0);
-  $("#nav").innerHTML=h;
+  $("#nav").innerHTML=h;renderUser()}
+function renderUser(){
   const ini=me().split(" ").map(x=>x[0]).slice(0,2).join("").toUpperCase();$("#me").innerHTML=`<button class="navbtn userbtn" data-act="menu" data-v="user" aria-haspopup="menu"><span class="avatar">${esc(ini)}</span><span class="who2"><b>${esc(me())}</b><small>${S.isAdmin?(S.viewAs==="all"?"Admin":"Previewing: "+ROLES[S.viewAs]):myRoles().map(r=>ROLES[r]).join(", ")||"No role yet"}</small></span></button>`;
   const lb=S.settings&&S.settings.lastBackup,stale=!lb||Date.now()-new Date(lb)>7*864e5;
   $("#offline").innerHTML=false?`<div class="offline">Pilot data lives on this computer only. ${lb?"Last backup "+fmtD(lb)+".":"No backup yet."} <a href="#" data-go="settings">Download a backup</a></div>`:"";
@@ -1425,6 +1431,8 @@ function driveDiff(o,n,op,np){const out=[],O=Object.fromEntries(o.map(i=>[i.id,i
   o.forEach(x=>{if(!N[x.id])out.push(`removed ${q(x.t)}`)});
   if(o.map(i=>i.id).filter(id=>N[id]).join()!==n.map(i=>i.id).filter(id=>O[id]).join())out.push("changed the order");
   if(op!==np)out.push(`pass mark ${op}% → ${np}%`);return out}
+document.addEventListener("input",e=>{const t=e.target;if((t.id==="cp-startDate"||t.id==="cp-runDays")&&UI.editCamp){const el=document.getElementById("cp-endshow");
+  if(el)el.innerHTML=campEndText(document.getElementById("cp-startDate").value,document.getElementById("cp-runDays").value,UI.editCamp.jobId&&jobById(UI.editCamp.jobId))}});
 document.addEventListener("input",e=>{const t=e.target;if(t.classList.contains("db-in")&&UI.editDrive){const i=UI.editDrive.items[+t.dataset.k];i[t.dataset.f]=t.type==="checkbox"?t.checked:t.dataset.f==="weight"?+t.value:t.value}
   if(t.classList.contains("db-pass")&&UI.editDrive)UI.editDrive.pass=Math.min(100,Math.max(0,+t.value||0))});
 document.addEventListener("change",e=>{const t=e.target;if((t.classList.contains("db-in")&&t.dataset.f!=="t")){const i=UI.editDrive.items[+t.dataset.k];i[t.dataset.f]=t.type==="checkbox"?t.checked:+t.value;render()}});
@@ -1977,9 +1985,9 @@ function render(){
   document.documentElement.dataset.ready="1";
   renderNav();
   document.documentElement.style.setProperty("--hh",$("#rail").offsetHeight+"px");
-  const noRole=!S.isAdmin&&!myRoles().length;
+  const noRole=!S.isAdmin&&!myRoles().length;if(opsOnly()&&UI.view!=="jobs")UI.view="jobs";
   const V={pipeline:vPipeline,applicants:vApplicants,results:vResults,checkin:vCheckin,orientation:vOrientation,interview:vInterview,bank:vBank,
-    import:vImport,drive:vDrive,registry:vRegistry,trcal:vTrCal,ojt:vOjt,offers:vOffers,inform:vInform,team:vTeam,settings:vSettings,profile:vProfile,reports:vReports,reminders:vReminders,campaigns:vCampaigns,scan:vScan,requests:vRequests};
+    import:vImport,drive:vDrive,jobs:vJobs,registry:vRegistry,trcal:vTrCal,ojt:vOjt,offers:vOffers,inform:vInform,team:vTeam,settings:vSettings,profile:vProfile,reports:vReports,reminders:vReminders,campaigns:vCampaigns,scan:vScan,requests:vRequests};
   const act=document.activeElement,keep=act&&act.dataset&&act.dataset.act&&["INPUT","TEXTAREA"].includes(act.tagName)?{a:act.dataset.act,id:act.dataset.id,k:act.dataset.k,f:act.dataset.f,i:act.dataset.i,pos:act.selectionStart}:null;
   if(keep&&UI.typing)return; // don't repaint under someone mid-typing
   $("#main").innerHTML=(noRole&&UI.view==="pipeline"?vNoAccess()+"<div style='height:16px'></div>":"")+(V[UI.view]||vPipeline)();
@@ -2194,16 +2202,26 @@ const SAMPLE_APPS=[{"id": "s01", "name": "Rodel Manalo", "phone": "0917 555 0101
 const DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const camps=()=>(settings().camps||[]);
 const campById=id=>camps().find(c=>c.id===id);
+const jobs=()=>(S.jobs&&S.jobs.orders)||[];
+const jobById=id=>jobs().find(j=>j.id===id);
+const jobCamps=j=>camps().filter(c=>c.jobId===j.id);
+const jobHired=j=>jobCamps(j).reduce((n,c)=>n+campHired(c),0);
+const jobsWaiting=()=>jobs().filter(j=>j.status!=="cancelled"&&!jobCamps(j).length);
+const dayDiff=(a,b)=>Math.round((new Date(b+"T00:00")-new Date(a+"T00:00"))/864e5);
+const JOB_LEAD=20; // a job order's "needed by" date must be at least this many days away
+function jobState(j){if(j.status==="cancelled")return["Cancelled","plain"];if(+j.needed&&jobHired(j)>=+j.needed)return["Filled","go"];
+  const C=jobCamps(j);if(!C.length)return["Waiting for Marketing","wait"];return C.some(campOpen)?["Recruiting","go"]:["No open campaign","wait"]}
 const campApplicants=c=>Object.values(S.applicants).filter(a=>a.campaignId?a.campaignId===c.id:a.campaign===c.name);
 // "hired" for a campaign = accredited (passed the 1-day training)
 const campHired=c=>campApplicants(c).filter(a=>ojtVerdict(a)==="pass"&&!a.released?.fail).length;
 const campOpen=c=>!!c.active&&!(c.endDate&&today()>c.endDate);
 function campStatus(c){if(c.active&&c.startDate&&today()<c.startDate)return tag("Opens "+fmtD(c.startDate),"wait");if(campOpen(c))return tag("Open","go");
-  return tag(c.closedReason==="filled"?"Closed · filled":c.endDate&&today()>c.endDate?"Closed · ended":"Closed","plain")}
+  return tag(c.closedReason==="cancelled"?"Closed · job cancelled":c.closedReason==="filled"?"Closed · filled":c.endDate&&today()>c.endDate?"Closed · ended":"Closed","plain")}
 /* closes a campaign by itself when it has hired the drivers it needs, or its end date has passed. Closed, never deleted. */
 function autoCloseCamps(){if(!S.uid||!S.settings)return;let ch=false;const now=new Date().toISOString();
-  const L=camps().map(c=>{if(!c.active)return c;const need=+c.needed||0;
-    if(need&&campHired(c)>=need){ch=true;return Object.assign({},c,{active:false,closedReason:"filled",closedAt:now})}
+  const L=camps().map(c=>{if(!c.active)return c;const j=c.jobId&&jobById(c.jobId),need=j?+j.needed||0:+c.needed||0;
+    if(j&&j.status==="cancelled"){ch=true;return Object.assign({},c,{active:false,closedReason:"cancelled",closedAt:now})}
+    if(need&&(j?jobHired(j):campHired(c))>=need){ch=true;return Object.assign({},c,{active:false,closedReason:"filled",closedAt:now})}
     if(c.endDate&&today()>c.endDate){ch=true;return Object.assign({},c,{active:false,closedReason:"ended",closedAt:now})}return c});
   if(ch)saveCamps(L).then(()=>softRender()).catch(e=>console.error(e))}
 const campUrl=c=>location.href.split("#")[0]+"#apply/"+c.id;
@@ -2227,15 +2245,68 @@ function dayOpen(c,day){const d=new Date(day+"T00:00"),lo=new Date();lo.setHours
   if(d<lo||d>hi||(c.endDate&&day>c.endDate))return false;return campSlots(c,day).some(s=>s.left>0)}
 const newCamp=()=>({id:"",name:"",position:settings().position,jd:"",reqs:"",perks:"",hubName:"2C Hub",location:settings().hubAddress,hubGeo:"",days:[1,2,3,4,5],start:"09:00",end:"16:00",len:60,seats:5,offTimes:[],window:14,endDate:"",active:true,autoApprove:true,passScore:70,minAge:21,maxAge:"",questions:clone((S.settings&&S.settings.pqDefault)||DEFAULT_PQ)});
 
+/* ---- job orders: Operations asks for drivers; Marketing turns each one into campaigns ---- */
+const newJob=()=>({id:"",client:"",position:settings().position,needed:"",neededBy:"",hubName:"",location:"",jd:"",reqs:"",perks:"",notes:"",status:"open"});
+function vJobs(){const ed=can("operations");if(UI.editJob)return ed?vJobEdit():(UI.editJob=null,vJobs());
+  const L=jobs().slice().sort((a,b)=>(a.status==="cancelled")-(b.status==="cancelled")||(a.neededBy||"").localeCompare(b.neededBy||""));
+  return `<div class="head"><div><h1>Job orders</h1><p>${ed?"Tell Marketing how many drivers you need and by when. Marketing turns each job order into one or more campaigns.":"Driver requests from Operations. Marketing creates campaigns from these on the Campaigns page."}</p></div>${ed?`<button class="btn primary" data-act="jo-new">Add job order</button>`:""}</div>
+  ${L.length?`<div class="tablewrap"><table><thead><tr><th>Client · position</th><th>Drivers needed</th><th>Campaigns</th><th>Progress</th><th>Status</th><th></th></tr></thead><tbody>${L.map(j=>{const C=jobCamps(j),A=C.flatMap(campApplicants),[sl,sk]=jobState(j);return `<tr>
+   <td><b>${esc(j.client)}</b><div class="small muted">${esc(j.position)}${j.hubName?" · "+esc(j.hubName):""}</div></td>
+   <td><b>${+j.needed}</b><div class="small muted">by ${fmtD(j.neededBy)}</div></td>
+   <td class="small">${C.length?C.map(c=>`${esc(c.name)} ${campStatus(c)}`).join("<br>"):`<span class="muted">None yet</span>`}</td>
+   <td class="small">${A.length} applied · ${A.filter(a=>decide(a).result==="hired").length} passed screening<div><b>${jobHired(j)} of ${+j.needed}</b> accredited</div></td>
+   <td>${tag(sl,sk)}</td>
+   <td><div class="row">${ed?`<button class="btn sm" data-act="jo-edit" data-id="${j.id}">${j.status==="cancelled"?"View":"Edit"}</button>`:""}${can("marketing")&&j.status!=="cancelled"&&sl!=="Filled"?`<button class="btn sm primary" data-act="cp-fromjob" data-id="${j.id}">Create campaign</button>`:""}</div></td></tr>`}).join("")}</tbody></table></div>`
+  :`<div class="tablewrap"><div class="empty">No job orders yet.${ed?" Add one to ask Marketing for drivers.":""}</div></div>`}`}
+function vJobEdit(){const j=UI.editJob,isNew=!j.id,off=j.status==="cancelled",min=addDays(today(),JOB_LEAD),dis=off?"disabled":"";
+  const f=(id,l,v,type,extra)=>`<label class="f">${l}<input id="jo-${id}" type="${type||"text"}" value="${esc(v??"")}" ${extra||""} ${dis}></label>`;
+  const ta=(id,l,v,hint,rows)=>`<label class="f">${l}${hint?`<span class="small muted" style="display:block">${hint}</span>`:""}<textarea id="jo-${id}" rows="${rows||4}" ${dis}>${esc(v||"")}</textarea></label>`;
+  return `<div class="head"><div><button class="btn sm" data-act="jo-cancel">← Job orders</button><h1 style="margin-top:10px">${isNew?"Add job order":esc(j.client+" · "+j.position)}</h1>${off?`<p>${tag("Cancelled","plain")} This job order was cancelled. Its campaigns are closed.</p>`:""}</div></div>
+  <div class="stack" style="max-width:860px">
+   <div class="sect"><header><h3>1. Request</h3></header><div class="stack"><div class="cp-3">${f("client","Client name",j.client,"text",'placeholder="e.g. Lazada"')}${f("position","Position",j.position)}${f("needed","Drivers needed",j.needed,"number",'min="1" max="999"')}</div>
+     <div class="cp-3">${f("neededBy","Needed by",j.neededBy,"date",isNew||!j.neededBy||j.neededBy>=min?`min="${min}"`:"")}${f("hubName","Hub",j.hubName,"text",'placeholder="e.g. 2C Hub"')}${f("location","Hub address",j.location)}</div>
+     <p class="small muted" style="margin:0">“Needed by” must be at least ${JOB_LEAD} days from today (${fmtD(min)} or later) so Marketing has time to recruit, interview and train.</p></div></div>
+   <div class="sect"><header><h3>2. Job description</h3></header><div class="stack">${ta("jd","About the role",j.jd,"What the job is and what a typical day looks like. Marketing uses this for the campaign.",5)}${ta("reqs","Requirements",j.reqs,"One per line.")}${ta("perks","Pay and benefits",j.perks,"One per line.")}</div></div>
+   <div class="sect"><header><h3>3. Note for Marketing</h3></header><div class="stack">${ta("notes","Internal note (not shown to applicants)",j.notes,"",3)}</div></div>
+   ${off?"":`<div class="row"><button class="btn primary lg" data-act="jo-save">${isNew?"Send to Marketing":"Save changes"}</button><button class="btn" data-act="jo-cancel">Back</button>${!isNew?`<button class="btn danger" data-act="jo-kill" data-id="${j.id}" style="margin-left:auto">Cancel job order</button>`:""}</div>
+   ${!isNew?`<p class="small muted" style="margin:0">Changes to the job description don't update campaigns already created. Tell Marketing if the wording should change. Changing the number of drivers takes effect right away.</p>`:""}`}
+   ${(j.log||[]).length?`<div class="sect"><header><h3>History</h3></header><div><ul class="checks">${j.log.slice(0,20).map(l=>`<li><span>${esc(l.msg)}</span><span class="small muted">${esc(S.profiles[l.by]?.name||"")} · ${fmtDT(l.t)}</span></li>`).join("")}</ul></div></div>`:""}
+  </div>`}
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-act^='jo-']");if(!b)return;const A=b.dataset.act;
+  if(A==="jo-cancel"){UI.editJob=null;return render()}
+  if(!can("operations"))return toast("Only Operations can change job orders.");
+  if(A==="jo-new"){UI.editJob=newJob();render();return window.scrollTo(0,0)}
+  if(A==="jo-edit"){UI.editJob=clone(jobById(b.dataset.id));render();return window.scrollTo(0,0)}
+  const L=jobs().slice(),now=new Date().toISOString(),lg=(j,msg)=>{j.log=[{t:now,by:S.uid,msg},...(j.log||[])].slice(0,40)};
+  if(A==="jo-kill"){const j=clone(jobById(b.dataset.id)),C=jobCamps(j).filter(c=>c.active);
+    if(!confirm(`Cancel the job order for ${j.client}?${C.length?` Its ${C.length} open campaign${C.length>1?"s":""} will close. Applicants already in progress continue.`:""}`))return;
+    j.status="cancelled";j.cancelledAt=now;lg(j,"Cancelled");L[L.findIndex(x=>x.id===j.id)]=j;UI.editJob=null;await setDoc("jobs/orders",{orders:L});autoCloseCamps();render();return toast("Job order cancelled")}
+  if(A==="jo-save"){const g=k=>(document.getElementById("jo-"+k)?.value||"").trim(),E=UI.editJob,isNew=!E.id;
+    const j=Object.assign({},E,{client:g("client"),position:g("position"),needed:Math.max(0,parseInt(g("needed"))||0),neededBy:g("neededBy"),hubName:g("hubName"),location:g("location"),jd:g("jd"),reqs:g("reqs"),perks:g("perks"),notes:g("notes")});
+    if(!j.client)return toast("Add the client name.");if(!j.position)return toast("Add the position.");if(!j.needed)return toast("How many drivers are needed?");
+    if(!j.neededBy)return toast("Pick the date the drivers are needed by.");
+    const min=addDays(today(),JOB_LEAD);if((isNew||j.neededBy!==E.neededBy)&&j.neededBy<min)return toast(`“Needed by” must be at least ${JOB_LEAD} days from today: ${fmtD(min)} or later.`);
+    if(!j.jd)return toast("Add the job description so Marketing can use it.");
+    if(isNew){j.id="jo"+uid().slice(0,8);j.createdAt=now;j.by=S.uid;lg(j,`Added: ${j.needed} drivers needed by ${fmtD(j.neededBy)}`);L.push(j)}
+    else{const ch=[];if(E.needed!==j.needed)ch.push(`drivers needed ${E.needed} → ${j.needed}`);if(E.neededBy!==j.neededBy)ch.push(`needed by ${fmtD(E.neededBy)} → ${fmtD(j.neededBy)}`);
+      if(["client","position","hubName","location","jd","reqs","perks","notes"].some(k=>(E[k]||"")!==(j[k]||"")))ch.push("details edited");if(!ch.length){UI.editJob=null;return render()}
+      lg(j,ch.join("; ").replace(/^./,x=>x.toUpperCase()));L[L.findIndex(x=>x.id===j.id)]=j}
+    UI.editJob=null;await setDoc("jobs/orders",{orders:L});autoCloseCamps();render();return toast(isNew?"Job order sent to Marketing":"Job order saved")}});
+
 function vCampaigns(){
   if(UI.editCamp)return vCampEdit();
   const L=camps(),nowIso=new Date().toISOString();
+  const JO=jobs().filter(j=>j.status!=="cancelled"&&jobState(j)[0]!=="Filled");
   return `<div class="head"><div><h1>Campaigns</h1><p>Each campaign has its own job description, interview schedule and application link.</p></div><button class="btn primary" data-act="cp-new">Create campaign</button></div>
+  ${JO.length?`<div class="sect"><header><h3>Job orders from Operations</h3><button class="btn sm" data-go="jobs">All job orders</button></header><div class="tablewrap" style="box-shadow:none"><table><thead><tr><th>Client · position</th><th>Needed</th><th>Campaigns</th><th></th></tr></thead><tbody>${JO.map(j=>{const C=jobCamps(j);return `<tr>
+    <td><b>${esc(j.client)}</b><div class="small muted">${esc(j.position)}</div></td><td>${+j.needed} drivers<div class="small muted">by ${fmtD(j.neededBy)}</div></td>
+    <td>${C.length?esc(C.map(c=>c.name).join(", ")):tag("New","wait")}<div class="small muted">${jobHired(j)} of ${+j.needed} accredited</div></td>
+    <td><button class="btn sm primary" data-act="cp-fromjob" data-id="${j.id}">Create campaign</button></td></tr>`}).join("")}</tbody></table></div></div>`:""}
   ${L.length?`<div class="tablewrap"><table><thead><tr><th>Campaign</th><th>Interview schedule</th><th>Applicants</th><th>Hired</th><th>Status</th><th>Link</th><th></th></tr></thead><tbody>${L.map(c=>{const n=campApplicants(c),up=n.filter(a=>(a.slot||"")>nowIso).length;return `<tr>
-   <td><div>${esc(c.name)}</div><div class="small muted">${esc(c.position)}</div></td>
+   <td><div>${esc(c.name)}</div><div class="small muted">${esc(c.position)}${c.jobId&&jobById(c.jobId)?` · Job order: ${esc(jobById(c.jobId).client)}`:""}</div></td>
    <td class="small">${c.days.map(d=>DOW[d]).join(", ")}<div class="muted">${fmtTime(c.start)}–${fmtTime(c.end)} · ${c.seats} per slot</div></td>
    <td>${n.length}${up?`<div class="small muted">${up} upcoming</div>`:""}</td>
-   <td>${+c.needed?`<b>${campHired(c)}</b> of ${+c.needed}`:campHired(c)}<div class="small muted">${+c.needed?"accredited":"accredited · no target"}</div></td>
+   <td>${(j=>j?`<b>${campHired(c)}</b><div class="small muted">job order: ${jobHired(j)} of ${+j.needed}</div>`:`${+c.needed?`<b>${campHired(c)}</b> of ${+c.needed}`:campHired(c)}<div class="small muted">${+c.needed?"accredited":"accredited · no target"}</div>`)(c.jobId&&jobById(c.jobId))}</td>
    <td>${campStatus(c)}${c.startDate||c.endDate?`<div class="small muted">${c.startDate?fmtD(c.startDate):"Now"} – ${c.endDate?fmtD(c.endDate):"no end date"}</div>`:""}</td>
    <td><div class="row"><button class="btn sm" data-act="cp-copy" data-id="${c.id}">Copy link</button><a class="btn sm" href="#apply/${c.id}" target="_blank" rel="noopener">Open</a>${qrPng(campUrl(c))?`<a class="btn sm" href="${qrPng(campUrl(c))}" download="${esc(c.id)}-qr.gif">QR</a>`:""}</div></td>
    <td><button class="btn sm" data-act="cp-edit" data-id="${c.id}">Edit</button></td></tr>`}).join("")}</tbody></table></div>`
@@ -2263,15 +2334,20 @@ function travel(hub,geo,mode){if(!hub||!geo)return null;const R=6371,toR=x=>x*Ma
 const fmtMins=m=>m==null?"—":m<60?m+" min":Math.floor(m/60)+" h "+(m%60?m%60+" min":"");
 function pqScore(c,ans){const Q=cq(c);let got=0,max=0;Q.forEach(q=>{const mx=Math.max(0,...q.opts.map(o=>o[1]));max+=mx;const i=ans?.[q.id];if(i!=null&&q.opts[i])got+=q.opts[i][1]});return max?Math.round(got/max*100):100}
 
-function vCampEdit(){const c=UI.editCamp,isNew=!c.id;
+function campEndText(sd,rd,jo){if(!+rd)return `<span class="muted">No end date. Leave "Runs for" blank to keep it open until you close it.</span>`;
+  const end=addDays(sd||today(),+rd-1);return `Ends <b>${fmtD(end)}</b>${jo&&end>jo.neededBy?` <span style="color:var(--stop)">· This is after the job order's needed-by date (${fmtD(jo.neededBy)}).</span>`:""}`}
+function vCampEdit(){const c=UI.editCamp,isNew=!c.id,jo=c.jobId&&jobById(c.jobId);
+  const sd=c.startDate||(c.endDate&&c.endDate<today()?c.endDate:today()),rd=c.runDays||(c.endDate?Math.max(1,dayDiff(sd,c.endDate)+1):"");
   const f=(id,l,v,type,extra)=>`<label class="f">${l}<input id="cp-${id}" type="${type||"text"}" value="${esc(v??"")}" ${extra||""}></label>`;
   const ta=(id,l,v,hint,rows)=>`<label class="f">${l}${hint?`<span class="small muted" style="display:block">${hint}</span>`:""}<textarea id="cp-${id}" rows="${rows||5}">${esc(v)}</textarea></label>`;
   const T=allTimes(c),off=c.offTimes||[],onN=T.filter(t=>!off.includes(t)).length;
   return `<div class="head"><div><button class="btn sm" data-act="cp-cancel">← Campaigns</button><h1 style="margin-top:10px">${isNew?"Create campaign":esc(c.name)}</h1><p>Applicants read the job description, fill in their details, answer a few questions, then request an interview time.</p></div></div>
   <div class="cp-grid"><div class="stack">
    <div class="sect"><header><h3>1. Campaign</h3></header><div class="stack"><div class="cp-3">${f("name","Campaign name",c.name,"text",'placeholder="e.g. Facebook – Manila, October"')}${f("position","Position",c.position)}</div>
-     <div class="cp-3">${f("needed","Drivers needed (optional)",c.needed||"","number",'min="1" max="999" placeholder="e.g. 20"')}${f("startDate","Campaign starts (optional)",c.startDate,"date")}${f("endDate","Campaign ends (optional)",c.endDate,"date")}</div>
-     <p class="small muted" style="margin:0">The campaign closes by itself when it reaches the drivers needed (counted when they are <b>accredited</b>) or after the end date. It is closed, not deleted.${c.id?` Hired so far: <b>${campHired(c)}</b>.`:""}</p></div></div>
+     ${jo?`<div class="panel" style="padding:12px 14px"><b>From job order: ${esc(jo.client)}</b> · ${esc(jo.position)}<div class="small muted">${+jo.needed} drivers needed by ${fmtD(jo.neededBy)} · ${jobHired(jo)} accredited so far across ${jobCamps(jo).length||"no"} campaign${jobCamps(jo).length===1?"":"s"}${jo.notes?`<br>Note from Operations: ${esc(jo.notes)}`:""}</div></div>`:""}
+     <div class="cp-3">${jo?"":f("needed","Drivers needed (optional)",c.needed||"","number",'min="1" max="999" placeholder="e.g. 20"')}${f("startDate","Campaign starts",sd,"date")}${f("runDays","Runs for (days)",rd,"number",'min="1" max="90" placeholder="e.g. 30"')}</div>
+     <p class="small" style="margin:0" id="cp-endshow">${campEndText(sd,rd,jo)}</p>
+     <p class="small muted" style="margin:0">The campaign closes by itself when ${jo?"the job order":"it"} reaches the drivers needed (counted when they are <b>accredited</b>) or after its last day. It is closed, not deleted.${c.id&&!jo?` Hired so far: <b>${campHired(c)}</b>.`:""}</p></div></div>
    <div class="sect"><header><h3>2. Job description</h3></header><div class="stack">${ta("jd","About the role",c.jd,"What the job is and what a typical day looks like.",6)}${ta("reqs","Requirements",c.reqs,"One per line.",5)}${ta("perks","Pay and benefits",c.perks,"One per line.",4)}</div></div>
    <div class="sect"><header><h3>3. Interview location</h3></header><div class="stack"><div class="cp-3">${f("hubName","Hub name",c.hubName??"2C Hub")}${f("hubGeo","Map pin (latitude, longitude)",c.hubGeo,"text",'placeholder="Filled in when you save"')}</div>${f("location","Hub address",c.location)}
      <p class="small muted" style="margin:0">Used to estimate each applicant's distance and travel time. ${parseGeo(c.hubGeo)?"Pin is set.":"If the pin stays empty after saving, paste the latitude and longitude from Google Maps."}</p></div></div>
@@ -2300,7 +2376,7 @@ function vCampEdit(){const c=UI.editCamp,isNew=!c.id;
 function campLinkCard(c){const u=campUrl(c);return `<div class="panel stack"><h3 style="margin:0">Campaign link</h3><div class="cp-url">${esc(u)}</div>
   <div class="row"><button class="btn primary sm" data-act="cp-copy" data-id="${c.id}">Copy link</button><a class="btn sm" href="#apply/${c.id}" target="_blank" rel="noopener">Preview</a></div>
   <div class="cp-qr">${qrSvg(u,4)}</div>${qrPng(u)?`<a class="btn sm" style="align-self:flex-start" href="${qrPng(u)}" download="${esc(c.id)}-qr.gif">Download QR</a>`:""}<p class="small muted" style="margin:0">Put this QR on posters or Facebook posts. Scanning it opens this campaign's booking page.</p></div>`}
-function readCampForm(){const c=readCampFormBase(),g=k=>{const el=document.getElementById("cp-"+k);return el?el.value.trim():""};const tb=[...document.querySelectorAll("[data-tday]")];if(!tb.length)return c;
+function readCampForm(){const c=readCampFormBase();c.endDate=+c.runDays?addDays(c.startDate,+c.runDays-1):"";constg=k=>{const el=document.getElementById("cp-"+k);return el?el.value.trim():""};const tb=[...document.querySelectorAll("[data-tday]")];if(!tb.length)return c;
   c.train={days:tb.length?tb.filter(x=>x.checked).map(x=>+x.dataset.tday):trainOf(c).days,start:g("tstart")||"08:00",end:g("tend")||"17:00",seats:Math.max(1,+g("tseats")||10),window:Math.max(1,+g("twindow")||14),hubName:g("thub"),location:g("tloc")};return c}
 const trainOf=c=>Object.assign({days:[1,2,3,4,5,6],start:"08:00",end:"17:00",seats:10,window:14,hubName:"",location:"",overrides:{}},(c&&c.train)||{},(S.settings&&S.settings.training)||{});
 const trSeats=(t,ds)=>{const o=(t.overrides||{})[ds]||{};if(o.closed)return 0;if(o.seats!=null&&o.seats!=="")return +o.seats;return t.days.includes(new Date(ds+"T00:00").getDay())?+t.seats:0};
@@ -2309,7 +2385,7 @@ function readCampFormBase(){const g=k=>{const el=document.getElementById("cp-"+k
     return{id:q.id,text:t?t.value:q.text,opts:o?o.value.split("\n").map(l=>{const [a,b]=l.split("|");return[(a||"").trim(),Math.max(0,parseInt(b)||0)]}).filter(x=>x[0]):q.opts}});
   const chips=[...document.querySelectorAll("[data-time]")];
   return Object.assign({},c0,{name:g("name"),position:g("position"),jd:g("jd"),reqs:g("reqs"),perks:g("perks"),hubName:g("hubName"),hubGeo:g("hubGeo"),location:g("location"),start:g("start")||"09:00",end:g("end")||"16:00",
-   len:+g("len")||60,seats:Math.max(1,+g("seats")||1),window:Math.max(1,+g("window")||14),endDate:g("endDate"),startDate:g("startDate"),needed:Math.max(0,parseInt(g("needed"))||0)||"",active:!!document.getElementById("cp-active")?.checked,
+   len:+g("len")||60,seats:Math.max(1,+g("seats")||1),window:Math.max(1,+g("window")||14),startDate:g("startDate")||today(),runDays:Math.max(0,parseInt(g("runDays"))||0)||"",needed:Math.max(0,parseInt(g("needed"))||0)||"",active:!!document.getElementById("cp-active")?.checked,
    days:[...document.querySelectorAll("[data-day]")].filter(x=>x.checked).map(x=>+x.dataset.day),
    offTimes:chips.length?chips.filter(x=>!x.checked).map(x=>x.dataset.time):(c0.offTimes||[]),
    autoApprove:!!document.getElementById("cp-autoApprove")?.checked,passScore:Math.min(100,Math.max(0,+g("passScore")||0)),minAge:Math.max(18,+g("minAge")||18),maxAge:g("maxAge")?+g("maxAge"):"",questions:Q})}
@@ -2947,6 +3023,9 @@ document.addEventListener("click",async e=>{const b=e.target.closest("[data-act]
   if(!/^(cp|ap|sc)-/.test(A))return;e.preventDefault();
   switch(A){
    case"cp-new":UI.editCamp=newCamp();render();return window.scrollTo(0,0);
+   case"cp-fromjob":{const j=jobById(id);if(!j)return;UI.view="campaigns";const C=jobCamps(j),left=dayDiff(today(),j.neededBy);
+     UI.editCamp=Object.assign(newCamp(),{jobId:j.id,name:`${j.client} – ${j.position}${C.length?" "+(C.length+1):""}`,position:j.position,jd:j.jd||"",reqs:j.reqs||"",perks:j.perks||"",
+       hubName:j.hubName||newCamp().hubName,location:j.location||newCamp().location,startDate:today(),runDays:Math.min(90,Math.max(1,left))});render();return window.scrollTo(0,0)}
    case"cp-edit":UI.editCamp=clone(campById(id));render();return window.scrollTo(0,0);
    case"cp-cancel":UI.editCamp=null;return render();
    case"cp-copy":{const c=campById(id),u=campUrl(c);try{await navigator.clipboard.writeText(u);toast("Link copied")}catch(err){prompt("Copy this link",u)}return}
@@ -2957,9 +3036,13 @@ document.addEventListener("click",async e=>{const b=e.target.closest("[data-act]
      if(!c.name)return toast("Give the campaign a name.");if(!c.position)return toast("Add the position.");if(!c.jd)return toast("Add the job description.");
      if(!c.days.length)return toast("Pick at least one interview day.");if(c.end<=c.start)return toast("The last slot must end after the first one starts.");
      if(camps().some(x=>x.name.toLowerCase()===c.name.toLowerCase()&&x.id!==c.id))return toast("Another campaign has that name.");
-     if(c.startDate&&c.endDate&&c.endDate<c.startDate)return toast("The end date must be after the start date.");
-     if(c.active&&+c.needed&&c.id&&campHired(c)>=+c.needed){const h=campHired(c);return toast(`This campaign already has ${h} accredited driver${h===1?"":"s"}. Raise "Drivers needed" to reopen it.`)}
-     if(c.active&&c.endDate&&today()>c.endDate)return toast("The end date has passed. Change it to reopen the campaign.");
+     if(c.runDays&&(+c.runDays<1||+c.runDays>90))return toast("“Runs for” must be between 1 and 90 days.");
+     {const jo=c.jobId&&jobById(c.jobId);
+      if(jo&&c.active&&jo.status==="cancelled")return toast("This job order was cancelled by Operations, so the campaign can't be reopened.");
+      if(jo&&c.active&&c.id&&jobHired(jo)>=+jo.needed)return toast(`The job order already has ${jobHired(jo)} accredited driver${jobHired(jo)===1?"":"s"}. Ask Operations to raise the number needed to reopen it.`);
+      if(!jo&&c.active&&+c.needed&&c.id&&campHired(c)>=+c.needed){const h=campHired(c);return toast(`This campaign already has ${h} accredited driver${h===1?"":"s"}. Raise "Drivers needed" to reopen it.`)}
+      if(jo&&c.endDate&&c.endDate>jo.neededBy&&!confirm(`This campaign ends ${fmtD(c.endDate)}, after the job order's needed-by date (${fmtD(jo.neededBy)}). Save anyway?`))return;}
+     if(c.active&&c.endDate&&today()>c.endDate)return toast("The campaign's last day has passed. Change the start date or number of days to reopen it.");
      if(c.active)delete c.closedReason,delete c.closedAt;
      const L=camps().slice();
      if(isNew){c.id=(c.name.toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,32)||"campaign")+"-"+uid().slice(0,4);c.createdAt=new Date().toISOString();c.by=S.uid;L.push(c)}
