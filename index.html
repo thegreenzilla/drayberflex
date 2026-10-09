@@ -916,7 +916,7 @@ async function trRefresh(id){if(S.uid){/* staff: realtime keeps data fresh */}co
 function localLoad(){}
 let _syncT=null;function localSave(){if(!SB||!S.uid)return;clearTimeout(_syncT);_syncT=setTimeout(syncDirty,300)}
 async function syncDirty(){
-  for(const [k,v] of [["settings",S.settings],["bank",S.bank]]){if(!v)continue;const j=canon(v);if(j===_lastCfg[k])continue;await saveCfg(k,v)}
+  for(const [k,v] of [["settings",S.settings],["bank",S.bank],["jobs",S.jobs]]){if(!v)continue;const j=canon(v);if(j===_lastCfg[k])continue;await saveCfg(k,v)}
   for(const [id,a] of Object.entries(S.applicants)){if(!a||a.id==null&&!id)continue;if(canon(a)!==_lastApp[id])await saveApp(id,a)}}
 async function saveCfg(k,v){const j=canon(v);_lastCfg[k]=j;remember("cfg:"+k,j);const {error}=await SB.from("app_config").upsert({key:k,data:v,updated_at:new Date().toISOString()});if(error){_lastCfg[k]="";
   if(k==="jobs"&&/app_config_key_check|check constraint/i.test(error.message||""))return toast("Job orders need a one-time database update. Ask an Admin to run the 2026-10-09 job orders SQL in Supabase.");dbErr(error)}}
@@ -1092,7 +1092,7 @@ const stageTag=a=>{const[l,k]=stageLabel(a);return tag(l,k)};
 
 /* ============ UI state ============ */
 const UI={view:"pipeline",id:null,campaign:"",q:"",csv:null,dayFilter:"today",resFilter:"all",editQ:null};
-function go(view,id){if(view==="scan")view="checkin";if(view==="drivebank"){view="bank";UI.bankTab="drive"}if(view==="checkin"&&can("verifier")){UI.view="checkin";UI.mci={screen:"scan"};UI.menu=null;render();return window.scrollTo(0,0)}if(view!=="campaigns")UI.editCamp=null;if(view!=="jobs")UI.editJob=null;UI.view=view;UI.id=id||null;UI.tab=UI.sec||null;UI.sec=null;UI.justDone=null;UI.menu=null;UI.testMode=null;UI.ivIdx=0;UI.ivStep=null;UI.ivFor=null;render();window.scrollTo(0,0)}
+function go(view,id){if(view==="scan")view="checkin";if(view==="drivebank"){view="bank";UI.bankTab="drive"}if(view==="checkin"&&can("verifier")){UI.view="checkin";UI.mci={screen:"scan"};UI.menu=null;render();return window.scrollTo(0,0)}if(view!=="campaigns")UI.editCamp=null;if(view!=="jobs")UI.editJob=null;if(view!=="settings")UI.fresh=null;UI.view=view;UI.id=id||null;UI.tab=UI.sec||null;UI.sec=null;UI.justDone=null;UI.menu=null;UI.testMode=null;UI.ivIdx=0;UI.ivStep=null;UI.ivFor=null;render();window.scrollTo(0,0)}
 const list=()=>Object.values(S.applicants).filter(a=>!UI.campaign||a.campaign===UI.campaign);
 
 /* ============ queues: what is ready for each role ============ */
@@ -1681,11 +1681,39 @@ function vSettings(){const s=settings();
    <div class="sect"><header><h3>Security & backup</h3></header><div class="stack">${num("idleMinutes","Sign out after idle (minutes)",1,120)}
     <p style="margin:0" class="small">${s.lastBackup?"Last backup "+fmtDT(s.lastBackup):"No backup yet."} Everything lives in this browser on this computer. Download a backup at least weekly.</p>
     <div class="row"><button class="btn primary" data-act="backup">Download backup</button><label class="btn">Restore backup<input type="file" accept=".json,application/json" data-act="restore" style="display:none"></label></div></div></div>
+   ${S.isAdmin&&S.viewAs==="all"?vFresh():""}
    ${!Object.values(S.applicants).some(a=>a.source==="sample")?`<div class="sect"><header><h3>Sample applicants</h3></header><div class="stack"><p style="margin:0">Load 20 sample applicants across every stage to train the team.</p><button class="btn" data-act="loadsample">Load sample applicants</button></div></div>`:""}
    ${Object.values(S.applicants).some(a=>a.source==="sample")?`<div class="sect"><header><h3>Sample applicants</h3></header><div class="stack"><p style="margin:0">${Object.values(S.applicants).filter(a=>a.source==="sample").length} sample applicants are loaded for demo and training.</p><button class="btn danger" data-act="clearsample">Remove sample applicants</button></div></div>`:""}
   </div>`;
 }
 
+async function downloadBackup(){const now=new Date().toISOString();S.settings=Object.assign({},S.settings||{},{lastBackup:now});localSave();let photos={};try{photos=await IDB.all()}catch(err){}
+  saveFile(`drayberflex-backup-${today()}.json`,JSON.stringify({app:"mober-das",version:2,exportedAt:now,applicants:S.applicants,bank:S.bank,settings:S.settings,jobs:S.jobs,accounts:S.accounts,photos}),"application/json")}
+/* ---- Start fresh (Admin only): delete test data before going live; settings, question bank, training calendar and accounts are kept ---- */
+function vFresh(){const F=UI.fresh||(UI.fresh={apps:true,jobs:true,spend:true,keep:Object.fromEntries(camps().map(c=>[c.id,true])),typed:""});
+  const nA=Object.keys(S.applicants).length,nJ=jobs().length,nS=spends().length,del=camps().filter(c=>!F.keep[c.id]);
+  const ck=(k,l,n)=>`<label class="row"><input type="checkbox" data-fresh="${k}" ${F[k]?"checked":""}> Delete ${l} <b>(${n})</b></label>`;
+  return `<div class="sect"><header><h3>Start fresh</h3><span class="small muted">Admin only · use once before the first real campaign</span></header><div class="stack">
+   <p style="margin:0">Deletes test data so dashboards and cost per hire start from zero. <b>Always kept:</b> staff accounts, rules and settings, question bank, driving test items and the training calendar.</p>
+   ${ck("apps","all applicants, with their photos and documents",nA)}${ck("jobs","all job orders",nJ)}${ck("spend","all ad spend entries",nS)}
+   <div><div class="lbl">Campaigns <span class="small muted">· ticked = keep</span></div>${camps().map(c=>`<label class="row"><input type="checkbox" data-fresh-keep="${c.id}" ${F.keep[c.id]?"checked":""}> Keep “${esc(c.name)}”</label>`).join("")||`<p class="muted" style="margin:0">No campaigns.</p>`}
+    <p class="small muted" style="margin:4px 0 0">Kept campaigns stay as they are, but lose any link to a deleted job order and any “Closed · filled” note from test hires. Reopen them on the Campaigns page when you're ready.</p></div>
+   <label class="f" style="max-width:320px">Type DELETE to confirm<input id="fresh-typed" value="${esc(F.typed)}" autocomplete="off" autocapitalize="characters"></label>
+   <div><button class="btn danger" data-act="fresh-go">Download backup, then delete</button></div>
+   <p class="small muted" style="margin:0">The backup file has every record. Photos and documents already stored online can't be brought back after deleting.${del.length?` ${del.length} campaign${del.length>1?"s":""} will be deleted.`:""}</p></div></div>`}
+document.addEventListener("change",e=>{const t=e.target;if(!UI.fresh)return;if(t.dataset.fresh){UI.fresh[t.dataset.fresh]=t.checked;render()}else if(t.dataset.freshKeep){UI.fresh.keep[t.dataset.freshKeep]=t.checked;render()}});
+document.addEventListener("input",e=>{if(e.target.id==="fresh-typed"&&UI.fresh)UI.fresh.typed=e.target.value});
+document.addEventListener("click",async e=>{const b=e.target.closest('[data-act="fresh-go"]');if(!b)return;
+  if(!(S.isAdmin&&S.viewAs==="all"))return toast("Only an Admin (not in preview) can do this.");const F=UI.fresh;
+  if((document.getElementById("fresh-typed")?.value||"").trim()!=="DELETE")return toast("Type DELETE in the box to confirm.");
+  const ids=F.apps?Object.keys(S.applicants):[],delC=camps().filter(c=>!F.keep[c.id]);
+  if(!ids.length&&!F.jobs&&!F.spend&&!delC.length)return toast("Nothing selected to delete.");
+  if(!confirm(`Delete ${ids.length} applicants${F.jobs?`, ${jobs().length} job orders`:""}${F.spend?`, ${spends().length} ad spend entries`:""}${delC.length?`, ${delC.length} campaigns`:""}? A backup file downloads first. This can't be undone.`))return;
+  b.disabled=true;await downloadBackup();
+  let n=0;for(const id of ids){await delDoc("applicants/"+id);if(++n%10===0)toast(`Deleted ${n} of ${ids.length} applicants…`)}
+  if(F.jobs||F.spend)await setDoc("jobs/orders",Object.assign({},S.jobs||{},{orders:F.jobs?[]:jobs(),spend:F.spend?[]:spends()}));
+  const L=camps().filter(c=>F.keep[c.id]).map(c=>{const x=Object.assign({},c);if(F.jobs||!jobById(x.jobId))delete x.jobId;if(x.closedReason==="filled"||x.closedReason==="cancelled"){delete x.closedReason;delete x.closedAt}return x});
+  await saveCamps(L);UI.fresh=null;UI.campaign="";render();toast(`Done. ${ids.length} applicants deleted. Backup saved to your Downloads.`)});
 function vNoAccess(){return `<div class="panel" style="max-width:520px"><h2>No role yet</h2><p style="margin:0">You can see the pipeline. Ask an Admin to give your account a role so you can work a queue.</p></div>`}
 
 function vAuth(){
@@ -2237,8 +2265,7 @@ document.addEventListener("click",async e=>{
      await loadProfiles();UI.editU=null;render();return toast(e2.id?"Account saved":"Account created")}
    case"toggleu":{const acc=S.accounts.find(x=>x.id===id);if(acc.active&&acc.roles.includes("admin")&&S.accounts.filter(x=>x.active&&x.roles.includes("admin")).length<2)return toast("Keep at least one active Admin.");
      const {error}=await SB.from("profiles").update({active:!acc.active}).eq("id",id);if(error)return dbErr(error);await loadProfiles();render();return toast(!acc.active?"Account enabled":"Account disabled")}
-   case"backup":{const ns=Object.assign({},S.settings||{},{lastBackup:now});S.settings=ns;localSave();let photos={};try{photos=await IDB.all()}catch(err){}
-     saveFile(`drayberflex-backup-${today()}.json`,JSON.stringify({app:"mober-das",version:2,exportedAt:now,applicants:S.applicants,bank:S.bank,settings:S.settings,accounts:S.accounts,photos}),"application/json");render();return toast("Backup downloaded")}
+   case"backup":{await downloadBackup();render();return toast("Backup downloaded")}
    case"loadsample":{const bank=clone(S.bank||{questions:[]});SAMPLE_BANK.forEach(q=>{if(!bank.questions.some(x=>x.id===q.id))bank.questions.push(q)});S.bank=bank;
      SAMPLE_APPS.forEach(a=>S.applicants[a.id]=clone(a));localSave();render();return toast("20 sample applicants loaded")}
    case"clearsample":{if(!confirm("Remove all sample applicants?"))return;const ids=Object.values(S.applicants).filter(a=>a.source==="sample").map(a=>a.id);
@@ -2304,7 +2331,7 @@ document.addEventListener("change",async e=>{
    case"restore":{const f=t.files[0];if(!f)return;let d;try{d=JSON.parse(await f.text())}catch(err){return toast("That file isn't a valid backup.")}
      if(d.app!=="mober-das"||!d.applicants)return toast("That file isn't a Mober backup.");
      if(!confirm(`Load the backup from ${fmtDT(d.exportedAt)} into the live database? Applicants in the backup overwrite the same applicants online. Accounts are not changed.`))return;
-     S.applicants=d.applicants||{};S.bank=d.bank||null;S.settings=d.settings||null;localSave();
+     S.applicants=d.applicants||{};S.bank=d.bank||null;S.settings=d.settings||null;if(d.jobs)S.jobs=d.jobs;localSave();
      try{for(const [k,v] of Object.entries(d.photos||{})){await IDB.put(k,v);PHOTOS[k]=v}}catch(err){toast("Some photos couldn't be restored.")}
      const acc=account();if(!acc||!acc.active)return logout("Backup restored. Sign in again.");S.isAdmin=acc.roles.includes("admin");render();return toast("Backup restored")}
    case"map":UI.csv.map[t.dataset.k]=t.value===""?undefined:+t.value;return render();
