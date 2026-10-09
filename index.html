@@ -954,7 +954,7 @@ async function enterSession(user){
   if(msg){await SB.auth.signOut();return msg}
   try{await dbLoad()}catch(e){console.error(e);await SB.auth.signOut();return "Couldn't load data: "+e.message}
   subscribe();SB.from("profiles").update({last_login:new Date().toISOString()}).eq("id",user.id).then(()=>{});
-  S.ready=true;startSession(account()||profToAcc(p));sweepStale();return null}
+  S.ready=true;startSession(account()||profToAcc(p));sweepStale();autoCloseCamps();return null}
 async function adminUsers(body){const {data,error}=await SB.functions.invoke("admin-users",{body});if(error)return{error:"The admin-users function isn't reachable. Check it's deployed."};return data||{}}
 const FIL_BY_TEXT=Object.fromEntries(STARTER_BANK.map(q=>[q.text,q.fil]));
 function addFilipino(){if(!S.bank||!S.bank.questions)return;let ch=false;S.bank.questions.forEach(q=>{if(!q.fil&&FIL_BY_TEXT[q.text]){q.fil=FIL_BY_TEXT[q.text];ch=true}});if(ch)localSave()}
@@ -974,7 +974,7 @@ function updateApplicant(id,fn,msg){
   const was=decide(S.applicants[id]).result,a=clone(S.applicants[id]);fn(a);a.updatedAt=new Date().toISOString();
   const w=withdrawStale(a,was==="hired"&&decide(a).result!=="hired");
   a.log=(a.log||[]);if(msg)a.log.unshift({t:a.updatedAt,by:S.uid,msg});if(w)a.log.unshift({t:a.updatedAt,by:S.uid,msg:w});a.log=a.log.slice(0,60);
-  S.applicants[id]=a;return setDoc("applicants/"+id,a);
+  S.applicants[id]=a;const r=setDoc("applicants/"+id,a);if(ojtVerdict(a)==="pass")autoCloseCamps();return r;
 }
 /* a "Passed" result already given is withdrawn when a step is no longer complete (document un-verified, test reopened) */
 function stepGap(a){return docsVerdict(a)!=="pass"||!a.orientation?.attended||!a.interview?.done||a.drive?.result!=="pass"}
@@ -1150,8 +1150,10 @@ function flowStrip(key){const i=QUEUES.findIndex(q=>q.view===key||q.label===key)
   return `<ol class="flow noprint" aria-label="Hiring steps">${QUEUES.map((q,j)=>{const inner=`<i>${j+1}</i>${q.short}`;return `<li class="${j===i?"cur":""}">${can(q.role)&&j!==i?`<button class="fs" data-go="${q.view}">${inner}</button>`:`<span class="fs">${inner}</span>`}</li>`}).join("")}</ol>`}
 const TASK={docs:"Mark attendance, then open each document, fill in the details and verify it.",orientation:"Record the pulse score, note what stood out, then mark attended.",interview:"Work through each risk area, pick the closest answer, then submit on the Result step.",drive:"Score every item Pass or Fail, then submit. Use test mode in the vehicle.",ojt:"Log each training day with a date, notes and Pass or Fail.",offer:"Set the start date and terms, preview the letter, then mark it sent."};
 /* ============ views ============ */
-function campaignFilter(){const cs=[...new Set([...settings().campaigns,...Object.values(S.applicants).map(a=>a.campaign).filter(Boolean)])];
-  return `<label class="f" style="min-width:200px">Campaign<select data-act="campaign"><option value="">All campaigns</option>${cs.map(c=>`<option ${UI.campaign===c?"selected":""}>${esc(c)}</option>`).join("")}</select></label>`}
+function campaignFilter(){const C=camps(),op=C.filter(campOpen).map(c=>c.name),cl=C.filter(c=>!campOpen(c)).map(c=>c.name),known=new Set(C.map(c=>c.name));
+  const old=[...new Set(Object.values(S.applicants).map(a=>a.campaign).filter(x=>x&&!known.has(x)))].sort();
+  const o=L=>L.map(c=>`<option ${UI.campaign===c?"selected":""}>${esc(c)}</option>`).join(""),g=(l,L)=>L.length?`<optgroup label="${l}">${o(L)}</optgroup>`:"";
+  return `<label class="f" style="min-width:200px">Campaign<select data-act="campaign"><option value="">All campaigns</option>${cl.length||old.length?g("Open",op):o(op)}${g("Closed",cl)}${g("Other / old campaigns",old)}</select></label>`}
 
 function stationList(L){const k=UI.station;if(!k)return `<p class="small muted" style="margin:10px 0 0;text-align:center">Tap a step to see who reached it.</p>`;
   const lbl=(STATIONS.find(x=>x[0]===k)||[])[1],who=L.filter(a=>reached(a)[k]);
@@ -1363,7 +1365,7 @@ function vImport(){
     const newRows=rows.filter(r=>r.ok&&!r.dup);
     body=`<div class="sect"><header><h3>Match columns</h3><span class="muted small">${c.rows.length} rows in ${esc(c.file)}</span></header><div class="stack">
      <div class="grid2">${fields.map(([k,l])=>`<label class="f">${l}<select data-act="map" data-k="${k}"><option value="">—</option>${c.head.map((h,i)=>`<option value="${i}" ${c.map[k]===i?"selected":""}>${esc(h)}</option>`).join("")}</select></label>`).join("")}
-     <label class="f">Campaign when UTM is blank<select data-act="defcamp">${s.campaigns.map(x=>`<option ${c.defCamp===x?"selected":""}>${esc(x)}</option>`).join("")}</select></label></div>
+     <label class="f">Campaign when UTM is blank<select data-act="defcamp">${camps().map(c=>c.name).map(x=>`<option ${c.defCamp===x?"selected":""}>${esc(x)}</option>`).join("")}</select></label></div>
      <p style="margin:0"><b>${newRows.length}</b> new · ${rows.filter(r=>r.dup&&!r.canceled).length} already imported · ${rows.filter(r=>r.cancelExisting).length} to mark canceled · ${rows.filter(r=>r.addPhone).length?rows.filter(r=>r.addPhone).length+" mobile numbers to add · ":""}${rows.filter(r=>r.ref&&!r.canceled&&(r.ok||r.dup)).length?rows.filter(r=>r.ref&&!r.canceled&&(r.ok||r.dup)).length+" with referral code · ":""}${rows.filter(r=>r.canceled&&!r.cancelExisting).length} canceled, skipped · ${rows.filter(r=>!r.ok&&!r.canceled&&!r.formOnly).length} missing name or time${rows.some(r=>r.formOnly)?` · ${rows.filter(r=>r.formOnly).length} filled the form but haven't booked`:""}</p>
      ${c.formFile?`<p class="small" style="margin:0;color:var(--wait)">This is the Calendly <b>routing form</b> export, not the bookings export. It adds booked applicants and fills in missing mobile numbers and referral codes. For cancellations and exact bookings, also import Calendly's Meetings export.</p>`:""}
      ${rows.some(r=>r.ok&&!r.phone)?`<p class="small" style="margin:0;color:var(--wait)">${rows.filter(r=>r.ok&&!r.phone).length} booking${rows.filter(r=>r.ok&&!r.phone).length>1?"s have":" has"} no mobile number. Bookings made before the Phone Number question was added have no number. Type it on the applicant's page, or ask them when they arrive.</p>`:""}
@@ -1391,9 +1393,7 @@ function vImport(){
        <label class="f">Date issued<input id="mmeddate" type="date" min="2020-01-01" max="2040-12-31"></label></div>
      </div></details>
      <button class="btn primary" data-act="addman">Add applicant</button></div></div>
-    <div class="sect"><header><h3>Campaigns</h3></header><div class="stack"><ul class="checks">${s.campaigns.map(x=>{const n=Object.values(S.applicants).filter(a=>a.campaign===x);const h=n.filter(a=>decide(a).result==="hired").length;
-      return `<li><span>${esc(x)}</span><span class="small muted">${n.length} booked · ${h} hired</span></li>`}).join("")}</ul>
-     <div class="row"><input id="newcamp" placeholder="New campaign name" style="flex:1;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--panel)"><button class="btn" data-act="addcamp">Add</button></div></div></div>
+    <div class="sect"><header><h3>Campaigns</h3></header><div class="stack"><p class="muted" style="margin:0">Imported bookings go to the campaign in their UTM, or the one picked above. Create, close or reopen campaigns on the Campaigns page.</p><div><button class="btn" data-go="campaigns">Open Campaigns</button></div></div></div>
    </div></div>`;
 }
 
@@ -2134,8 +2134,6 @@ document.addEventListener("click",async e=>{
      if(MAN.nbi||g("mnbino"))a.docs.nbi={ref:g("mnbino"),expiry:g("mnbiexp"),photos:await put(MAN.nbi)};
      if(MAN.med||g("mmeddate"))a.docs.medical={date:g("mmeddate"),photos:await put(MAN.med)};
      Object.keys(MAN).forEach(k=>delete MAN[k]);S.applicants[id2]=a;render();await setDoc("applicants/"+id2,a);return toast(`Applicant added · code ${a.code}`)}
-   case"addcamp":{const n=$("#newcamp").value.trim();if(!n)return;const s=settings();if(s.campaigns.includes(n))return toast("That campaign exists.");
-     if(!S.isAdmin&&S.mode==="db")return toast("Ask an Admin to add campaigns.");const ns=Object.assign({},S.settings||{},{campaigns:[...s.campaigns,n]});S.settings=ns;render();return setDoc("admin/settings",ns)}
   }
 });
 document.addEventListener("change",async e=>{
@@ -2158,7 +2156,7 @@ document.addEventListener("change",async e=>{
    case"ojtf":return updateApplicant(id,a=>{a.ojt=a.ojt||{days:[]};const i=+t.dataset.i;a.ojt.days[i]=Object.assign(a.ojt.days[i]||{},{[t.dataset.f]:t.value})});
    case"offf":return updateApplicant(id,a=>{a.offer=a.offer||{status:"draft"};a.offer[t.dataset.f]=t.value});
    case"csv":{const f=t.files[0];if(!f)return;const txt=(await f.text()).replace(/^\ufeff/,"");const rows=parseCSV(txt);if(rows.length<2)return toast("That file has no rows.");
-     UI.csv={file:f.name,head:rows[0],rows:rows.slice(1),formFile:rows[0].some(x=>/^event scheduled$|^result type$/i.test(x.trim())),map:guessMap(rows[0],rows.slice(1)),defCamp:settings().campaigns[0]};return render()}
+     UI.csv={file:f.name,head:rows[0],rows:rows.slice(1),formFile:rows[0].some(x=>/^event scheduled$|^result type$/i.test(x.trim())),map:guessMap(rows[0],rows.slice(1)),defCamp:(camps().find(campOpen)||camps()[0]||{}).name||""};return render()}
    case"photo":{const f=t.files[0];if(!f)return;try{await savePhoto(id,t.dataset.k,await shrinkImage(f))}catch(err){console.error(err);toast("Couldn't save that photo. Try a smaller image.")}return}
    case"restore":{const f=t.files[0];if(!f)return;let d;try{d=JSON.parse(await f.text())}catch(err){return toast("That file isn't a valid backup.")}
      if(d.app!=="mober-das"||!d.applicants)return toast("That file isn't a Mober backup.");
@@ -2196,6 +2194,18 @@ const SAMPLE_APPS=[{"id": "s01", "name": "Rodel Manalo", "phone": "0917 555 0101
 const DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const camps=()=>(settings().camps||[]);
 const campById=id=>camps().find(c=>c.id===id);
+const campApplicants=c=>Object.values(S.applicants).filter(a=>a.campaignId?a.campaignId===c.id:a.campaign===c.name);
+// "hired" for a campaign = accredited (passed the 1-day training)
+const campHired=c=>campApplicants(c).filter(a=>ojtVerdict(a)==="pass"&&!a.released?.fail).length;
+const campOpen=c=>!!c.active&&!(c.endDate&&today()>c.endDate);
+function campStatus(c){if(c.active&&c.startDate&&today()<c.startDate)return tag("Opens "+fmtD(c.startDate),"wait");if(campOpen(c))return tag("Open","go");
+  return tag(c.closedReason==="filled"?"Closed · filled":c.endDate&&today()>c.endDate?"Closed · ended":"Closed","plain")}
+/* closes a campaign by itself when it has hired the drivers it needs, or its end date has passed. Closed, never deleted. */
+function autoCloseCamps(){if(!S.uid||!S.settings)return;let ch=false;const now=new Date().toISOString();
+  const L=camps().map(c=>{if(!c.active)return c;const need=+c.needed||0;
+    if(need&&campHired(c)>=need){ch=true;return Object.assign({},c,{active:false,closedReason:"filled",closedAt:now})}
+    if(c.endDate&&today()>c.endDate){ch=true;return Object.assign({},c,{active:false,closedReason:"ended",closedAt:now})}return c});
+  if(ch)saveCamps(L).then(()=>softRender()).catch(e=>console.error(e))}
 const campUrl=c=>location.href.split("#")[0]+"#apply/"+c.id;
 const linesOf=s=>String(s||"").split(/\n+/).map(x=>x.replace(/^[-•*]\s*/,"").trim()).filter(Boolean);
 const fmtTime=t=>{const [hh,mm]=String(t||"0:0").split(":");const d=new Date();d.setHours(+hh,+mm,0,0);return d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})};
@@ -2206,7 +2216,7 @@ const PUB={route:null,id:null,step:"job",form:{},month:null,day:null,time:null,e
 function parseHash(){const m=location.hash.match(/^#(apply|ticket)\/([\w-]+)/);PUB.route=m?m[1]:/^#status/.test(location.hash)?"status":null;PUB.id=m?m[2]:null}
 parseHash();
 window.addEventListener("hashchange",async()=>{parseHash();PUB.step="job";PUB.day=PUB.time=null;PUB.err="";if(SB&&PUB.route==="ticket")await loadTicket(PUB.id);if(SB&&PUB.route==="apply"&&!S.uid){if(!S.settings)await publicLoad();else await loadSlots()}render();window.scrollTo(0,0)});
-async function saveCamps(list){const s=Object.assign({},S.settings||{});s.camps=list;const names=new Set(s.campaigns||DEFAULT_SETTINGS.campaigns);list.forEach(c=>names.add(c.name));s.campaigns=[...names];S.settings=s;await setDoc("admin/settings",s)}
+async function saveCamps(list){const s=Object.assign({},S.settings||{});s.camps=list;s.campaigns=list.map(c=>c.name);S.settings=s;await setDoc("admin/settings",s)}
 function campSlots(c,day){const d=new Date(day+"T00:00");if(!c.days.includes(d.getDay()))return[];
   const now=Date.now(),[sh,sm]=c.start.split(":").map(Number),[eh,em]=c.end.split(":").map(Number),out=[];
   for(let m=sh*60+sm;m+c.len<=eh*60+em;m+=c.len){if((c.offTimes||[]).includes(hhmm(m)))continue;const t=new Date(d);t.setHours(0,m,0,0);if(t.getTime()<now+60*60000)continue;
@@ -2221,11 +2231,12 @@ function vCampaigns(){
   if(UI.editCamp)return vCampEdit();
   const L=camps(),nowIso=new Date().toISOString();
   return `<div class="head"><div><h1>Campaigns</h1><p>Each campaign has its own job description, interview schedule and application link.</p></div><button class="btn primary" data-act="cp-new">Create campaign</button></div>
-  ${L.length?`<div class="tablewrap"><table><thead><tr><th>Campaign</th><th>Interview schedule</th><th>Applicants</th><th>Status</th><th>Link</th><th></th></tr></thead><tbody>${L.map(c=>{const n=Object.values(S.applicants).filter(a=>a.campaignId===c.id),up=n.filter(a=>(a.slot||"")>nowIso).length;return `<tr>
+  ${L.length?`<div class="tablewrap"><table><thead><tr><th>Campaign</th><th>Interview schedule</th><th>Applicants</th><th>Hired</th><th>Status</th><th>Link</th><th></th></tr></thead><tbody>${L.map(c=>{const n=campApplicants(c),up=n.filter(a=>(a.slot||"")>nowIso).length;return `<tr>
    <td><div>${esc(c.name)}</div><div class="small muted">${esc(c.position)}</div></td>
    <td class="small">${c.days.map(d=>DOW[d]).join(", ")}<div class="muted">${fmtTime(c.start)}–${fmtTime(c.end)} · ${c.seats} per slot</div></td>
    <td>${n.length}${up?`<div class="small muted">${up} upcoming</div>`:""}</td>
-   <td>${c.active?tag("Open","go"):tag("Closed","plain")}</td>
+   <td>${+c.needed?`<b>${campHired(c)}</b> of ${+c.needed}`:campHired(c)}<div class="small muted">${+c.needed?"accredited":"accredited · no target"}</div></td>
+   <td>${campStatus(c)}${c.startDate||c.endDate?`<div class="small muted">${c.startDate?fmtD(c.startDate):"Now"} – ${c.endDate?fmtD(c.endDate):"no end date"}</div>`:""}</td>
    <td><div class="row"><button class="btn sm" data-act="cp-copy" data-id="${c.id}">Copy link</button><a class="btn sm" href="#apply/${c.id}" target="_blank" rel="noopener">Open</a>${qrPng(campUrl(c))?`<a class="btn sm" href="${qrPng(campUrl(c))}" download="${esc(c.id)}-qr.gif">QR</a>`:""}</div></td>
    <td><button class="btn sm" data-act="cp-edit" data-id="${c.id}">Edit</button></td></tr>`}).join("")}</tbody></table></div>`
   :`<div class="tablewrap"><div class="empty">No campaigns yet. Create one to get an application link you can post on Facebook or send by SMS.</div></div>`}`}
@@ -2258,7 +2269,9 @@ function vCampEdit(){const c=UI.editCamp,isNew=!c.id;
   const T=allTimes(c),off=c.offTimes||[],onN=T.filter(t=>!off.includes(t)).length;
   return `<div class="head"><div><button class="btn sm" data-act="cp-cancel">← Campaigns</button><h1 style="margin-top:10px">${isNew?"Create campaign":esc(c.name)}</h1><p>Applicants read the job description, fill in their details, answer a few questions, then request an interview time.</p></div></div>
   <div class="cp-grid"><div class="stack">
-   <div class="sect"><header><h3>1. Campaign</h3></header><div class="cp-3">${f("name","Campaign name",c.name,"text",'placeholder="e.g. Facebook – Manila, October"')}${f("position","Position",c.position)}</div></div>
+   <div class="sect"><header><h3>1. Campaign</h3></header><div class="stack"><div class="cp-3">${f("name","Campaign name",c.name,"text",'placeholder="e.g. Facebook – Manila, October"')}${f("position","Position",c.position)}</div>
+     <div class="cp-3">${f("needed","Drivers needed (optional)",c.needed||"","number",'min="1" max="999" placeholder="e.g. 20"')}${f("startDate","Campaign starts (optional)",c.startDate,"date")}${f("endDate","Campaign ends (optional)",c.endDate,"date")}</div>
+     <p class="small muted" style="margin:0">The campaign closes by itself when it reaches the drivers needed (counted when they are <b>accredited</b>) or after the end date. It is closed, not deleted.${c.id?` Hired so far: <b>${campHired(c)}</b>.`:""}</p></div></div>
    <div class="sect"><header><h3>2. Job description</h3></header><div class="stack">${ta("jd","About the role",c.jd,"What the job is and what a typical day looks like.",6)}${ta("reqs","Requirements",c.reqs,"One per line.",5)}${ta("perks","Pay and benefits",c.perks,"One per line.",4)}</div></div>
    <div class="sect"><header><h3>3. Interview location</h3></header><div class="stack"><div class="cp-3">${f("hubName","Hub name",c.hubName??"2C Hub")}${f("hubGeo","Map pin (latitude, longitude)",c.hubGeo,"text",'placeholder="Filled in when you save"')}</div>${f("location","Hub address",c.location)}
      <p class="small muted" style="margin:0">Used to estimate each applicant's distance and travel time. ${parseGeo(c.hubGeo)?"Pin is set.":"If the pin stays empty after saving, paste the latitude and longitude from Google Maps."}</p></div></div>
@@ -2266,9 +2279,9 @@ function vCampEdit(){const c=UI.editCamp,isNew=!c.id;
      <div><div class="lbl">Interview days</div><div class="cp-days">${DOW.map((d,i)=>`<label class="cp-day"><input type="checkbox" data-day="${i}" ${c.days.includes(i)?"checked":""}><span>${d}</span></label>`).join("")}</div></div>
      <div class="cp-3">${f("start","First slot starts",c.start,"time")}${f("end","Last slot ends",c.end,"time")}<label class="f">Slot length<select id="cp-len">${[30,45,60,90,120,180,240].map(m=>`<option value="${m}" ${c.len==m?"selected":""}>${m<120?m+" minutes":m/60+" hours"}</option>`).join("")}</select></label></div>
      <div><div class="lbl">Time slots offered <span class="muted small">· ${onN} of ${T.length} on. Untick the ones you don't want.</span></div><div class="cp-days">${T.map(t=>`<label class="cp-day"><input type="checkbox" data-time="${t}" ${off.includes(t)?"":"checked"}><span>${fmtTime(t)}</span></label>`).join("")||`<span class="small muted">Set a start and end time first.</span>`}</div></div>
-     <div class="cp-3">${f("seats","Applicants per time slot",c.seats,"number",'min="1" max="50"')}${f("window","Bookable days ahead",c.window,"number",'min="1" max="90"')}${f("endDate","Campaign ends (optional)",c.endDate,"date")}</div>
+     <div class="cp-3">${f("seats","Applicants per time slot",c.seats,"number",'min="1" max="50"')}${f("window","Bookable days ahead",c.window,"number",'min="1" max="90"')}</div>
      <p class="small muted" style="margin:0">Each interview day has ${onN} slot${onN===1?"":"s"} × ${c.seats} applicant${c.seats==1?"":"s"} = up to ${onN*c.seats} interview${onN*c.seats===1?"":"s"} a day.</p>
-     <label class="row"><input type="checkbox" id="cp-active" ${c.active?"checked":""}> Accept new applications</label>
+     <label class="row"><input type="checkbox" id="cp-active" ${c.active?"checked":""}> Accept new applications</label>${!c.active&&c.closedReason?`<p class="small muted" style="margin:0">Closed automatically ${fmtD(c.closedAt)} because it ${c.closedReason==="filled"?"reached the drivers needed":"passed its end date"}.</p>`:""}
    </div></div>
    <div class="sect"><header><h3>4b. Training schedule</h3></header><div class="stack"><p class="small muted" style="margin:0">Training days are set by the trainer in <b>Training calendar</b> and shared by all campaigns.</p><div><button class="btn sm" data-go="trcal">Open Training calendar</button></div></div></div>
    <div class="sect"><header><h3>5. Pre-profile questions</h3></header><div class="stack">
@@ -2281,7 +2294,7 @@ function vCampEdit(){const c=UI.editCamp,isNew=!c.id;
      <label class="row"><input type="checkbox" id="cp-autoApprove" ${c.autoApprove!==false?"checked":""}> Approve the interview automatically when the applicant passes</label>
      <div class="cp-3">${f("passScore","Passing pre-profile score (%)",c.passScore??70,"number",'min="0" max="100"')}${f("minAge","Minimum age",c.minAge??21,"number",'min="18" max="70"')}${f("maxAge","Maximum age (optional)",c.maxAge??"","number",'min="18" max="80"')}</div>
      <p class="small muted" style="margin:0">Applicants under 18 can't apply. Anyone below the passing score or outside the age range goes to Requests for Document check to approve or decline.</p></div></div>
-   <div class="row"><button class="btn primary lg" data-act="cp-save">${isNew?"Create campaign and get link":"Save changes"}</button><button class="btn" data-act="cp-cancel">Cancel</button>${!isNew?`<button class="btn danger" data-act="cp-del" data-id="${c.id}" style="margin-left:auto">Delete campaign</button>`:""}</div>
+   <div class="row"><button class="btn primary lg" data-act="cp-save">${isNew?"Create campaign and get link":"Save changes"}</button><button class="btn" data-act="cp-cancel">Cancel</button>${!isNew&&can("admin")?`<button class="btn danger" data-act="cp-del" data-id="${c.id}" style="margin-left:auto">Delete campaign</button>`:""}</div>
   </div>
   <aside class="cp-side">${c.id?campLinkCard(c):`<div class="panel"><h3 style="margin:0 0 6px">Campaign link</h3><p class="small muted" style="margin:0">The link and its QR code appear here once you create the campaign.</p></div>`}</aside></div>`}
 function campLinkCard(c){const u=campUrl(c);return `<div class="panel stack"><h3 style="margin:0">Campaign link</h3><div class="cp-url">${esc(u)}</div>
@@ -2296,7 +2309,7 @@ function readCampFormBase(){const g=k=>{const el=document.getElementById("cp-"+k
     return{id:q.id,text:t?t.value:q.text,opts:o?o.value.split("\n").map(l=>{const [a,b]=l.split("|");return[(a||"").trim(),Math.max(0,parseInt(b)||0)]}).filter(x=>x[0]):q.opts}});
   const chips=[...document.querySelectorAll("[data-time]")];
   return Object.assign({},c0,{name:g("name"),position:g("position"),jd:g("jd"),reqs:g("reqs"),perks:g("perks"),hubName:g("hubName"),hubGeo:g("hubGeo"),location:g("location"),start:g("start")||"09:00",end:g("end")||"16:00",
-   len:+g("len")||60,seats:Math.max(1,+g("seats")||1),window:Math.max(1,+g("window")||14),endDate:g("endDate"),active:!!document.getElementById("cp-active")?.checked,
+   len:+g("len")||60,seats:Math.max(1,+g("seats")||1),window:Math.max(1,+g("window")||14),endDate:g("endDate"),startDate:g("startDate"),needed:Math.max(0,parseInt(g("needed"))||0)||"",active:!!document.getElementById("cp-active")?.checked,
    days:[...document.querySelectorAll("[data-day]")].filter(x=>x.checked).map(x=>+x.dataset.day),
    offTimes:chips.length?chips.filter(x=>!x.checked).map(x=>x.dataset.time):(c0.offTimes||[]),
    autoApprove:!!document.getElementById("cp-autoApprove")?.checked,passScore:Math.min(100,Math.max(0,+g("passScore")||0)),minAge:Math.max(18,+g("minAge")||18),maxAge:g("maxAge")?+g("maxAge"):"",questions:Q})}
@@ -2304,11 +2317,12 @@ function readCampFormBase(){const g=k=>{const el=document.getElementById("cp-"+k
 /* ---- public application page ---- */
 function pubShell(inner,c){return `<div class="ap"><header class="ap-top">${c?`<span class="small muted">${esc(c.position)}</span>`:""}</header><div class="ap-body">${inner}</div><footer class="ap-foot small muted"></footer></div>`}
 function vPublic(){
-  if(PUB.route==="apply"&&PUB.id==="open"){const oc=camps().find(x=>x.active&&!(x.endDate&&today()>x.endDate));if(oc)PUB.id=oc.id}
+  if(PUB.route==="apply"&&PUB.id==="open"){const oc=camps().find(x=>campOpen(x)&&!(x.startDate&&today()<x.startDate));if(oc)PUB.id=oc.id}
   if(PUB.route==="ticket")return vTicket(S.applicants[PUB.id]);
   if(PUB.route==="status")return vStatus();
   const c=campById(PUB.id);
   if(!c)return pubShell(`<div class="ap-card ap-narrow"><h1>Hindi makita ang link</h1><p class="muted">Hindi valid ang link na 'to. Humingi ng bagong link sa recruiter.</p></div>`);
+  if(c.active&&c.startDate&&today()<c.startDate)return pubShell(`<div class="ap-card ap-narrow"><h1>Malapit nang magbukas</h1><p class="muted">Magbubukas ang applications para sa ${esc(c.position)} sa <b>${fmtD(c.startDate)}</b>. Balikan mo lang itong link sa araw na 'yan.</p></div>`,c);
   if(!c.active||(c.endDate&&today()>c.endDate))return pubShell(`<div class="ap-card ap-narrow"><h1>Sarado na ang applications</h1><p class="muted">Sarado na ang applications para sa ${esc(c.position)}. Salamat sa interes mo!</p></div>`,c);
   const st=PUB.step,steps=[["job","1. Simula"],["lic","2. License"],["form","3. Contact info"],["quiz","4. Mga tanong"],["time","5. Interview"]],si=steps.findIndex(x=>x[0]===st);
   const bar=`<ol class="ap-steps">${steps.map(([k,l],i)=>`<li class="${i<=si?"on":""}">${l}</li>`).join("")}</ol>`;
@@ -2936,11 +2950,17 @@ document.addEventListener("click",async e=>{const b=e.target.closest("[data-act]
    case"cp-edit":UI.editCamp=clone(campById(id));render();return window.scrollTo(0,0);
    case"cp-cancel":UI.editCamp=null;return render();
    case"cp-copy":{const c=campById(id),u=campUrl(c);try{await navigator.clipboard.writeText(u);toast("Link copied")}catch(err){prompt("Copy this link",u)}return}
-   case"cp-del":{const c=campById(id);if(!confirm(`Delete “${c.name}”? Applicants who already booked stay in the system.`))return;await saveCamps(camps().filter(x=>x.id!==id));UI.editCamp=null;render();return toast("Campaign deleted")}
+   case"cp-del":{const c=campById(id);if(!can("admin"))return toast("Only an Admin can delete a campaign.");const n=campApplicants(c).length;
+     if(n)return toast(`“${c.name}” has ${n} applicant${n>1?"s":""}, so it can't be deleted. Untick “Accept new applications” to close it instead.`);
+     if(!confirm(`Delete “${c.name}”? This can't be undone.`))return;await saveCamps(camps().filter(x=>x.id!==id));UI.editCamp=null;render();return toast("Campaign deleted")}
    case"cp-save":{const c=readCampForm(),isNew=!c.id;
      if(!c.name)return toast("Give the campaign a name.");if(!c.position)return toast("Add the position.");if(!c.jd)return toast("Add the job description.");
      if(!c.days.length)return toast("Pick at least one interview day.");if(c.end<=c.start)return toast("The last slot must end after the first one starts.");
      if(camps().some(x=>x.name.toLowerCase()===c.name.toLowerCase()&&x.id!==c.id))return toast("Another campaign has that name.");
+     if(c.startDate&&c.endDate&&c.endDate<c.startDate)return toast("The end date must be after the start date.");
+     if(c.active&&+c.needed&&c.id&&campHired(c)>=+c.needed){const h=campHired(c);return toast(`This campaign already has ${h} accredited driver${h===1?"":"s"}. Raise "Drivers needed" to reopen it.`)}
+     if(c.active&&c.endDate&&today()>c.endDate)return toast("The end date has passed. Change it to reopen the campaign.");
+     if(c.active)delete c.closedReason,delete c.closedAt;
      const L=camps().slice();
      if(isNew){c.id=(c.name.toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,32)||"campaign")+"-"+uid().slice(0,4);c.createdAt=new Date().toISOString();c.by=S.uid;L.push(c)}
      else{L[L.findIndex(x=>x.id===c.id)]=c;let ch=false;Object.values(S.applicants).forEach(a=>{if(a.campaignId===c.id&&a.campaign!==c.name){a.campaign=c.name;ch=true}});if(ch)localSave()}
