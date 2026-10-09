@@ -1070,7 +1070,7 @@ const stageTag=a=>{const[l,k]=STAGES[stage(a)];return tag(l,k)};
 
 /* ============ UI state ============ */
 const UI={view:"pipeline",id:null,campaign:"",q:"",csv:null,dayFilter:"today",resFilter:"all",editQ:null};
-function go(view,id){if(view==="scan")view="checkin";if(view==="checkin"&&can("verifier")){UI.view="checkin";UI.mci={screen:"scan"};UI.menu=null;render();return window.scrollTo(0,0)}if(view!=="campaigns")UI.editCamp=null;UI.view=view;UI.id=id||null;UI.tab=UI.sec||null;UI.sec=null;UI.justDone=null;UI.menu=null;UI.testMode=null;UI.ivIdx=0;UI.ivStep=null;UI.ivFor=null;render();window.scrollTo(0,0)}
+function go(view,id){if(view==="scan")view="checkin";if(view==="drivebank"){view="bank";UI.bankTab="drive"}if(view==="checkin"&&can("verifier")){UI.view="checkin";UI.mci={screen:"scan"};UI.menu=null;render();return window.scrollTo(0,0)}if(view!=="campaigns")UI.editCamp=null;UI.view=view;UI.id=id||null;UI.tab=UI.sec||null;UI.sec=null;UI.justDone=null;UI.menu=null;UI.testMode=null;UI.ivIdx=0;UI.ivStep=null;UI.ivFor=null;render();window.scrollTo(0,0)}
 const list=()=>Object.values(S.applicants).filter(a=>!UI.campaign||a.campaign===UI.campaign);
 
 /* ============ queues: what is ready for each role ============ */
@@ -1088,7 +1088,7 @@ function queueCount(stages){return list().filter(a=>stages.includes(stage(a))).l
 function myQueues(){return QUEUES.filter(q=>can(q.role))}
 function moreItems(){const m=[];if(can("marketing"))m.push(["import","Import bookings"]);
   if(can("marketing")||can("verifier"))m.push(["reminders","Interview reminders",remindList().filter(a=>!a.reminder).length]);
-  if(can("interviewer")||can("marketing"))m.push(["bank","Question bank"]);if(can("tester"))m.push(["drivebank","Driving test items"]);if(can("trainer")||can("marketing")||can("verifier"))m.push(["trcal","Training calendar"]);if(S.isAdmin)m.push(["team","Accounts",S.accounts.filter(a=>a.pending).length],["settings","Rules & data"]);return m}
+  if(can("interviewer")||can("marketing")||can("tester"))m.push(["bank","Question bank"]);if(can("trainer")||can("marketing")||can("verifier"))m.push(["trcal","Training calendar"]);if(S.isAdmin)m.push(["team","Accounts",S.accounts.filter(a=>a.pending).length],["settings","Rules & data"]);return m}
 function renderNav(){
   const cur=UI.view==="profile"?(UI.back||"applicants"):UI.view==="results"?"applicants":UI.view;
   const btn=(v,l,n,isQ)=>`<button class="navbtn" data-go="${v}" aria-current="${cur===v}"><span>${l}</span>${n==null?"":isQ?(n?`<span class="rdy" aria-label="${n} ready">${n}</span>`:""):`<span class="n">${n}</span>`}</button>`;
@@ -1385,10 +1385,10 @@ function vImport(){
    </div></div>`;
 }
 
-/* ---- driving test items editor (Admin + Driving instructor) ---- */
-function vDriveBank(){if(!can("tester"))return `<div class="panel empty">Only Admins and driving instructors can edit the driving test.</div>`;
+/* ---- driving test items editor (Question bank tab; Admin + Driving instructor) ---- */
+function vBankDrive(){if(!can("tester"))return `<div class="panel empty">Only Admins and driving instructors can edit the driving test.</div>`;
   const E=UI.editDrive||(UI.editDrive={items:clone(driveItems()),pass:settings().drivePass});const tot=E.items.reduce((x,i)=>x+Math.max(1,+i.weight||1),0);
-  return `<div class="head"><div><h1>Driving test items</h1><p>What the instructor scores in the vehicle. Weight = points for the item. A failed <b>critical</b> item fails the whole test.</p></div></div>
+  return `<p class="muted" style="margin:0 0 16px">What the instructor scores in the vehicle. Weight = points for the item. A failed <b>critical</b> item fails the whole test.</p>
   <div class="sect"><header><h3>${E.items.length} items · ${tot} points</h3></header><div class="stack">
    ${E.items.map((i,k)=>`<div class="row" style="gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px">
      <span class="muted small" style="width:22px">${k+1}</span>
@@ -1945,7 +1945,7 @@ function render(){
   document.documentElement.style.setProperty("--hh",$("#rail").offsetHeight+"px");
   const noRole=!S.isAdmin&&!myRoles().length;
   const V={pipeline:vPipeline,applicants:vApplicants,results:vResults,checkin:vCheckin,orientation:vOrientation,interview:vInterview,bank:vBank,
-    import:vImport,drive:vDrive,drivebank:vDriveBank,registry:vRegistry,trcal:vTrCal,ojt:vOjt,offers:vOffers,inform:vInform,team:vTeam,settings:vSettings,profile:vProfile,reports:vReports,reminders:vReminders,campaigns:vCampaigns,scan:vScan,requests:vRequests};
+    import:vImport,drive:vDrive,registry:vRegistry,trcal:vTrCal,ojt:vOjt,offers:vOffers,inform:vInform,team:vTeam,settings:vSettings,profile:vProfile,reports:vReports,reminders:vReminders,campaigns:vCampaigns,scan:vScan,requests:vRequests};
   const act=document.activeElement,keep=act&&act.dataset&&act.dataset.act&&["INPUT","TEXTAREA"].includes(act.tagName)?{a:act.dataset.act,id:act.dataset.id,k:act.dataset.k,f:act.dataset.f,i:act.dataset.i,pos:act.selectionStart}:null;
   if(keep&&UI.typing)return; // don't repaint under someone mid-typing
   $("#main").innerHTML=(noRole&&UI.view==="pipeline"?vNoAccess()+"<div style='height:16px'></div>":"")+(V[UI.view]||vPipeline)();
@@ -2779,11 +2779,13 @@ function vBankApp(){const C=camps(),scope=UI.pqScope&&(UI.pqScope==="default"||c
     ${!l.length?`<p class="small muted" style="margin:0">No questions in this category yet.</p>`:""}
     ${l.map(([q,i])=>E&&E.idx===i?form(k):`<div class="q"><div class="row" style="justify-content:space-between;flex-wrap:nowrap;align-items:flex-start"><div style="min-width:0"><b>${esc(q.text)}</b><div class="small muted">${q.opts.map(o=>`${esc(o[0])} · ${o[1]}`).join("&nbsp;&nbsp;/&nbsp;&nbsp;")}</div></div>
       <div class="row" style="flex:none">${tag("max "+Math.max(0,...q.opts.map(o=>o[1])),"plain")}<button class="btn sm" data-pq="edit" data-v="${i}">Edit</button><button class="btn sm danger" data-pq="del" data-v="${i}">Remove</button></div></div></div>`).join("")}</div></div>`).join("")}</div>`}
-function vBank(){const canI=can("interviewer"),canA=can("marketing");let tab=UI.bankTab||(canI?"interview":"app");if(tab==="interview"&&!canI)tab="app";if(tab==="app"&&!canA)tab="interview";
+function vBank(){const T=[["interview","Interview questions",can("interviewer")],["app","Application questions",can("marketing")],["drive","Driving test items",can("tester")]].filter(x=>x[2]);
+  if(!T.length)return `<div class="panel empty">You don't have access to the question bank.</div>`;
+  const tab=T.some(x=>x[0]===UI.bankTab)?UI.bankTab:T[0][0];
   return `<div class="head"><div><h1>Question bank</h1></div></div>
-  <div class="qb-bar">${canI&&canA?`<div class="qb-tabs" role="tablist"><button role="tab" aria-selected="${tab==="interview"}" data-bt="interview">Interview questions</button><button role="tab" aria-selected="${tab==="app"}" data-bt="app">Application questions</button></div>`:`<span></span>`}
-   <div class="row"><button class="btn" data-qb-addcat="${tab}">+ Add category</button>${tab==="interview"?`<button class="btn primary" data-act="newq">+ Add question</button>`:`<button class="btn primary" data-pq="add">+ Add question</button>`}</div></div>
-  ${tab==="interview"?vBankInterview():vBankApp()}`}
+  <div class="qb-bar">${T.length>1?`<div class="qb-tabs" role="tablist">${T.map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" data-bt="${k}">${l}</button>`).join("")}</div>`:`<span></span>`}
+   ${tab==="drive"?"":`<div class="row"><button class="btn" data-qb-addcat="${tab}">+ Add category</button>${tab==="interview"?`<button class="btn primary" data-act="newq">+ Add question</button>`:`<button class="btn primary" data-pq="add">+ Add question</button>`}</div>`}</div>
+  ${tab==="interview"?vBankInterview():tab==="app"?vBankApp():vBankDrive()}`}
 document.addEventListener("click",async e=>{const t=e.target;const bt=t.closest("[data-bt]");if(bt){UI.bankTab=bt.dataset.bt;UI.editQ=null;UI.pqEdit=null;return render()}
   const b=t.closest("[data-pq]");if(!b)return;e.preventDefault();const A=b.dataset.pq,scope=UI.pqScope,Q=pqList(scope).map(q=>Object.assign({},q,{cat:pqCat(q)}));
   if(A==="add"){UI.pqEdit={scope,idx:null,cat:b.dataset.v||Object.keys(PQ_CATS)[0],text:"",opts:[["Yes",10],["No",0]]};render();return window.scrollTo(0,0)}
