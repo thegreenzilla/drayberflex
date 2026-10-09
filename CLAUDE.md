@@ -24,10 +24,10 @@ Owner: Dennis (non-technical). Explain changes in plain language, confirm before
 
 ## Data model (Supabase)
 - `applicants(id, code unique, data jsonb, notified_at)` – whole applicant record in `data`.
-- `app_config(key in ('settings','bank'))` – settings (campaigns `camps`, `training` calendar, `driveItems`, rules) and question bank.
-- `profiles` – staff accounts, `roles` text[]: admin, marketing, verifier (Check-in & documents), orientation, interviewer, tester (driving instructor), trainer, hr.
+- `app_config(key in ('settings','bank','jobs'))` – settings (campaigns `camps`, `training` calendar, `driveItems`, rules; **readable by the public**), question bank, and `jobs` (staff-only: job orders, ad spend, ad budgets – keep anything private here, never in settings).
+- `profiles` – staff accounts, `roles` text[]: admin, marketing, verifier (Check-in & documents), orientation, interviewer, tester (driving instructor), trainer, hr, operations (job orders only, no applicant details).
 - Storage bucket `docs` (private): photos `<pid>.jpg`, attachments `att/<applicantId>/<fileId>.<ext>` (images + PDF, 10 MB).
-- Public RPCs (anon): `submit_application`, `slot_counts`, `get_ticket`, `lookup_ticket`, `training_counts`, `training_respond`, `book_training`.
+- Public RPCs (anon): `submit_application`, `check_license`, `slot_counts`, `get_ticket`, `lookup_ticket`, `training_counts`, `training_respond`, `book_training`.
 - RLS: staff (active profile) read/write applicants; anon only through RPCs.
 
 ## Key business rules
@@ -38,6 +38,11 @@ Owner: Dennis (non-technical). Explain changes in plain language, confirm before
 - Training: 1 day, schedule set by trainer in **Training calendar** (shared across campaigns); applicant can change date once, up to the day before.
 - Driving test items + weights editable by Admin and Driving instructor; critical item fail = test fail.
 - Minimum age 21.
+- One person = one driver's license number (letter + 10 digits, compared without spaces/dashes). One active application per license;
+  after a "Failed" result they wait the months in Rules & data, or are blocked for good (red flag, NBI hit, fake document,
+  critical driving fail twice) unless Admin allows. Enforced in `submit_application` / `check_license` (SQL) and set when Check-in taps Failed.
+- Who sees what: interview results = Interviewer, Check-in, HR, Admin; driving results = Check-in, HR, Admin. Page access per role is `VIEW_ROLES`.
+- Campaigns close by themselves (never deleted) when accredited drivers reach the target or after the last day; dates are also enforced in SQL.
 
 ## Writing rules
 - Applicant-facing text: natural **Taglish**. Staff screens: English.
