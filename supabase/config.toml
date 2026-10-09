@@ -1,0 +1,6 @@
+# Only used if you deploy with the Supabase CLI. Both functions check access themselves.
+[functions.notify]
+verify_jwt = false
+
+[functions.admin-users]
+verify_jwt = false
