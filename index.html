@@ -11,6 +11,13 @@
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
+<script>/* test site (config.js has TEST:true): banner on every page, title prefix, hidden from search engines */
+if(window.APP_CONFIG&&APP_CONFIG.TEST){const m=document.createElement("meta");m.name="robots";m.content="noindex,nofollow";document.head.appendChild(m);
+  document.addEventListener("DOMContentLoaded",()=>{const b=document.createElement("div");b.setAttribute("role","note");b.textContent="TEST SITE · practice data only · the real site is apply.drayberflex.com";
+    b.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#c0392b;color:#fff;font:600 13px/1.2 system-ui,sans-serif;text-align:center;padding:7px 10px;letter-spacing:.02em;pointer-events:none";
+    document.body.appendChild(b);document.body.style.paddingBottom="32px"});
+  new MutationObserver(()=>{if(!document.title.startsWith("[TEST] "))document.title="[TEST] "+document.title}).observe(document.querySelector("title")||document.head,{childList:true,subtree:true,characterData:true});document.title="[TEST] "+document.title}
+</script>
 <script>window.SB=(window.supabase&&window.APP_CONFIG&&/^https:\/\/.+\.supabase\.co/.test(APP_CONFIG.SUPABASE_URL||"")&&APP_CONFIG.SUPABASE_ANON_KEY&&!/PASTE/.test(APP_CONFIG.SUPABASE_ANON_KEY))?window.supabase.createClient(APP_CONFIG.SUPABASE_URL,APP_CONFIG.SUPABASE_ANON_KEY):null;</script>
 <template id="__bundler_thumbnail" data-bg-color="#030f1f"><svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg"><rect width="1200" height="800" fill="#030f1f"/><text x="600" y="460" text-anchor="middle" font-family="Arial,sans-serif" font-weight="800" font-size="150" fill="#fff">Drayber<tspan fill="#8fd14f">Flex</tspan></text></svg></template>
 <style>
@@ -2163,7 +2170,7 @@ function render(){
     perks:"Flexible schedule, pick your own days\nWeekly pay\nFree EV van and charging\n1-day paid training"});S.settings=Object.assign({},S.settings||{},{camps:[c],campSeeded:true,campaigns:[...new Set([...(S.settings?.campaigns||DEFAULT_SETTINGS.campaigns),c.name])]});localSave()}
   if(typeof qbMerge==="function")qbMerge();
   
-  if(PUB.route){document.body.classList.add("full");$("#offline").hidden=true;$("#dropdown").hidden=true;$("#main").style.padding="0";$("#main").innerHTML=vPublic();document.title=(campById(PUB.id)?.position||"Mober")+" · Apply";return}
+  if(PUB.route){document.body.classList.add("full");$("#offline").hidden=true;$("#dropdown").hidden=true;$("#main").style.padding="0";$("#main").innerHTML=vPublic();document.title=(campById(PUB.id)?.position||"Drayber Flex")+" · Apply";return}
   const authing=!S.uid||UI.auth==="change",full=authing||!!UI.testMode||!!UI.mci;document.body.classList.toggle("full",full);$("#offline").hidden=full;
   if(full){UI.menu=null;$("#dropdown").hidden=true;$("#gres").hidden=true}
   if(!authing&&UI.mci){document.body.classList.add("full");$("#main").style.padding="0";$("#main").innerHTML=vMci();hydratePhotos();scanAfterRender();return}

@@ -568,3 +568,11 @@ begin
 end $$;
 revoke all on function public.submit_application(jsonb) from public;
 grant execute on function public.submit_application(jsonb) to anon, authenticated;
+
+-- =====================================================================
+-- Table permissions (explicit, so a new project works even if "Automatically expose new tables"
+-- was switched off). Row level security above still decides which rows each person can see.
+-- =====================================================================
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete on public.applicants, public.app_config, public.profiles to authenticated;
+grant select on public.app_config to anon;

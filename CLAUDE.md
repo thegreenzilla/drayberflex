@@ -13,6 +13,10 @@ Owner: Dennis (non-technical). Explain changes in plain language, confirm before
 - Backend: Supabase project ref `xtwxydojxucrrkkxlraa` (Singapore).
   `config.js` holds the project URL + **publishable** key (public by design). Never put secret/service keys in this repo.
 - DNS: GoDaddy, CNAME `apply` → `thegreenzilla.github.io`.
+- **Test site**: https://apply.drayberflex.com/test/ – `test/index.html` (copy of `index.html`) + `test/config.js` (`TEST:true`, separate
+  Supabase project `drayberflex-test`, ref `punybdtlwngmkhqjtmqh`). Red TEST banner, noindex. No email/SMS or Accounts functions there.
+  Workflow: ship a change to `test/index.html` first; after Dennis tries it, copy the same file to the root `index.html` (live).
+  New database setup = `supabase/sql/full_schema_for_new_projects_only.sql` (all updates included; keep it in step with each dated file).
 
 ## Code layout
 - `index.html` – the whole app (vanilla JS, no build step). Staff app + public applicant pages (hash routes):
