@@ -125,6 +125,8 @@ tbody tr:last-child td{border-bottom:0}
 .kpi{background:var(--panel);border:1px solid var(--line);border-left:6px solid var(--go);border-radius:6px;padding:12px 14px}
 .kpi b{display:block;font-family:var(--display);font-size:34px;line-height:1.05}
 .kpi span{font-size:14px;color:var(--mute)}
+.file-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+#wm{position:fixed;inset:0;pointer-events:none;z-index:30;background-repeat:repeat}
 .kpi .dk{display:block;font-size:12.5px;color:var(--mute);margin-top:4px}.kpi .dk.up{color:var(--go)}.kpi .dk.down{color:var(--stop)}.kpi.warn{border-left-color:var(--stop)}
 .sect{border:1px solid var(--line);border-radius:8px;background:var(--panel)}
 .sect>header{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
@@ -843,7 +845,7 @@ main#main:has(.reg-table){max-width:min(1680px,100%)}
 /* ============ constants ============ */
 const ROLES={admin:"Admin",marketing:"Marketing",verifier:"Document check",orientation:"Orientation",interviewer:"Interviewer",tester:"Driving tester",trainer:"OJT trainer",hr:"HR offers",operations:"Operations"};
 const DEFAULT_SETTINGS={reapplyDocs:0,reapplyInterview:3,reapplyDrive:1,reapplyTraining:3,interviewPass:70,drivePass:80,highRiskBlocks:true,redFlagBlocks:true,ojtDays:5,ojtMinPass:5,medicalMaxMonths:6,requirePro:true,
-  campaigns:["Facebook – Manila","Facebook – Cebu","Referral","Walk-in"],position:"Delivery Driver (EV)",company:"",idleMinutes:15,hubAddress:"Hub (set the address in Rules & data)",
+  campaigns:["Facebook – Manila","Facebook – Cebu","Referral","Walk-in"],position:"Delivery Driver (EV)",company:"",dpoName:"Marie Kim",dpoEmail:"contact@thegreenzilla.com",idleMinutes:15,idleMinutesDesk:5,hubAddress:"Hub (set the address in Rules & data)",
   reminderText:"DRAYBERFLX: Paalala {first}, interview mo sa {date}, {time}, {address}. Code: {code}. Dalhin ang original NBI, medical cert at driver's license. Salamat!"};
 const DIMS={absenteeism:"Absenteeism",safety:"Road safety",integrity:"Integrity",customer:"Customer handling",retention:"Commitment & retention"};
 const CATS={situational:"Situational",behavioural:"Behavioural",background:"Background"};
@@ -1012,7 +1014,9 @@ function startSession(u){S.uid=u.id;S.isAdmin=u.roles.includes("admin");S.viewAs
 function logout(msg){if(SB){SB.auth.signOut().catch(()=>{});unsubscribe();S.applicants={};S.bank=null;S.jobs=null;S.accounts=[];_lastApp={};_mine={};_bstat={}}UI.signedUp=null;setTimeout(()=>{if(!S.uid&&UI.auth==="login"){UI.auth="landing";render()}},0);if(typeof closeCam==="function"&&$(".cam"))closeCam();S.uid=null;S.isAdmin=false;UI.auth="login";UI.view="pipeline";UI.id=null;try{sessionStorage.removeItem(SESS)}catch(e){}render();if(msg)toast(msg)}
 let lastAct=Date.now();function touch(){lastAct=Date.now();try{if(S.uid)sessionStorage.setItem(SESS,JSON.stringify({uid:S.uid,t:lastAct}))}catch(e){}}
 ["click","keydown","pointermove"].forEach(ev=>document.addEventListener(ev,()=>{if(Date.now()-lastAct>5000)touch()},{passive:true}));
-setInterval(()=>{if(S.uid&&Date.now()-lastAct>settings().idleMinutes*60000)logout("Signed out after being idle.")},20000);
+// Check-in desk accounts (shared tablets) sign out sooner
+const idleLimit=()=>{const s=settings(),m=myRoles();return (!S.isAdmin&&m.includes("verifier")?+s.idleMinutesDesk||5:+s.idleMinutes||15)*60000};
+setInterval(()=>{if(S.uid&&Date.now()-lastAct>idleLimit())logout("Signed out after being idle.")},20000);
 const pwOk=p=>p&&p.length>=8;
 
 /* ============ roles ============ */
@@ -1028,6 +1032,9 @@ const VIEW_ROLES={team:["admin"],settings:["admin"],reports:["hr"],import:["mark
   orientation:["orientation"],interview:["interviewer"],drive:["tester"],ojt:["trainer"],offers:["hr"]};
 const canView=v=>{const R=VIEW_ROLES[v];if(R)return R.some(r=>can(r));return !opsOnly()||v==="pipeline"};
 const opsOnly=()=>{const m=myRoles();return m.length>0&&m.every(r=>r==="operations")};
+// personal data: full IDs and document photos = Check-in, HR (+Admin); applicant details without IDs = also Marketing
+const seeIds=()=>can("verifier")||can("hr"),seeFile=()=>seeIds()||can("marketing");
+const maskNo=n=>{const s=String(n||""),k=s.replace(/[^A-Za-z0-9]/g,"");return k.length<5?"••••":(/^[A-Za-z]/.test(k)?k.slice(0,3)+"-••-••":"••••••••")+k.slice(-4)};
 const seeIv=()=>can("interviewer")||can("verifier")||can("hr"),seeDr=()=>can("verifier")||can("hr");
 
 /* ============ rules engine ============ */
@@ -1348,7 +1355,7 @@ const STATUS_GROUPS=[["all","All statuses"],["wait","Waiting for approval",["req
   ["accr","Accredited",["accredited"]],["fail","Not passed",["docs_fail","iv_fail","drive_fail","ojt_fail","failed_told","not_hired"]],["out","Declined / canceled",["booking_declined","canceled","training_declined"]]];
 const SORTS=[["slot_desc","Interview date · newest first"],["slot_asc","Interview date · oldest first"],["created_desc","Date booked · newest first"],["name","Name A–Z"]];
 function filteredApplicants(){const q=(UI.q||"").toLowerCase(),g=STATUS_GROUPS.find(x=>x[0]===(UI.apStat||"all")),fr=UI.apFrom||"",to=UI.apTo||"";
-  const rows=list().filter(a=>(!q||(a.name+" "+(a.email||"")+" "+(a.phone||"")+" "+(a.refCode||"")+" "+(a.code||"")).toLowerCase().includes(q))
+  const rows=list().filter(a=>(!q||((a.name+" "+(a.email||"")+" "+(a.phone||"")+" "+(a.refCode||"")+" "+(a.code||"")).toLowerCase().includes(q)||(seeIds()&&q.replace(/[^a-z0-9]/g,"").length>=4&&licOf(a).toLowerCase().includes(q.replace(/[^a-z0-9]/g,"")))))
     &&(!g||!g[2]||g[2].includes(stage(a)))&&(!fr||(a.slot&&localDay(new Date(a.slot))>=fr))&&(!to||(a.slot&&localDay(new Date(a.slot))<=to)));
   const k=UI.apSort||"slot_desc",cmp={slot_desc:(a,b)=>(b.slot||"").localeCompare(a.slot||""),slot_asc:(a,b)=>(a.slot||"").localeCompare(b.slot||""),
     created_desc:(a,b)=>(b.createdAt||"").localeCompare(a.createdAt||""),name:(a,b)=>(a.name||"").localeCompare(b.name||"")}[k];return rows.sort(cmp)}
@@ -1359,7 +1366,7 @@ function apFilters(){return `<div class="row ap-filters" style="flex-wrap:wrap;g
    <label class="f">Search<input data-act="search" value="${esc(UI.q||"")}" placeholder="Name, code, email or phone"></label>
    ${UI.apStat&&UI.apStat!=="all"||UI.apFrom||UI.apTo||UI.q?`<button class="btn sm" data-act="apclear" style="align-self:flex-end">Clear filters</button>`:""}</div>`}
 function vApplicants(){const rows=filteredApplicants();
-  return `<div class="seg noprint">${[["applicants","All applicants"],["results","Results"],["registry","Registry"]].map(([v,l])=>`<button data-go="${v}" aria-current="${UI.view===v}">${l}</button>`).join("")}</div><div class="head"><div><h1>All applicants</h1><p>${rows.length} shown</p></div><div class="row"><button class="btn" data-act="exportcsv" style="align-self:flex-end">Export CSV</button></div></div>
+  return `<div class="seg noprint">${[["applicants","All applicants"],["results","Results"],["registry","Registry"]].map(([v,l])=>`<button data-go="${v}" aria-current="${UI.view===v}">${l}</button>`).join("")}</div><div class="head"><div><h1>All applicants</h1><p>${rows.length} shown</p></div></div>
    ${apFilters()}${applicantTable(rows,[COL.name,COL.slot,COL.camp,COL.stage,COL.score,COL.drive])}`;
 }
 
@@ -1376,15 +1383,20 @@ function regCells(a){const st=stage(a),bk=a.booking?.status,ci=a.checkin?.status
    result:!(sI&&sD)?"—":d==="hired"?T("Passed","go"):d==="not_hired"?T("Not passed","stop"):"—",
    training:tr.response==="declined"?T("Declined","stop"):tr.slot?T(fmtD(tr.slot),ov==="pass"?"go":ov==="fail"?"stop":"wait"):tr.response==="accepted"?T("Picking date","wait"):a.released?.pass?T("Invited","wait"):"—",
    accr:ov==="pass"?T(a.released?.accredited?"Accredited":"Passed · to tell","go"):ov==="fail"?T("Not passed","stop"):"—"}}
-function vRegistry(){const rows=filteredApplicants();
+function regDetails(rows){const full=seeIds(),hd=["Code","Applicant","Age","Sex","Mobile","City","Transport","km","License no.","Expiry","DL codes","Experience","Score","Campaign","Applied","Source"],t=today();
+  return `<div class="tablewrap reg-table"><table><thead><tr>${hd.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map(a=>{const ap=a.application||{},L=a.docs?.license||{},g=ap.geo,bk=a.booking||{};
+   return `<tr class="click" data-act="regopen" data-id="${a.id}"><td class="mono small">${esc(a.code||"—")}</td><td><b>${esc(a.name)}</b></td><td>${ageOf(ap.birth)??"—"}</td><td>${ap.sex||"—"}</td><td>${esc(a.phone||"—")}</td><td>${esc(ap.city||"—")}</td><td>${esc(ap.transport||"—")}</td><td>${g&&g.km!=null?g.km:"—"}</td>
+    <td class="mono small">${L.number?(full?esc(maskNo(L.number)):'<span class="muted">hidden</span>'):"—"}</td><td>${L.expiry?(L.expiry<t?`<span style="color:var(--stop)">${fmtD(L.expiry)} ⚠</span>`:fmtD(L.expiry)):"—"}</td><td>${esc(L.restrictions||(ap.codes||[]).join(", ")||"—")}</td><td>${esc(ap.years||"—")}</td>
+    <td>${ap.score!=null?ap.score+"%":"—"}</td><td>${esc(a.campaign||"—")}</td><td>${fmtD(a.createdAt)}</td><td>${bk.walkin?"Walk-in":a.source==="manual"?"Staff":a.source==="import"?"Import":"Online"}</td></tr>`}).join("")}</tbody></table></div>`}
+function vRegistry(){const rows=filteredApplicants(),det=UI.regMode==="details"&&seeFile();
   const head=["Code","Applicant","Interview","Booking","Check-in","Documents","Orientation","Interview","Drive test","Result","Training","Accredited"];
   const body=rows.map(a=>{const c=regCells(a);return `<tr class="click" data-act="regopen" data-id="${a.id}"><td class="mono small">${esc(a.code||"—")}</td><td><b>${esc(a.name)}</b><div class="small muted">${esc(a.phone||"")}</div></td><td class="small">${fmtDT(a.slot)}</td>
     <td>${c.booking}</td><td>${c.checkin}</td><td>${c.docs}</td><td>${c.orient}</td><td>${c.interview}</td><td>${c.drive}</td><td>${c.result}</td><td>${c.training}</td><td>${c.accr}</td></tr>`}).join("");
   const rec=UI.regId&&S.applicants[UI.regId]?regRecord(S.applicants[UI.regId]):"";
   return `<div class="seg noprint">${[["applicants","All applicants"],["results","Results"],["registry","Registry"]].map(([v,l])=>`<button data-go="${v}" aria-current="${UI.view===v}">${l}</button>`).join("")}</div>
-  <div class="head"><div><h1>Registry</h1><p>Every applicant and the result of each step. ${rows.length} shown. Click a row for the full record.</p></div><div class="row"><button class="btn" data-act="exportcsv" style="align-self:flex-end">Export CSV</button></div></div>
+  <div class="head"><div><h1>Registry</h1><p>${det?"Every applicant and what they submitted":"Every applicant and the result of each step"}. ${rows.length} shown. Click a row for the full file.</p></div>${seeFile()?`<div class="seg noprint" style="align-self:flex-end">${[["steps","Steps"],["details","Details"]].map(([v,l])=>`<button data-act="regmode" data-v="${v}" aria-current="${(det?"details":"steps")===v}">${l}</button>`).join("")}</div>`:""}</div>
   ${rec}${apFilters()}
-  ${rows.length?`<div class="tablewrap reg-table"><table><thead><tr>${head.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>`:`<div class="tablewrap"><div class="empty">No applicants match these filters.</div></div>`}`}
+  ${rows.length?det?regDetails(rows):`<div class="tablewrap reg-table"><table><thead><tr>${head.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>`:`<div class="tablewrap"><div class="empty">No applicants match these filters.</div></div>`}`}
 function regRecord(a){const c=regCells(a),L=a.docs?.license||{},N=a.docs?.nbi||{},M=a.docs?.medical||{},iv=a.interview?.done&&seeIv()?scoreInterview(a):null,tr=a.training||{},nm=id=>esc(S.profiles[id]?.name||"—");
   const row=(k,v)=>`<div><dt>${k}</dt><dd>${v||"—"}</dd></div>`,ph=(p,d)=>(p||[]).length?(p||[]).map(x=>`<span role="button" tabindex="0" data-act="viewphoto" data-p="${x}" class="reg-phw"><img data-photo="${x}" alt="Photo" class="reg-ph"></span>`).join(""):`<div class="reg-noph">${d&&d.photoError?`⚠️ Photo upload failed: ${esc(d.photoError)}`:"No photo saved"}</div>`;
   const docStat=k=>{const d=a.docs?.[k];return d?.status==="verified"?T("Verified","go"):d?.status==="rejected"?T("Rejected","stop"):d?T("Not verified yet","wait"):T("Not submitted","plain")};
@@ -1690,7 +1702,10 @@ function vSettings(){const s=settings();
     <label class="f">Hub address used in reminders<input data-act="sett" data-k="hubAddress" value="${esc(s.hubAddress)}"></label>
     <label class="f">Reminder message<textarea data-act="sett" data-k="reminderText" rows="5">${esc(s.reminderText)}</textarea></label>
     <p class="small muted" style="margin:0">Placeholders: {first} {name} {date} {time} {address}</p></div></div>
-   <div class="sect"><header><h3>Security & backup</h3></header><div class="stack">${num("idleMinutes","Sign out after idle (minutes)",1,120)}
+   <div class="sect"><header><h3>Data privacy</h3></header><div class="stack"><p class="small muted" style="margin:0">Shown on the applicants' Privacy Notice (<a href="#privacy" target="_blank" rel="noopener">open it</a>) as the person to contact about their data.</p>
+    <div class="grid2"><label class="f">Data Protection Officer<input data-act="sett" data-k="dpoName" value="${esc(s.dpoName)}"></label><label class="f">DPO email<input data-act="sett" data-k="dpoEmail" value="${esc(s.dpoEmail)}"></label></div></div></div>
+   <div class="sect"><header><h3>Security & backup</h3></header><div class="stack"><div class="grid2">${num("idleMinutes","Sign out after idle (minutes)",1,120)}${num("idleMinutesDesk","Check-in desk accounts: sign out after (minutes)",1,60)}</div>
+    <p class="small muted" style="margin:0"><b>The backup file contains every applicant's personal data.</b> Keep it private, never send it by chat or email, and delete it when you no longer need it.</p>
     <p style="margin:0" class="small">${s.lastBackup?"Last backup "+fmtDT(s.lastBackup):"No backup yet."} Everything lives in this browser on this computer. Download a backup at least weekly.</p>
     <div class="row"><button class="btn primary" data-act="backup">Download backup</button><label class="btn">Restore backup<input type="file" accept=".json,application/json" data-act="restore" style="display:none"></label></div></div></div>
    ${S.isAdmin&&S.viewAs==="all"?vFresh():""}
@@ -1726,6 +1741,38 @@ document.addEventListener("click",async e=>{const b=e.target.closest('[data-act=
   if(F.jobs||F.spend)await setDoc("jobs/orders",Object.assign({},S.jobs||{},{orders:F.jobs?[]:jobs(),spend:F.spend?[]:spends()}));
   const L=camps().filter(c=>F.keep[c.id]).map(c=>{const x=Object.assign({},c);if(F.jobs||!jobById(x.jobId))delete x.jobId;if(x.closedReason==="filled"||x.closedReason==="cancelled"){delete x.closedReason;delete x.closedAt}return x});
   await saveCamps(L);{const B=Object.assign({},(S.jobs&&S.jobs.budgets)||{});let ch=false;Object.keys(B).forEach(k=>{if(!campById(k)){delete B[k];ch=true}});if(ch)await setDoc("jobs/orders",Object.assign({},S.jobs||{},{budgets:B}))}UI.fresh=null;UI.campaign="";render();toast(`Done. ${ids.length} applicants deleted. Backup saved to your Downloads.`)});
+/* ---- the applicant's file: everything they submitted. IDs masked until "Show", document photos hidden until "View"; both logged ---- */
+function logView(id,what){if(!S.applicants[id])return;updateApplicant(id,x=>{x.views=[{t:new Date().toISOString(),by:S.uid,what},...(x.views||[])].slice(0,60)}).catch(()=>{})}
+function docStatusOnly(a){return `<ul class="checks">${DOCS.map(([k,l])=>{const st=a.docs?.[k]?.status;return `<li><span>${l}</span>${st==="verified"?tag("Verified","go"):st==="rejected"?tag("Rejected","stop"):a.docs?.[k]?tag("To check","plain"):tag("Not submitted","plain")}</li>`}).join("")}</ul>
+  <p class="small muted" style="margin:10px 0 0">ID numbers and document photos are only shown to Check-in, HR and Admin.</p>`}
+function fileBody(a){const ap=a.application||{},id=a.id,L=a.docs?.license||{},N=a.docs?.nbi||{},M=a.docs?.medical||{},full=seeIds(),pers=seeFile(),R=UI.reveal||(UI.reveal={}),t=today();
+  const row=(k,v)=>`<div><dt>${k}</dt><dd>${v||"—"}</dd></div>`,box=(h,inner,cls)=>`<div class="sect ${cls||""}" style="margin:0"><header><h3>${h}</h3></header><div><dl class="reg-dl">${inner}</dl></div></div>`;
+  const num=(k,v)=>!v?"":!full?'<span class="muted">hidden</span>':R[id+":"+k]?`<span class="mono">${esc(v)}</span>`:`<span class="mono">${esc(maskNo(v))}</span> <button class="btn sm" data-act="fileshow" data-id="${id}" data-k="${k}">Show</button>`;
+  const photos=(k,p)=>!(p||[]).length?"":!full?"":R[id+":ph:"+k]?`<div class="thumbs" style="margin-top:8px">${p.map(pid=>`<span class="thumb" role="button" tabindex="0" data-act="viewphoto" data-p="${pid}" aria-label="View photo"><img data-photo="${pid}" alt="Document photo"></span>`).join("")}</div>`
+    :`<div style="margin-top:8px"><button class="btn sm" data-act="fileview" data-id="${id}" data-k="${k}">View photo${p.length>1?"s":""} (${p.length})</button></div>`;
+  const c=campById(a.campaignId),pass=c?.passScore??70,g=ap.geo,age=ageOf(ap.birth),bk=a.booking||{};
+  const contact=box("Contact",row("Mobile",esc(a.phone))+row("Email",esc(a.email))+row("Referral code",esc(a.refCode)));
+  const booking=box("Booking",row("Campaign",esc(a.campaign))+row("Interview",fmtDT(a.slot))+row("How",bk.walkin?"Walk-in at the desk":a.source==="manual"?"Added by staff":"Online")+
+    row("Approval",bk.status==="pending"?tag("Waiting for approval","wait"):bk.status==="declined"?tag("Declined","stop"):bk.auto?tag("Auto-approved","go"):tag("Approved by the desk","go"))+(bk.reasons?.length?row("Why not automatic",esc(bk.reasons.join(", "))):"")+row("Applied",fmtDT(a.createdAt)));
+  if(!pers)return `<div class="grid2">${box("Applicant",row("Full name",esc(a.name)))}${contact}${booking}</div><p class="small muted" style="margin:10px 0 0">Personal details, ID numbers and documents are shown to Check-in, HR, Marketing and Admin only.</p>`;
+  const personal=box("Personal",row("Full name",esc(a.name))+row("Birthday",ap.birth?`${fmtD(ap.birth)}${age!=null?" · "+age+" yrs":""}`:"")+row("Sex",ap.sex==="M"?"Male":ap.sex==="F"?"Female":""));
+  const addr=box("Address & travel",row("Current address",esc([ap.address,ap.city].filter(Boolean).join(", ")))+row("Address on license",ap.licAddress?(esc(ap.licAddress)+(ap.licAddress===ap.address?" ✓ same":"")):"")+row("Transport",esc(ap.transport))+row("To the hub",g&&g.km!=null?`${g.km} km · about ${fmtMins(g.mins)}`:""));
+  const lic=box("Driver's license",row("Number",num("license",L.number))+row("Expiry",L.expiry?(L.expiry<t?`<span style="color:var(--stop)">expired ${fmtD(L.expiry)}</span>`:fmtD(L.expiry)):"")+row("DL codes",esc(L.restrictions||(ap.codes||[]).join(", ")))+row("Experience",esc(ap.years))+(full?"":row("Photo",'<span class="muted">hidden</span>'))+`</dl>${photos("license",L.photos)}<dl class="reg-dl">`);
+  const nbi=box("NBI clearance",a.docs?.nbi?row("Number",num("nbi",N.ref))+row("Valid until",N.expiry?fmtD(N.expiry):"")+row("Record “hit”",N.hit?'<b style="color:var(--stop)">Yes</b>':"No")+`</dl>${photos("nbi",N.photos)}<dl class="reg-dl">`:row("Status","Not submitted"));
+  const med=box("Medical certificate",a.docs?.medical?row("Date issued",M.date?fmtD(M.date):"")+row("Clinic",esc(M.clinic))+`</dl>${photos("medical",M.photos)}<dl class="reg-dl">`:row("Status","Not submitted"));
+  const A=ap.answers||[];
+  const quiz=`<div class="sect" style="margin:0;grid-column:1/-1"><header><h3>Pre-profile questions</h3>${ap.score!=null?tag(`Score ${ap.score}% · pass mark ${pass}%`,ap.score>=pass?"go":"stop"):""}</header><div>${A.length?`<div class="tablewrap" style="box-shadow:none"><table><thead><tr><th>Question</th><th>Answer</th><th>Points</th></tr></thead><tbody>${A.map(x=>`<tr><td>${esc(x.q)}</td><td>${esc(x.a||"—")}</td><td>${x.pts??"—"} / ${x.max??"—"}</td></tr>`).join("")}</tbody></table></div>`:`<p class="muted" style="margin:0">No answers recorded.</p>`}</div></div>`;
+  const V=(a.views||[]).slice(0,8),nm=x=>esc(S.profiles[x]?.name||"Staff");
+  const consent=box("Data privacy",row("Consent",ap.consentAt?`✓ Agreed ${fmtDT(ap.consentAt)}`:'<span class="muted">Not recorded (applied before this was saved)</span>')+(full?row("Opened by",V.length?V.map(v=>`${nm(v.by)} · ${fmtDT(v.t)} · ${esc(v.what)}`).join("<br>"):"No one yet"):""));
+  return `<div class="file-grid">${personal}${contact}${addr}${booking}${lic}${nbi}${med}${consent}${quiz}</div>
+   ${full?`<div style="margin-top:14px">${regAttachments(a)}</div>`:""}
+   <div class="row" style="justify-content:space-between;margin-top:14px"><span class="small muted">🔒 Opening this file, showing ID numbers and viewing photos are recorded. Screenshots carry your name.</span>${can("admin")?`<button class="btn sm noprint" data-act="print">Print file</button>`:""}</div>`}
+function watermark(on){let w=document.getElementById("wm");if(!on){if(w)w.remove();return}
+  const txt=`${me()} · ${new Date().toLocaleString(undefined,{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"})}`;
+  if(!w){w=document.createElement("div");w.id="wm";w.setAttribute("aria-hidden","true");document.body.appendChild(w)}
+  if(w.dataset.t===txt)return;w.dataset.t=txt;const dark=matchMedia("(prefers-color-scheme: dark)").matches&&document.documentElement.dataset.theme!=="light"||document.documentElement.dataset.theme==="dark";
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="460" height="200"><text x="20" y="120" transform="rotate(-22 230 100)" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="600" fill="${dark?"rgba(255,255,255,.07)":"rgba(35,33,94,.075)"}">${txt.replace(/[&<>]/g,"")}</text></svg>`;
+  w.style.backgroundImage=`url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`}
 function vNoAccess(){return `<div class="panel" style="max-width:520px"><h2>No role yet</h2><p style="margin:0">You can see the pipeline. Ask an Admin to give your account a role so you can work a queue.</p></div>`}
 
 function vAuth(){
@@ -2067,11 +2114,12 @@ function vProfile(){
     <li><span>Accredited result given</span>${rl.accredited?tag("Given "+fmtDT(rl.accredited.at),"go"):ov==="pass"?(eV?`<button class="btn sm primary" data-act="rel-accr" data-id="${id}">Accredited</button>`:tag("Waiting for Check-in","wait")):tag("Not yet","plain")}</li>
     ${failInfo(a)?`<li><span>"Not passed" result given</span>${rl.fail?tag("Given "+fmtDT(rl.fail.at),"stop"):eV?`<button class="btn sm danger" data-act="rel-fail" data-id="${id}">Failed</button>`:tag("Waiting for Check-in","wait")}</li>`:""}
    </ul><p class="small muted" style="margin:10px 0 0">The applicant sees each result on their phone only after Check-in taps the button.</p>`;
-  const bodies={docs:docsBody,orientation:oBody,interview:ivBody,drive:drBody,decision:decShown,training:trBody,ojt:ojtBody,offer:offBody,activity:actBody};
-  const edits={docs:eD,orientation:eO,interview:eI,drive:eT,decision:true,training:true,ojt:eJ,offer:eH,activity:true};
+  if(tab==="file"&&!(UI.viewed||(UI.viewed={}))[id]){UI.viewed[id]=1;setTimeout(()=>logView(id,"opened the application file"),0)}
+  const bodies={file:fileBody(a),docs:seeIds()?docsBody:docStatusOnly(a),orientation:oBody,interview:ivBody,drive:drBody,decision:decShown,training:trBody,ojt:ojtBody,offer:offBody,activity:actBody};
+  const edits={file:false,docs:eD,orientation:eO,interview:eI,drive:eT,decision:true,training:true,ojt:eJ,offer:eH,activity:true};
   const extra={interview:o.attended&&qs.length?`<button class="btn sm noprint" data-act="printsheet" data-k="interview" data-id="${id}">Print sheet</button>`:"",
     drive:locked?`<button class="btn sm noprint" data-act="printsheet" data-k="drive" data-id="${id}">Print sheet</button>`:""};
-  const title=STEPS.find(x=>x[0]===tab)[1];
+  const title=tab==="file"?"Application":STEPS.find(x=>x[0]===tab)[1];
   const task=info[tab]&&info[tab].st==="now"&&edits[tab]&&TASK[tab]?`<div class="task noprint"><b>Your task</b><span>${TASK[tab]}</span></div>`:"";
 
   let banner="";
@@ -2083,7 +2131,7 @@ function vProfile(){
     <p>${a.phone?esc(a.phone):(can("verifier")||can("marketing")?`<input data-act="setphone" data-id="${id}" placeholder="Add mobile number" aria-label="Mobile number" style="padding:3px 8px;border:1px solid var(--wait);border-radius:6px;background:var(--panel);width:170px">`:"No mobile number")}${a.email?" · "+esc(a.email):""} · Interview ${fmtDT(a.slot)} · ${esc(a.campaign||"No campaign")}</p>
     <p class="small" style="margin:4px 0 0">Referral code: ${a.refCode?`<b>${esc(a.refCode)}</b>`:""}${can("marketing")?`<input data-act="setref" data-id="${id}" value="" placeholder="${a.refCode?"Change":"Add code"}" aria-label="Referral code" style="margin-left:6px;padding:2px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);width:110px">`:a.refCode?"":`<span class="muted">none</span>`}</p></div>
     <div class="row">${stageTag(a)}<button class="btn sm noprint" data-act="tab" data-v="activity" aria-pressed="${tab==="activity"}">Activity (${(a.log||[]).length})</button>${fromQ&&nq.length&&!banner?`<button class="btn sm noprint" data-open="${nq[0].id}" data-sec="${fromQ.sec}">Next in queue →</button>`:""}${S.isAdmin?`<button class="btn sm danger noprint" data-act="delapp" data-id="${id}">Delete</button>`:""}</div></div>
-  ${licWarn(a)}<div class="steps noprint" role="tablist" aria-label="Hiring steps">${STEPS.filter(x=>x[0]!=="activity").map(([k,l],i)=>{const inf=info[k];return `<button class="step ${inf.st}" role="tab" aria-selected="${tab===k}" data-act="tab" data-v="${k}"><span class="ic">${inf.st==="done"?"✓":inf.st==="fail"?"✕":k==="activity"?"≡":i+1}</span><b>${l}</b><small>${esc(inf.sum||"Not yet")}</small></button>`}).join("")}</div>
+  ${licWarn(a)}<div class="steps noprint" role="tablist" aria-label="Hiring steps"><button class="step info" role="tab" aria-selected="${tab==="file"}" data-act="tab" data-v="file"><span class="ic">≡</span><b>Application</b><small>Everything submitted</small></button>${STEPS.filter(x=>x[0]!=="activity").map(([k,l],i)=>{const inf=info[k];return `<button class="step ${inf.st}" role="tab" aria-selected="${tab===k}" data-act="tab" data-v="${k}"><span class="ic">${inf.st==="done"?"✓":inf.st==="fail"?"✕":k==="activity"?"≡":i+1}</span><b>${l}</b><small>${esc(inf.sum||"Not yet")}</small></button>`}).join("")}</div>
   <section class="sect" style="margin-top:12px" role="tabpanel"><header><h3>${title}</h3><div class="row">${extra[tab]||""}${edits[tab]?"":tag("View only","plain")}</div></header><div>${task}${bodies[tab]}</div></section>`;
 }
 
@@ -2186,6 +2234,7 @@ function render(){
   const act=document.activeElement,keep=act&&act.dataset&&act.dataset.act&&["INPUT","TEXTAREA"].includes(act.tagName)?{a:act.dataset.act,id:act.dataset.id,k:act.dataset.k,f:act.dataset.f,i:act.dataset.i,pos:act.selectionStart}:null;
   if(keep&&UI.typing)return; // don't repaint under someone mid-typing
   $("#main").innerHTML=(noRole&&UI.view==="pipeline"?vNoAccess()+"<div style='height:16px'></div>":"")+(V[UI.view]||vPipeline)();
+  watermark(["profile","registry","applicants","results","requests","inform","checkin"].includes(UI.view));
   hydratePhotos();scanAfterRender();
   if(UI.sec){const el=document.getElementById("sec-"+UI.sec);if(el)el.scrollIntoView({block:"start"});UI.sec=null}
 }
@@ -2240,15 +2289,14 @@ document.addEventListener("click",async e=>{
    case"letter":UI.letter=UI.letter===id?null:id;return render();
    case"print":return window.print();
    case"dlletter":{const a=S.applicants[id];saveFile(`Offer letter - ${a.name}.html`,`<!doctype html><meta charset="utf-8"><title>Offer letter</title><body style="font-family:Arial,sans-serif;max-width:720px;margin:40px auto;line-height:1.5">${letterHTML(a)}</body>`,"text/html");return}
-   case"exportcsv":{const cols=["name","phone","email","campaign","referral code","slot","stage","interview %","risk","drive","decision","ojt","offer"];
-     const sI=seeIv(),sD=seeDr(),rows=list().map(a=>{const d=decide(a);return[a.name,a.phone,a.email,a.campaign,a.refCode||"",a.slot,stageLabel(a)[0],a.interview?.done&&sI?d.iv.pct:"",a.interview?.done&&sI?d.iv.overall:"",sD?a.drive?.result||"":a.drive?.result?"submitted":"",sI&&sD?d.result:"",ojtVerdict(a),a.offer?.status||""]});
-     const csv=[cols,...rows].map(r=>r.map(x=>`"${String(x??"").replace(/"/g,'""')}"`).join(",")).join("\n");
-     saveFile(`mober-applicants-${today()}.csv`,"\ufeff"+csv,"text/csv");return}
    case"delapp":if(confirm("Delete this applicant and all their scores?")){await delDoc("applicants/"+id);go("applicants")}return;
    case"station":UI.station=UI.station===v?null:v;return render();
    case"dtab":UI.dashTab=v;UI.station=null;return render();
    case"apclear":UI.apStat="all";UI.apFrom="";UI.apTo="";UI.q="";return render();
-   case"regopen":UI.regId=id;render();return window.scrollTo(0,0);
+   case"regopen":UI.back="registry";return go("profile",id),UI.tab="file",render();
+   case"regmode":UI.regMode=v;return render();
+   case"fileshow":{if(!seeIds())return;(UI.reveal||(UI.reveal={}))[id+":"+b.dataset.k]=1;render();return logView(id,`showed the ${({license:"license",nbi:"NBI",medical:"medical"})[b.dataset.k]} number`)}
+   case"fileview":{if(!seeIds())return;(UI.reveal||(UI.reveal={}))[id+":ph:"+b.dataset.k]=1;render();return logView(id,`viewed the ${({license:"license",nbi:"NBI",medical:"medical"})[b.dataset.k]} photo`)}
    case"regclose":UI.regId=null;return render();
    case"regprint":return printRegistry();
    case"resf":UI.resFilter=v;return render();
@@ -2304,7 +2352,7 @@ document.addEventListener("click",async e=>{
      await loadProfiles();UI.editU=null;render();return toast(e2.id?"Account saved":"Account created")}
    case"toggleu":{const acc=S.accounts.find(x=>x.id===id);if(acc.active&&acc.roles.includes("admin")&&S.accounts.filter(x=>x.active&&x.roles.includes("admin")).length<2)return toast("Keep at least one active Admin.");
      const {error}=await SB.from("profiles").update({active:!acc.active}).eq("id",id);if(error)return dbErr(error);await loadProfiles();render();return toast(!acc.active?"Account enabled":"Account disabled")}
-   case"backup":{await downloadBackup();render();return toast("Backup downloaded")}
+   case"backup":{if(!confirm("This file contains every applicant's personal data and ID details. Keep it private and delete it when you no longer need it. Download it?"))return;await downloadBackup();render();return toast("Backup downloaded")}
    case"loadsample":{const bank=clone(S.bank||{questions:[]});SAMPLE_BANK.forEach(q=>{if(!bank.questions.some(x=>x.id===q.id))bank.questions.push(q)});S.bank=bank;
      SAMPLE_APPS.forEach(a=>S.applicants[a.id]=clone(a));localSave();render();return toast("20 sample applicants loaded")}
    case"clearsample":{if(!confirm("Remove all sample applicants?"))return;const ids=Object.values(S.applicants).filter(a=>a.source==="sample").map(a=>a.id);
@@ -2460,7 +2508,7 @@ const loadScript=src=>new Promise((res,rej)=>{const s=document.createElement("sc
 function qrSvg(text,cell){if(!window.qrcode)return `<div class="small muted" style="padding:20px;text-align:center">QR unavailable offline. Code: ${esc(text)}</div>`;const q=qrcode(0,"M");q.addData(text);q.make();return q.createSvgTag({cellSize:cell||4,margin:2,scalable:true})}
 function qrPng(text){if(!window.qrcode)return"";const q=qrcode(0,"M");q.addData(text);q.make();return q.createDataURL(10,20)}
 const PUB={route:null,id:null,step:"job",form:{},month:null,day:null,time:null,err:""};
-function parseHash(){const m=location.hash.match(/^#(apply|ticket)\/([\w-]+)(\/walkin)?/);PUB.route=m?m[1]:/^#status/.test(location.hash)?"status":null;PUB.id=m?m[2]:null;PUB.walkin=!!(m&&m[1]==="apply"&&m[3])}
+function parseHash(){const m=location.hash.match(/^#(apply|ticket)\/([\w-]+)(\/walkin)?/);PUB.route=m?m[1]:/^#status/.test(location.hash)?"status":/^#privacy/.test(location.hash)?"privacy":null;PUB.id=m?m[2]:null;PUB.walkin=!!(m&&m[1]==="apply"&&m[3])}
 parseHash();
 window.addEventListener("hashchange",async()=>{parseHash();PUB.step="job";PUB.day=PUB.time=null;PUB.err="";if(SB&&PUB.route==="ticket")await loadTicket(PUB.id);if(SB&&PUB.route==="apply"&&!S.uid){if(!S.settings)await publicLoad();else await loadSlots()}render();window.scrollTo(0,0)});
 async function saveCamps(list){const s=Object.assign({},S.settings||{});s.camps=list;s.campaigns=list.map(c=>c.name);S.settings=s;await setDoc("admin/settings",s)}
@@ -2650,6 +2698,7 @@ function vPublic(){
   if(PUB.route==="apply"&&PUB.id==="open"){const oc=camps().find(x=>campOpen(x)&&!(x.startDate&&today()<x.startDate));if(oc)PUB.id=oc.id}
   if(PUB.route==="ticket")return vTicket(S.applicants[PUB.id]);
   if(PUB.route==="status")return vStatus();
+  if(PUB.route==="privacy")return vPrivacy();
   const c=campById(PUB.id);
   if(!c)return pubShell(`<div class="ap-card ap-narrow"><h1>Hindi makita ang link</h1><p class="muted">Hindi valid ang link na 'to. Humingi ng bagong link sa recruiter.</p></div>`);
   if(c.active&&c.startDate&&today()<c.startDate)return pubShell(`<div class="ap-card ap-narrow"><h1>Malapit nang magbukas</h1><p class="muted">Magbubukas ang applications para sa ${esc(c.position)} sa <b>${fmtD(c.startDate)}</b>. Balikan mo lang itong link sa araw na 'yan.</p></div>`,c);
@@ -2672,7 +2721,7 @@ function vPublic(){
     <h3 class="ap-h3">NBI clearance <span class="muted small" style="font-weight:400">(optional)</span></h3><p class="small muted" style="margin:-4px 0 12px">Kung meron ka na, i-upload mo na para mas mabilis ang check-in.</p>${upCard("nbi")}${docFields("nbi")}
     <h3 class="ap-h3">Medical certificate <span class="muted small" style="font-weight:400">(optional)</span></h3><p class="small muted" style="margin:-4px 0 12px">Dapat na-issue sa loob ng huling ${settings().medicalMaxMonths} buwan.</p>${upCard("medical")}${docFields("medical")}
     <div class="ap-form" style="margin-top:16px">${inp("ref","Referral code","text","Kung may nag-refer sa'yo",0)}</div>
-    <label class="row" style="margin-top:20px;align-items:flex-start;flex-wrap:nowrap"><input type="checkbox" id="ap-consent" ${F.consent?"checked":""} style="margin-top:4px"> <span class="small">Pumapayag ako na gamitin ng ${esc(settings().company||"hiring team")} ang mga detalyeng ito para i-process ang application ko.</span></label>
+    <label class="row" style="margin-top:20px;align-items:flex-start;flex-wrap:nowrap"><input type="checkbox" id="ap-consent" ${F.consent?"checked":""} style="margin-top:4px"> <span class="small">Pumapayag ako na gamitin ng ${esc(settings().company||"hiring team")} ang mga detalyeng ito para i-process ang application ko, ayon sa <a href="#privacy" target="_blank" rel="noopener">Privacy Notice</a>.</span></label>
     ${err}<div class="ap-actions"><button class="btn" data-act="ap-go" data-v="lic">Bumalik</button><button class="btn primary lg" data-act="ap-go" data-v="quiz">Next: ilang tanong</button></div></div>`,c)}
   if(st==="quiz"){const A=F.answers||{};return pubShell(`${bar}<div class="ap-card ap-narrow"><h2 style="margin:0 0 4px">Ilang tanong lang</h2><p class="muted" style="margin:0 0 10px">Sagutin mo lang nang tapat. Walang trick dito.</p>
     ${cq(c).map((q,i)=>`<fieldset class="ap-q"><legend>${i+1}. ${esc(q.text)}</legend><div class="ap-qo">${q.opts.map((o,j)=>`<label><input type="radio" name="pq_${q.id}" value="${j}" ${A[q.id]===j?"checked":""}><span>${esc(o[0])}</span></label>`).join("")}</div></fieldset>`).join("")}
@@ -2702,6 +2751,18 @@ function vPublic(){
     <div class="ap-grid">${cells}</div><p class="small muted" style="margin:14px 0 0">May bakanteng slot sa mga araw na kulay blue.</p></div>
    <div>${PUB.day?`<h3 style="margin:0 0 12px">${dayLbl}</h3><div class="ap-times">${slots.map(s=>PUB.time===s.iso?`<div class="ap-tsel"><span>${s.label}</span><button class="btn primary" data-act="ap-book">I-book</button></div>`:`<button class="ap-t" data-act="ap-time" data-v="${s.iso}">${s.label}${s.left<=2?`<small>${s.left} slot na lang</small>`:""}</button>`).join("")||`<p class="muted">Wala nang bakanteng oras sa araw na 'to.</p>`}</div>`:`<p class="muted" style="margin:0">Pumili ng araw para makita ang bakanteng oras.</p>`}${err}</div>
   </div></div>`,c)}
+/* ---- Privacy Notice (Data Privacy Act, RA 10173) ---- */
+function vPrivacy(){const s=settings(),co=esc(s.company||"Drayber Flex"),dpo=esc(s.dpoName||"our Data Protection Officer"),em=esc(s.dpoEmail||"");
+  const sec=(t,b)=>`<div class="ap-sec"><h3>${t}</h3>${b}</div>`;
+  return pubShell(`<div class="ap-card ap-narrow"><div class="ap-eyebrow">Privacy Notice</div><h1 style="margin:10px 0 6px">Paano namin inaalagaan ang data mo</h1>
+   <p class="muted" style="margin:0">Ang ${co} ang nangongolekta at nag-iingat ng impormasyong ibinigay mo sa pag-apply bilang Drayber Flex driver, ayon sa Data Privacy Act of 2012 (RA 10173).</p>
+   ${sec("Ano ang kinokolekta namin","<p>Pangalan, birthday, kasarian, mobile number, email, address, paraan ng pagbiyahe, at mga sagot mo sa mga tanong. Detalye at photo ng driver's license mo, at kung meron, NBI clearance at medical certificate. Pati ang resulta ng interview, driving test at training mo.</p>")}
+   ${sec("Bakit namin kailangan","<p>Para ma-check kung qualified ka, ma-schedule ang interview at training mo, at ma-contact ka tungkol sa application mo. Hindi namin ito ginagamit sa ibang bagay at hindi namin ibinebenta.</p>")}
+   ${sec("Sino ang nakakakita","<p>Ang hiring team lang, at bawat isa ay nakikita lang ang kailangan sa trabaho niya. Ang ID numbers at photos ng documents mo ay nakikita lang ng Check-in, HR at Admin. Lahat ng pagbukas ng file mo ay naka-record.</p>")}
+   ${sec("Gaano katagal namin itatago","<p>Habang tumatakbo ang application mo. Kung hindi ka pumasa o hindi natuloy, buburahin namin ang data mo pagkatapos ng 12 buwan. Kung naging accredited driver ka, itatago namin habang nagtatrabaho ka sa amin.</p>")}
+   ${sec("Ang mga karapatan mo","<p>Puwede mong hilingin na makita, itama, o burahin ang data mo, o bawiin ang pahintulot mo. Puwede ka ring mag-reklamo sa National Privacy Commission.</p>")}
+   ${sec("Makipag-ugnayan","<p>Data Protection Officer: <b>"+dpo+"</b>"+(em?"<br>Email: <b>"+em+"</b>":"")+"</p>")}
+   <p class="small muted" style="margin:18px 0 0">Huling update: Oktubre 2026</p></div>`)}
 function vTicket(a){
   if(!a||!a.code)return pubShell(`<div class="ap-card ap-narrow"><h1>Hindi makita ang booking</h1><p class="muted">Buksan ang link sa phone na ginamit mo sa pag-book, o magtanong sa recruiter.</p></div>`);
   const s=settings(),d=new Date(a.slot),st=a.booking?.status||"approved",first=esc(a.name.split(" ")[0]);
@@ -2831,7 +2892,7 @@ async function bookNow(){const c=campById(PUB.id),F=PUB.form,W=walkSlot(c);
   const reasons=[];if(score<(c.passScore??70))reasons.push(`score ${score}% below ${c.passScore??70}%`);if(!ageOk)reasons.push(`age ${age} outside ${c.minAge??18}${c.maxAge?"–"+c.maxAge:"+"}`);if(c.autoApprove===false)reasons.push("manual approval on");const licExpired=F.licExp&&F.licExp<today();if(licExpired)reasons.push("license expired "+fmtD(F.licExp));if(F.nbiHit)reasons.push("NBI shows a record hit");
   const a={id,code:bookCode(),name:F.name.trim().replace(/\s+/g," "),phone:F.phone.trim(),email:F.email.trim(),slot:PUB.time,campaign:c.name,campaignId:c.id,position:c.position,hubName:c.hubName||"",location:c.location,
     refCode:(F.ref||"").trim(),source:"campaign",
-    application:{birth:F.birth,sex:F.sex||"",licAddress:F.licAddr||"",city:F.city,address:F.address.trim(),transport:F.transport,license:F.license,codes:F.codes||[],years:F.years,geo:F.geo||null,
+    application:{consentAt:now,consentVersion:"2026-10",birth:F.birth,sex:F.sex||"",licAddress:F.licAddr||"",city:F.city,address:F.address.trim(),transport:F.transport,license:F.license,codes:F.codes||[],years:F.years,geo:F.geo||null,
       answers:cq(c).map(q=>({q:q.text,a:q.opts[F.answers[q.id]]?.[0],pts:q.opts[F.answers[q.id]]?.[1],max:Math.max(...q.opts.map(o=>o[1]))})),score},
     booking:Object.assign({status:auto?"approved":"pending",auto,reasons,at:now},W?{walkin:true}:{}),createdAt:now,updatedAt:now,
     log:[{t:now,by:"applicant",msg:`${W?"Walk-in: applied at the desk":"Applied through campaign link"} and requested ${fmtDT(PUB.time)}. Pre-profile ${score}%.`+(auto?" Auto-approved.":" Waiting for approval.")}]};
@@ -3364,7 +3425,7 @@ function vLanding(){const c=(settings().camps||[]).find(x=>x.active&&!(x.endDate
   <section class="lp-sec"><div class="lp-eye">Para sa Drayber Flex applicants</div><h2 class="lp-h1">Paano Maging Accredited Drayber Flex?</h2><p class="lp-sub lp-wide">Kumpletuhin ang requirements at ang 1 araw na paid training. Kapag pumasa ka sa training at assessment, magiging accredited Drayber Flex driver ka.</p></section>
   <section class="lp-steps">${STEPS_LP.map(([n,t,d],i)=>`<div class="lp-step${i===4?" last":""}"><div class="lp-n">${n}</div><h3>${t}</h3><p>${d}</p></div>`).join("")}</section>
   <section class="lp-sec lp-close"><h2 class="lp-h2">Rest Day mo? Gawin Pay Day!</h2><a class="lp-btn lime lg" href="${href}">Mag-apply ngayon →</a></section>
-  <a class="lp-btn lime lp-float" href="${href}">Mag-apply ngayon →</a><footer class="lp-foot"><span>© ${new Date().getFullYear()}</span><span class="lp-staff"><a href="#" data-act="dx-signin">Staff sign in</a> · <a href="#" data-act="dx-signup">Request access</a></span></footer></div>`}
+  <a class="lp-btn lime lp-float" href="${href}">Mag-apply ngayon →</a><footer class="lp-foot"><span>© ${new Date().getFullYear()}</span><span class="lp-staff"><a href="#privacy">Privacy Notice</a> · <a href="#" data-act="dx-signin">Staff sign in</a> · <a href="#" data-act="dx-signup">Request access</a></span></footer></div>`}
 function pendingBlock(){const P=S.accounts.filter(a=>a.pending);if(!P.length)return"";
   return `<div class="sect"><header><h3>Waiting for approval (${P.length})</h3></header><div class="stack">${P.map(u=>`<div class="pend"><div><div>${esc(u.name)}</div><div class="small muted">${esc(u.email||u.username)} · signed up ${fmtDT(u.createdAt)}</div></div>
    <div class="row">${Object.keys(ROLES).map(k=>`<label class="row small pr"><input type="checkbox" class="prole" data-u="${u.id}" value="${k}"> ${ROLES[k]}</label>`).join("")}</div>
