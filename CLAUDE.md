@@ -21,7 +21,9 @@ Owner: Dennis (non-technical). Explain changes in plain language, confirm before
 ## Code layout
 - `index.html` – the whole app (vanilla JS, no build step). Staff app + public applicant pages (hash routes):
   - `#apply/<campaignId>` application (5 steps), `#ticket/<id>` applicant status/QR/results/training booking,
-    `#status` lookup by code + last 4 digits of mobile. Landing page when no hash.
+    `#app` applicant app (sign in with code + last 4 digits of mobile; `#status` opens the same page): next step, QR, reschedule once
+    (≥12h before), cancel, upload NBI/medical later, progress + updates, Add to Home Screen. Landing page when no hash.
+  - Test site only so far: `test/manifest.webmanifest`, `test/sw.js` (network-first, offline shell only), `test/icons/` – copy them to the root when going live.
 - `supabase/sql/` – schema + dated update scripts (run manually in Supabase → SQL Editor; all idempotent).
 - `supabase/functions/notify` – email (Brevo or Resend) / SMS (Semaphore) when the desk approves/declines.
   `admin-users` – create user / reset password / delete (Admin only). Both deployed with **Verify JWT OFF**.
@@ -31,14 +33,19 @@ Owner: Dennis (non-technical). Explain changes in plain language, confirm before
 - `app_config(key in ('settings','bank','jobs'))` – settings (campaigns `camps`, `training` calendar, `driveItems`, rules; **readable by the public**), question bank, and `jobs` (staff-only: job orders, ad spend, ad budgets – keep anything private here, never in settings).
 - `profiles` – staff accounts, `roles` text[]: admin, marketing, verifier (Check-in & documents), orientation, interviewer, tester (driving instructor), trainer, hr, operations (job orders only, no applicant details).
 - Storage bucket `docs` (private): photos `<pid>.jpg`, attachments `att/<applicantId>/<fileId>.<ext>` (images + PDF, 10 MB).
-- Public RPCs (anon): `submit_application`, `check_license`, `slot_counts`, `get_ticket`, `lookup_ticket`, `training_counts`, `training_respond`, `book_training`.
+- Public RPCs (anon): `submit_application`, `check_license`, `slot_counts`, `get_ticket`, `lookup_ticket`, `training_counts`, `training_respond`, `book_training`,
+  applicant app: `app_login` (5 wrong tries/hour locks the code), `app_me`, `app_reschedule`, `app_cancel`, `app_add_doc`, `app_logout`
+  (sessions in `applicant_sessions`, hashed key, 30 days; no direct table access).
 - RLS: staff (active profile) read/write applicants; anon only through RPCs.
 
 ## Key business rules
 - Stage logic in `stageRaw()`/`stage()`: failing any step stops the applicant (docs, interview, drive test, training).
 - Results reach the applicant's phone **only after Check-in taps** Failed / Passed / Accredited ("Results to give").
 - Auto-approved bookings show QR immediately (no message). Desk-approved/declined → email/SMS via `notify` (SMS has **no links** – PH telcos block them).
-- Driver's license photo is **required** (client + `submit_application`). NBI/medical optional online.
+- Driver's license photo is **required** (client + `submit_application`). NBI/medical optional online, but asked for before the interview
+  (app + staff flag "No NBI or medical uploaded yet"; soft – staff can photograph them at check-in).
+- Expired NBI / older medical are accepted for the interview (verified with `older:true`); a valid copy is needed before training:
+  the applicant uploads it in the app (`docs.<kind>.renew`, staff tap "Use new copy") and the Accredited result is blocked until then.
 - Training: 1 day, schedule set by trainer in **Training calendar** (shared across campaigns); applicant can change date once, up to the day before.
 - Driving test items + weights editable by Admin and Driving instructor; critical item fail = test fail.
 - Minimum age 21.
