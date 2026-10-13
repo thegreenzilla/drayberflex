@@ -125,6 +125,15 @@ tbody tr:last-child td{border-bottom:0}
 .kpi{background:var(--panel);border:1px solid var(--line);border-left:6px solid var(--go);border-radius:6px;padding:12px 14px}
 .kpi b{display:block;font-family:var(--display);font-size:34px;line-height:1.05}
 .kpi span{font-size:14px;color:var(--mute)}
+.ap-yn{display:grid!important;grid-template-columns:1fr 1fr;gap:10px}
+.ap-para,.ap-sel{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:inherit;background:var(--panel);color:var(--ink)}
+.qe-types{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.qe-types button{text-align:left;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);padding:10px 12px;cursor:pointer;font:inherit}
+.qe-types button[aria-pressed="true"]{border:2px solid var(--brand);background:var(--brand-soft)}
+.qe-types small{display:block;color:var(--mute);font-size:12px}
+.qe-row{display:grid;grid-template-columns:minmax(0,1fr) 90px auto;gap:8px;align-items:center}
+.qe-row input{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font:inherit;min-width:0}
+.qe-prev{border:1px dashed var(--line);border-radius:12px;padding:12px 14px;background:var(--sunk)}
 .file-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
 #wm{position:fixed;inset:0;pointer-events:none;z-index:30;background-repeat:repeat}
 .kpi .dk{display:block;font-size:12.5px;color:var(--mute);margin-top:4px}.kpi .dk.up{color:var(--go)}.kpi .dk.down{color:var(--stop)}.kpi.warn{border-left-color:var(--stop)}
@@ -1761,7 +1770,7 @@ function fileBody(a){const ap=a.application||{},id=a.id,L=a.docs?.license||{},N=
   const nbi=box("NBI clearance",a.docs?.nbi?row("Number",num("nbi",N.ref))+row("Valid until",N.expiry?fmtD(N.expiry):"")+row("Record “hit”",N.hit?'<b style="color:var(--stop)">Yes</b>':"No")+`</dl>${photos("nbi",N.photos)}<dl class="reg-dl">`:row("Status","Not submitted"));
   const med=box("Medical certificate",a.docs?.medical?row("Date issued",M.date?fmtD(M.date):"")+row("Clinic",esc(M.clinic))+`</dl>${photos("medical",M.photos)}<dl class="reg-dl">`:row("Status","Not submitted"));
   const A=ap.answers||[];
-  const quiz=`<div class="sect" style="margin:0;grid-column:1/-1"><header><h3>Pre-profile questions</h3>${ap.score!=null?tag(`Score ${ap.score}% · pass mark ${pass}%`,ap.score>=pass?"go":"stop"):""}</header><div>${A.length?`<div class="tablewrap" style="box-shadow:none"><table><thead><tr><th>Question</th><th>Answer</th><th>Points</th></tr></thead><tbody>${A.map(x=>`<tr><td>${esc(x.q)}</td><td>${esc(x.a||"—")}</td><td>${x.pts??"—"} / ${x.max??"—"}</td></tr>`).join("")}</tbody></table></div>`:`<p class="muted" style="margin:0">No answers recorded.</p>`}</div></div>`;
+  const quiz=`<div class="sect" style="margin:0;grid-column:1/-1"><header><h3>Pre-profile questions</h3>${ap.score!=null?tag(`Score ${ap.score}% · pass mark ${pass}%`,ap.score>=pass?"go":"stop"):""}</header><div>${A.length?`<div class="tablewrap" style="box-shadow:none"><table><thead><tr><th>Question</th><th>Answer</th><th>Points</th></tr></thead><tbody>${A.map(x=>`<tr><td>${esc(x.q)}</td><td style="white-space:pre-wrap">${esc(x.a||"—")}</td><td>${x.type==="paragraph"?'<span class="muted">Not scored</span>':`${x.pts??"—"} / ${x.max??"—"}`}</td></tr>`).join("")}</tbody></table></div>`:`<p class="muted" style="margin:0">No answers recorded.</p>`}</div></div>`;
   const V=(a.views||[]).slice(0,8),nm=x=>esc(S.profiles[x]?.name||"Staff");
   const consent=box("Data privacy",row("Consent",ap.consentAt?`✓ Agreed ${fmtDT(ap.consentAt)}`:'<span class="muted">Not recorded (applied before this was saved)</span>')+(full?row("Opened by",V.length?V.map(v=>`${nm(v.by)} · ${fmtDT(v.t)} · ${esc(v.what)}`).join("<br>"):"No one yet"):""));
   return `<div class="file-grid">${personal}${contact}${addr}${booking}${lic}${nbi}${med}${consent}${quiz}</div>
@@ -2602,6 +2611,12 @@ const LCODES=[["A","Motorcycle"],["A1","Tricycle"],["B","Car / SUV"],["B1","Van 
 const hhmm=m=>String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
 function allTimes(c){const [sh,sm]=c.start.split(":").map(Number),[eh,em]=c.end.split(":").map(Number),o=[];for(let m=sh*60+sm;m+c.len<=eh*60+em;m+=c.len)o.push(hhmm(m));return o}
 const cq=c=>c.questions||DEFAULT_PQ;
+/* application question types: choice (list), dropdown, yesno, paragraph (long text, not scored). Old questions = choice. */
+const QTYPES={choice:"Multiple choice",dropdown:"Dropdown",yesno:"Yes / No",paragraph:"Paragraph"};
+const qType=q=>QTYPES[q.type]?q.type:"choice";
+const qScored=q=>qType(q)!=="paragraph";
+const qReq=q=>q.req!=null?!!q.req:qScored(q);
+const PARA_MAX=500;
 function ageOf(b){if(!b)return null;const d=new Date(b+"T00:00"),n=new Date();let y=n.getFullYear()-d.getFullYear();if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))y--;return y}
 function ageTxt(a){const y=ageOf(a.application?.birth);return y==null?"":`<span class="agechip">${y} yrs</span>`}
 function parseGeo(s){const m=String(s||"").match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);return m?{lat:+m[1],lng:+m[2]}:null}
@@ -2610,7 +2625,7 @@ function travel(hub,geo,mode){if(!hub||!geo)return null;const R=6371,toR=x=>x*Ma
   const a=Math.sin(dLa/2)**2+Math.cos(toR(hub.lat))*Math.cos(toR(geo.lat))*Math.sin(dLo/2)**2,km=2*R*Math.asin(Math.sqrt(a))*1.35;
   return{km:Math.round(km*10)/10,mins:Math.max(5,Math.round(km/(MODES[mode]||18)*60))}}
 const fmtMins=m=>m==null?"—":m<60?m+" min":Math.floor(m/60)+" h "+(m%60?m%60+" min":"");
-function pqScore(c,ans){const Q=cq(c);let got=0,max=0;Q.forEach(q=>{const mx=Math.max(0,...q.opts.map(o=>o[1]));max+=mx;const i=ans?.[q.id];if(i!=null&&q.opts[i])got+=q.opts[i][1]});return max?Math.round(got/max*100):100}
+function pqScore(c,ans){const Q=cq(c).filter(qScored);let got=0,max=0;Q.forEach(q=>{const mx=Math.max(0,...q.opts.map(o=>o[1]));max+=mx;const i=ans?.[q.id];if(i!=null&&q.opts[i])got+=q.opts[i][1]});return max?Math.round(got/max*100):100}
 
 function campEndText(sd,rd,jo){if(!+rd)return `<span class="muted">No end date. Leave "Runs for" blank to keep it open until you close it.</span>`;
   const end=addDays(sd||today(),+rd-1);return `Ends <b>${fmtD(end)}</b>${jo&&end>jo.neededBy?` <span style="color:var(--stop)">· This is after the job order's needed-by date (${fmtD(jo.neededBy)}).</span>`:""}`}
@@ -2658,11 +2673,9 @@ function vCampEdit(){const c=UI.editCamp,isNew=!c.id,jo=c.jobId&&jobById(c.jobId
    </div></div>
    <div class="sect"><header><h3>4b. Training schedule</h3></header><div class="stack"><p class="small muted" style="margin:0">Training days are set by the trainer in <b>Training calendar</b> and shared by all campaigns.</p><div><button class="btn sm" data-go="trcal">Open Training calendar</button></div></div></div>
    <div class="sect"><header><h3>5. Pre-profile questions</h3></header><div class="stack">
-     <p class="small muted" style="margin:0">Applicants answer these before picking a time. Each answer has points; the score is the share of the maximum.</p>
-     ${cq(c).map((q,i)=>`<div class="cq"><div class="row" style="justify-content:space-between"><span class="muted small">Question ${i+1}</span><button class="btn sm" data-cqa="del" data-v="${i}">Remove</button></div>
-       <input class="cq-in" data-cq="${i}" data-k="text" value="${esc(q.text)}" placeholder="Question">
-       <textarea class="cq-in" data-cq="${i}" data-k="opts" rows="${Math.max(2,q.opts.length)}" placeholder="Answer | points">${esc(q.opts.map(o=>o[0]+" | "+o[1]).join("\n"))}</textarea></div>`).join("")}
-     <div><button class="btn" data-cqa="add">Add question</button></div><p class="small muted" style="margin:0">One answer per line, written as <i>answer | points</i>.</p></div></div>
+     <p class="small muted" style="margin:0">Applicants answer these before picking a time. Scored answers make up the pre-profile score; paragraph answers are not scored.</p>
+     <ol style="margin:0;padding-left:20px;display:grid;gap:4px">${cq(c).map(q=>`<li>${esc(q.text||"(no question text)")} <span class="small muted">· ${QTYPES[qType(q)]}${qReq(q)?"":" · optional"}</span></li>`).join("")||`<li class="muted">No questions.</li>`}</ol>
+     <div>${c.id?`<button class="btn" data-act="cp-qedit" data-id="${c.id}">Edit these questions</button>`:`<span class="small muted">After you create the campaign, edit its questions in Question bank → Application questions.</span>`}</div></div></div>
    <div class="sect"><header><h3>6. Approval</h3></header><div class="stack">
      <label class="row"><input type="checkbox" id="cp-autoApprove" ${c.autoApprove!==false?"checked":""}> Approve the interview automatically when the applicant passes</label>
      <div class="cp-3">${f("passScore","Passing pre-profile score (%)",c.passScore??70,"number",'min="0" max="100"')}${f("minAge","Minimum age",c.minAge??21,"number",'min="18" max="70"')}${f("maxAge","Maximum age (optional)",c.maxAge??"","number",'min="18" max="80"')}</div>
@@ -2684,7 +2697,7 @@ const trainOf=c=>Object.assign({days:[1,2,3,4,5,6],start:"08:00",end:"17:00",sea
 const trSeats=(t,ds)=>{const o=(t.overrides||{})[ds]||{};if(o.closed)return 0;if(o.seats!=null&&o.seats!=="")return +o.seats;return t.days.includes(new Date(ds+"T00:00").getDay())?+t.seats:0};
 function readCampFormBase(){const g=k=>{const el=document.getElementById("cp-"+k);return el?el.value.trim():""};const c0=UI.editCamp;
   const Q=cq(c0).map((q,i)=>{const t=document.querySelector(`[data-cq="${i}"][data-k="text"]`),o=document.querySelector(`[data-cq="${i}"][data-k="opts"]`);
-    return{id:q.id,text:t?t.value:q.text,opts:o?o.value.split("\n").map(l=>{const [a,b]=l.split("|");return[(a||"").trim(),Math.max(0,parseInt(b)||0)]}).filter(x=>x[0]):q.opts}});
+    return Object.assign({},q,{text:t?t.value:q.text,opts:o?o.value.split("\n").map(l=>{const [a,b]=l.split("|");return[(a||"").trim(),Math.max(0,parseInt(b)||0)]}).filter(x=>x[0]):q.opts})});
   const chips=[...document.querySelectorAll("[data-time]")];
   return Object.assign({},c0,{budgetDraft:g("budget"),name:g("name"),position:g("position"),jd:g("jd"),reqs:g("reqs"),perks:g("perks"),hubName:g("hubName"),hubGeo:g("hubGeo"),location:g("location"),start:g("start")||"09:00",end:g("end")||"16:00",
    len:+g("len")||60,seats:Math.max(1,+g("seats")||1),window:Math.max(1,+g("window")||14),startDate:g("startDate")||today(),runDays:Math.max(0,parseInt(g("runDays"))||0)||"",needed:Math.max(0,parseInt(g("needed"))||0)||"",active:!!document.getElementById("cp-active")?.checked,
@@ -2724,7 +2737,7 @@ function vPublic(){
     <label class="row" style="margin-top:20px;align-items:flex-start;flex-wrap:nowrap"><input type="checkbox" id="ap-consent" ${F.consent?"checked":""} style="margin-top:4px"> <span class="small">Pumapayag ako na gamitin ng ${esc(settings().company||"hiring team")} ang mga detalyeng ito para i-process ang application ko, ayon sa <a href="#privacy" target="_blank" rel="noopener">Privacy Notice</a>.</span></label>
     ${err}<div class="ap-actions"><button class="btn" data-act="ap-go" data-v="lic">Bumalik</button><button class="btn primary lg" data-act="ap-go" data-v="quiz">Next: ilang tanong</button></div></div>`,c)}
   if(st==="quiz"){const A=F.answers||{};return pubShell(`${bar}<div class="ap-card ap-narrow"><h2 style="margin:0 0 4px">Ilang tanong lang</h2><p class="muted" style="margin:0 0 10px">Sagutin mo lang nang tapat. Walang trick dito.</p>
-    ${cq(c).map((q,i)=>`<fieldset class="ap-q"><legend>${i+1}. ${esc(q.text)}</legend><div class="ap-qo">${q.opts.map((o,j)=>`<label><input type="radio" name="pq_${q.id}" value="${j}" ${A[q.id]===j?"checked":""}><span>${esc(o[0])}</span></label>`).join("")}</div></fieldset>`).join("")}
+    ${cq(c).map((q,i)=>pubQuestion(q,i,A)).join("")}
     ${err}<div class="ap-actions"><button class="btn" data-act="ap-go" data-v="form">Bumalik</button><button class="btn primary lg" data-act="ap-go" data-v="time">Next: pumili ng oras</button></div></div>`,c)}
   const W=walkSlot(c);
   if(W)return pubShell(`${bar}<div class="ap-card ap-narrow"><div class="ap-eyebrow">Walk-in</div><h2 style="margin:10px 0 6px">${W.now?"Interview mo: ngayon na":"Interview mo ngayong araw: "+W.label}</h2>
@@ -2763,6 +2776,11 @@ function vPrivacy(){const s=settings(),co=esc(s.company||"Drayber Flex"),dpo=esc
    ${sec("Ang mga karapatan mo","<p>Puwede mong hilingin na makita, itama, o burahin ang data mo, o bawiin ang pahintulot mo. Puwede ka ring mag-reklamo sa National Privacy Commission.</p>")}
    ${sec("Makipag-ugnayan","<p>Data Protection Officer: <b>"+dpo+"</b>"+(em?"<br>Email: <b>"+em+"</b>":"")+"</p>")}
    <p class="small muted" style="margin:18px 0 0">Huling update: Oktubre 2026</p></div>`)}
+document.addEventListener("input",e=>{const t=e.target;if(t.dataset&&t.dataset.pqp){PUB.form.answers=Object.assign({},PUB.form.answers,{[t.dataset.pqp]:t.value.slice(0,PARA_MAX)});const c=document.getElementById("pqc-"+t.dataset.pqp);if(c)c.textContent=t.value.length+"/"+PARA_MAX}});
+function pubQuestion(q,i,A){const t=qType(q),v=A[q.id],opt=qReq(q)?"":` <span class="muted small">(optional)</span>`;
+  if(t==="paragraph")return `<fieldset class="ap-q"><legend>${i+1}. ${esc(q.text)}${opt}</legend><textarea class="ap-para" data-pqp="${q.id}" maxlength="${PARA_MAX}" rows="4" placeholder="Isulat dito ang sagot mo">${esc(v||"")}</textarea><div class="small muted" style="text-align:right" id="pqc-${q.id}">${(v||"").length}/${PARA_MAX}</div></fieldset>`;
+  if(t==="dropdown")return `<fieldset class="ap-q"><legend>${i+1}. ${esc(q.text)}${opt}</legend><select class="ap-sel" name="pq_${q.id}"><option value="">Pumili…</option>${q.opts.map((o,j)=>`<option value="${j}" ${v===j?"selected":""}>${esc(o[0])}</option>`).join("")}</select></fieldset>`;
+  return `<fieldset class="ap-q"><legend>${i+1}. ${esc(q.text)}${opt}</legend><div class="ap-qo${t==="yesno"?" ap-yn":""}">${q.opts.map((o,j)=>`<label><input type="radio" name="pq_${q.id}" value="${j}" ${v===j?"checked":""}><span>${esc(o[0])}</span></label>`).join("")}</div></fieldset>`}
 function vTicket(a){
   if(!a||!a.code)return pubShell(`<div class="ap-card ap-narrow"><h1>Hindi makita ang booking</h1><p class="muted">Buksan ang link sa phone na ginamit mo sa pag-book, o magtanong sa recruiter.</p></div>`);
   const s=settings(),d=new Date(a.slot),st=a.booking?.status||"approved",first=esc(a.name.split(" ")[0]);
@@ -2877,7 +2895,7 @@ async function apGo(v,b){const c=campById(PUB.id),F=PUB.form;PUB.err="";
     const q=`${F.address}, ${String(F.city).replace(/\s*\(.*\)/,"")}, Philippines`;let geo=F.geo&&F.geo.q===q?F.geo:null;
     if(!geo){const g=await geocode(q)||await geocode(`${String(F.city).replace(/\s*\(.*\)/,"")}, Philippines`);geo=Object.assign({q},g||{})}
     const t=travel(parseGeo(c.hubGeo),geo.lat!=null?geo:null,F.transport);F.geo=Object.assign(geo,t||{km:null,mins:null})}
-  if(v==="time"){const A=F.answers||{},miss=cq(c).findIndex(q=>A[q.id]==null);if(miss>=0){PUB.err=`Sagutin muna ang tanong #${miss+1}.`;return render()}
+  if(v==="time"){const A=F.answers||{},miss=cq(c).findIndex(q=>qReq(q)&&(qType(q)==="paragraph"?!String(A[q.id]||"").trim():A[q.id]==null));if(miss>=0){PUB.err=`Sagutin muna ang tanong #${miss+1}.`;return render()}
     if(walkSlot(c)){PUB.step=v;render();return window.scrollTo(0,0)}
     const d=new Date();let found=null;for(let i=0;i<=c.window&&!found;i++){const x=new Date(d);x.setDate(d.getDate()+i);const ds=localDay(x);if(dayOpen(c,ds))found=ds}
     PUB.month=(found||today()).slice(0,7);if(!found)PUB.err="Wala pang bakanteng interview slot ngayon. Balikan mo na lang mamaya."}
@@ -2893,7 +2911,7 @@ async function bookNow(){const c=campById(PUB.id),F=PUB.form,W=walkSlot(c);
   const a={id,code:bookCode(),name:F.name.trim().replace(/\s+/g," "),phone:F.phone.trim(),email:F.email.trim(),slot:PUB.time,campaign:c.name,campaignId:c.id,position:c.position,hubName:c.hubName||"",location:c.location,
     refCode:(F.ref||"").trim(),source:"campaign",
     application:{consentAt:now,consentVersion:"2026-10",birth:F.birth,sex:F.sex||"",licAddress:F.licAddr||"",city:F.city,address:F.address.trim(),transport:F.transport,license:F.license,codes:F.codes||[],years:F.years,geo:F.geo||null,
-      answers:cq(c).map(q=>({q:q.text,a:q.opts[F.answers[q.id]]?.[0],pts:q.opts[F.answers[q.id]]?.[1],max:Math.max(...q.opts.map(o=>o[1]))})),score},
+      answers:cq(c).map(q=>qType(q)==="paragraph"?{q:q.text,a:String(F.answers[q.id]||"").trim().slice(0,PARA_MAX),type:"paragraph"}:{q:q.text,a:q.opts[F.answers[q.id]]?.[0],pts:q.opts[F.answers[q.id]]?.[1],max:Math.max(...q.opts.map(o=>o[1]))}),score},
     booking:Object.assign({status:auto?"approved":"pending",auto,reasons,at:now},W?{walkin:true}:{}),createdAt:now,updatedAt:now,
     log:[{t:now,by:"applicant",msg:`${W?"Walk-in: applied at the desk":"Applied through campaign link"} and requested ${fmtDT(PUB.time)}. Pre-profile ${score}%.`+(auto?" Auto-approved.":" Waiting for approval.")}]};
   try{await attachDocs(a,F);await setDoc("applicants/"+id,a)}catch(err){delete S.applicants[id];if(/oras na/.test(err.message))PUB.time=null;PUB.err=err.message;await loadSlots();return render()}PUB.form={};PUB.ocr={};PUB.day=PUB.time=null;location.hash="#ticket/"+id}
@@ -2916,7 +2934,7 @@ function vRequests(){const P=Object.values(S.applicants).filter(a=>stage(a)==="r
     <div class="rq-score ${ap.score>=pass?"ok":"low"}"><b>${ap.score??"—"}%</b><small>pass ${pass}%</small></div></div>
    ${a.booking?.reasons?.length?`<p class="small" style="margin:0;color:var(--wait)">Needs review: ${esc(a.booking.reasons.join("; "))}</p>`:""}
    <dl class="sc-dl">${appFacts(a)}<div><dt>Contact</dt><dd>${esc(a.phone)}<br>${esc(a.email)}</dd></div></dl>
-   ${ap.answers?.length?`<div class="rq-sec"><div class="row" style="justify-content:space-between"><h3 style="margin:0">Pre-profile answers</h3><span class="small muted">${ap.answers.reduce((s,x)=>s+(x.pts||0),0)} of ${ap.answers.reduce((s,x)=>s+(x.max||0),0)} points</span></div><ol class="rq-ans">${ap.answers.map(x=>{const r=x.max?(x.pts||0)/x.max:1;return `<li class="${r>=.99?"full":r>=.5?"part":"low"}"><div class="rq-q">${esc(x.q)}</div><div class="rq-a"><b>${esc(x.a||"No answer")}</b><span class="rq-pts">${x.pts??0}/${x.max}</span></div></li>`}).join("")}</ol></div>`:""}
+   ${ap.answers?.length?`<div class="rq-sec"><div class="row" style="justify-content:space-between"><h3 style="margin:0">Pre-profile answers</h3><span class="small muted">${ap.answers.reduce((s,x)=>s+(x.pts||0),0)} of ${ap.answers.reduce((s,x)=>s+(x.max||0),0)} points</span></div><ol class="rq-ans">${ap.answers.map(x=>{const r=x.max?(x.pts||0)/x.max:1;return `<li class="${r>=.99?"full":r>=.5?"part":"low"}"><div class="rq-q">${esc(x.q)}</div><div class="rq-a"><b>${esc(x.a||"No answer")}</b><span class="rq-pts">${x.type==="paragraph"?"not scored":`${x.pts??0}/${x.max}`}</span></div></li>`}).join("")}</ol></div>`:""}
    <div class="row"><button class="btn primary" data-rq="approve" data-id="${a.id}">Approve interview</button><button class="btn danger" data-rq="decline" data-id="${a.id}">Decline</button></div></div>`}).join("")}</div>`
    :`<div class="tablewrap"><div class="empty">No requests waiting. Applicants who pass the automatic check are approved straight away and appear in Check-in.</div></div>`}
   ${recent.length?`<div class="sechead" style="margin-top:32px"><h2>Recently decided</h2></div><div class="tablewrap"><table><thead><tr><th>Applicant</th><th>Interview</th><th>Score</th><th>Decision</th><th>Message</th></tr></thead><tbody>${recent.map(a=>`<tr class="click" data-open="${a.id}"><td>${esc(a.name)}<div class="small muted">${esc(a.phone||"")}</div></td><td>${fmtDT(a.slot)}</td><td>${a.application?.score??"—"}%</td><td>${a.booking.status==="declined"?tag("Declined","stop"):tag(a.booking.auto?"Auto-approved":"Approved","go")}</td><td>${a.booking.auto?`<span class="small muted">Not needed</span>`:`<button class="btn sm" data-act="copysms" data-id="${a.id}">Copy SMS</button>`}</td></tr>`).join("")}</tbody></table></div>`:""}`}
@@ -2930,7 +2948,7 @@ document.addEventListener("click",async e=>{const r=e.target.closest("[data-rq]"
 document.addEventListener("change",e=>{const t=e.target;
   if(t.id==="ap-cconf"){PUB.form.contactOk=t.checked;PUB.err="";return render()}
   if(t.dataset.lcode!=null){const s=new Set(PUB.form.codes||[]);t.checked?s.add(t.dataset.lcode):s.delete(t.dataset.lcode);PUB.form.codes=[...s]}
-  if(t.name&&t.name.startsWith("pq_")){PUB.form.answers=Object.assign({},PUB.form.answers,{[t.name.slice(3)]:+t.value})}
+  if(t.name&&t.name.startsWith("pq_")){const A=Object.assign({},PUB.form.answers);if(t.value==="")delete A[t.name.slice(3)];else A[t.name.slice(3)]=+t.value;PUB.form.answers=A}
   if(UI.editCamp&&(t.dataset.time!=null||t.dataset.cq!=null||t.dataset.day!=null||["cp-start","cp-end","cp-len","cp-seats"].includes(t.id))){UI.editCamp=readCampForm();render()}});
 document.addEventListener("input",e=>{const t=e.target;
   if(UI.editCamp&&t.dataset.cq!=null)UI.editCamp=readCampForm()});
@@ -3220,21 +3238,38 @@ const pqCat=q=>q.cat||PQ_DEFCAT[q.id]||"other";
 function pqDefault(){return (settings().pqDefault)||DEFAULT_PQ}
 function pqList(scope){if(scope==="default")return pqDefault();const c=campById(scope);return c?cq(c):[]}
 async function pqSave(scope,list){if(scope==="default"){S.settings=Object.assign({},S.settings||{},{pqDefault:list});await setDoc("admin/settings",S.settings)}else{const L=camps().map(c=>c.id===scope?Object.assign({},c,{questions:list}):c);await saveCamps(L)}}
+function pqForm(E){const t=qType(E),O=E.opts||[];
+  const typeBtn=(k,h)=>`<button type="button" data-pq="type" data-v="${k}" aria-pressed="${t===k}"><b>${QTYPES[k]}</b><small>${h}</small></button>`;
+  const rows=t==="choice"||t==="dropdown"?`<div class="stack" style="gap:8px"><div class="qe-row small muted"><span>Answer</span><span>Points</span><span></span></div>${O.map((o,j)=>`<div class="qe-row"><input data-pqo="${j}" data-f="0" value="${esc(o[0])}" placeholder="Answer ${j+1}" aria-label="Answer ${j+1}"><input data-pqo="${j}" data-f="1" type="number" min="0" max="100" value="${o[1]}" aria-label="Points for answer ${j+1}"><button type="button" class="btn sm" data-pq="optdel" data-v="${j}" ${O.length<=2?"disabled":""}>Remove</button></div>`).join("")}
+     <div class="row"><button type="button" class="btn sm" data-pq="optadd">+ Add answer</button></div>
+     ${t==="dropdown"?`<label class="f">Paste a long list (one answer per line, 0 points each)<textarea id="pqe-paste" rows="3" placeholder="Makati&#10;Taguig&#10;Pasig"></textarea></label><div><button type="button" class="btn sm" data-pq="paste">Add these answers</button></div>`:""}
+     <p class="small muted" style="margin:0">The best answer gets the most points.</p></div>`
+   :t==="yesno"?`<div class="grid2"><label class="f">Points for “Oo” (Yes)<input type="number" min="0" max="100" data-pqo="0" data-f="1" value="${O[0]?.[1]??10}"></label><label class="f">Points for “Hindi” (No)<input type="number" min="0" max="100" data-pqo="1" data-f="1" value="${O[1]?.[1]??0}"></label></div>`
+   :`<p class="small muted" style="margin:0">Applicants type their answer (up to ${PARA_MAX} characters). It is not scored; staff read it on the applicant's Application tab.</p>`;
+  return `<div class="qb-form"><div class="sect"><header><h3>${E.idx!=null?"Edit question":"New question"}</h3></header><div class="stack">
+    <div><div class="lbl">Type of question</div><div class="qe-types">${typeBtn("choice","Pick one from a list")}${typeBtn("dropdown","Pick one from a menu")}${typeBtn("yesno","Oo or Hindi")}${typeBtn("paragraph","Long written answer")}</div></div>
+    <div class="grid2"><label class="f">Category<select id="pqe-cat">${Object.entries(PQ_CATS).map(([k,v])=>`<option value="${k}" ${E.cat===k?"selected":""}>${v}</option>`).join("")}</select></label>
+     <label class="row" style="align-self:end"><input type="checkbox" id="pqe-req" ${qReq(E)?"checked":""}> Required</label></div>
+    <label class="f">Question<input id="pqe-text" value="${esc(E.text||"")}" placeholder="${t==="paragraph"?"e.g. Bakit gusto mong maging Drayber Flex driver?":"e.g. Have you driven an electric vehicle before?"}"></label>
+    ${rows}
+    <div><div class="lbl">Preview: what the applicant sees</div><div class="qe-prev">${pubQuestion(Object.assign({},E,{id:"preview",text:E.text||"Your question"}),0,{})}</div></div>
+    <div class="row"><button class="btn primary" data-pq="save">Save question</button><button class="btn" data-pq="cancel">Cancel</button></div></div></div></div>`}
+// keep what is typed in the question form while it re-draws
+document.addEventListener("input",e=>{const t=e.target,E=UI.pqEdit;if(!E)return;
+  if(t.id==="pqe-text")E.text=t.value;
+  if(t.dataset&&t.dataset.pqo!=null){const j=+t.dataset.pqo,f=+t.dataset.f;E.opts=(E.opts||[]).map(o=>o.slice());while(E.opts.length<=j)E.opts.push(["",0]);E.opts[j][f]=f?Math.max(0,parseInt(t.value)||0):t.value}});
+document.addEventListener("change",e=>{const t=e.target,E=UI.pqEdit;if(!E)return;if(t.id==="pqe-req")E.req=t.checked;if(t.id==="pqe-cat")E.cat=t.value});
 function vBankApp(){const C=camps(),scope=UI.pqScope&&(UI.pqScope==="default"||campById(UI.pqScope))?UI.pqScope:(C[0]?C[0].id:"default");UI.pqScope=scope;
   const Q=pqList(scope),E=UI.pqEdit&&UI.pqEdit.scope===scope?UI.pqEdit:null,c=scope==="default"?null:campById(scope);
-  const form=cat=>`<div class="qb-form"><div class="sect"><header><h3>${E.idx!=null?"Edit question":"New question"}</h3></header><div class="stack">
-    <label class="f">Category<select id="pqe-cat">${Object.entries(PQ_CATS).map(([k,v])=>`<option value="${k}" ${E.cat===k?"selected":""}>${v}</option>`).join("")}</select></label>
-    <label class="f">Question<input id="pqe-text" value="${esc(E.text||"")}" placeholder="e.g. Have you driven an electric vehicle before?"></label>
-    <label class="f">Answers and points<span class="small muted" style="display:block">One answer per line, written as <i>answer | points</i>. The best answer gets the most points.</span><textarea id="pqe-opts" rows="4">${esc((E.opts||[]).map(o=>o[0]+" | "+o[1]).join("\n"))}</textarea></label>
-    <div class="row"><button class="btn primary" data-pq="save">Save question</button><button class="btn" data-pq="cancel">Cancel</button></div></div></div></div>`;
+  const form=()=>pqForm(E);
   const groups=[...Object.keys(PQ_CATS).filter(k=>k!=="other"),"other"].map(k=>[k,Q.map((q,i)=>[q,i]).filter(([q])=>pqCat(q)===k)]);
   return `<p class="muted" style="margin:0 0 18px">Applicants answer these on the application form before picking an interview time. The total becomes their pre-profile score${c?`, and anyone at ${c.passScore??70}% or above is approved automatically`:""}.</p>
   <div class="row" style="margin-bottom:18px;align-items:flex-end"><label class="f" style="min-width:260px">Questions for<select data-pq-scope>${C.map(x=>`<option value="${x.id}" ${scope===x.id?"selected":""}>${esc(x.name)}</option>`).join("")}<option value="default" ${scope==="default"?"selected":""}>Default for new campaigns</option></select></label>
    ${c?`<button class="btn sm" data-pq="copydef">Use the default set</button><button class="btn sm" data-pq="savedef">Save as default</button>`:""}</div>
   <div class="stack">${E&&E.idx==null?form():""}${groups.map(([k,l])=>`<div class="sect"><header><h3>${PQ_CATS[k]}</h3><div class="row" style="gap:12px"><span class="muted small">${l.length} question${l.length===1?"":"s"}</span>${qbCatDel("pq",k,l.length)}</div></header><div>
     ${!l.length?`<p class="small muted" style="margin:0">No questions in this category yet.</p>`:""}
-    ${l.map(([q,i])=>E&&E.idx===i?form(k):`<div class="q"><div class="row" style="justify-content:space-between;flex-wrap:nowrap;align-items:flex-start"><div style="min-width:0"><b>${esc(q.text)}</b><div class="small muted">${q.opts.map(o=>`${esc(o[0])} · ${o[1]}`).join("&nbsp;&nbsp;/&nbsp;&nbsp;")}</div></div>
-      <div class="row" style="flex:none">${tag("max "+Math.max(0,...q.opts.map(o=>o[1])),"plain")}<button class="btn sm" data-pq="edit" data-v="${i}">Edit</button><button class="btn sm danger" data-pq="del" data-v="${i}">Remove</button></div></div></div>`).join("")}</div></div>`).join("")}</div>`}
+    ${l.map(([q,i])=>E&&E.idx===i?form(k):`<div class="q"><div class="row" style="justify-content:space-between;flex-wrap:nowrap;align-items:flex-start"><div style="min-width:0"><b>${esc(q.text)}</b><div class="small muted">${qType(q)==="paragraph"?`Long answer · up to ${PARA_MAX} characters`:q.opts.map(o=>`${esc(o[0])} · ${o[1]}`).join("&nbsp;&nbsp;/&nbsp;&nbsp;")}</div></div>
+      <div class="row" style="flex:none">${tag(QTYPES[qType(q)],"plain")}${qReq(q)?"":tag("Optional","plain")}${qScored(q)?tag("max "+Math.max(0,...q.opts.map(o=>o[1])),"plain"):tag("Not scored","plain")}<button class="btn sm" data-pq="edit" data-v="${i}">Edit</button><button class="btn sm danger" data-pq="del" data-v="${i}">Remove</button></div></div></div>`).join("")}</div></div>`).join("")}</div>`}
 function vBank(){const T=[["interview","Interview questions",can("interviewer")],["app","Application questions",can("marketing")],["drive","Driving test items",can("tester")]].filter(x=>x[2]);
   if(!T.length)return `<div class="panel empty">You don't have access to the question bank.</div>`;
   const tab=T.some(x=>x[0]===UI.bankTab)?UI.bankTab:T[0][0];
@@ -3244,13 +3279,19 @@ function vBank(){const T=[["interview","Interview questions",can("interviewer")]
   ${tab==="interview"?vBankInterview():tab==="app"?vBankApp():vBankDrive()}`}
 document.addEventListener("click",async e=>{const t=e.target;const bt=t.closest("[data-bt]");if(bt){UI.bankTab=bt.dataset.bt;UI.editQ=null;UI.pqEdit=null;return render()}
   const b=t.closest("[data-pq]");if(!b)return;e.preventDefault();const A=b.dataset.pq,scope=UI.pqScope,Q=pqList(scope).map(q=>Object.assign({},q,{cat:pqCat(q)}));
-  if(A==="add"){UI.pqEdit={scope,idx:null,cat:b.dataset.v||Object.keys(PQ_CATS)[0],text:"",opts:[["Yes",10],["No",0]]};render();return window.scrollTo(0,0)}
+  if(A==="add"){UI.pqEdit={scope,idx:null,type:"choice",cat:b.dataset.v||Object.keys(PQ_CATS)[0],text:"",opts:[["",10],["",0]]};render();return window.scrollTo(0,0)}
+  const E0=UI.pqEdit;
+  if(A==="type"&&E0){const was=qType(E0),to=b.dataset.v;E0.type=to;if(to==="yesno")E0.opts=[["Oo",10],["Hindi",0]];else if(to==="paragraph")E0.opts=[];else if(was==="yesno"||was==="paragraph")E0.opts=[["",10],["",0]];if(E0.req==null||was==="paragraph"||to==="paragraph")E0.req=to!=="paragraph";return render()}
+  if(A==="optadd"&&E0){E0.opts=[...(E0.opts||[]),["",0]];return render()}
+  if(A==="optdel"&&E0){E0.opts=(E0.opts||[]).filter((_,j)=>j!==+b.dataset.v);return render()}
+  if(A==="paste"&&E0){const L=(document.getElementById("pqe-paste")?.value||"").split("\n").map(x=>x.trim()).filter(Boolean);if(!L.length)return toast("Paste one answer per line first.");E0.opts=[...(E0.opts||[]).filter(o=>String(o[0]).trim()),...L.map(x=>[x,0])];return render()}
   if(A==="edit"){const i=+b.dataset.v;UI.pqEdit=Object.assign({scope,idx:i},clone(Q[i]));return render()}
   if(A==="cancel"){UI.pqEdit=null;return render()}
   if(A==="del"){const i=+b.dataset.v;if(!confirm(`Remove “${Q[i].text}”?`))return;Q.splice(i,1);await pqSave(scope,Q);render();return toast("Question removed")}
-  if(A==="save"){const text=document.getElementById("pqe-text").value.trim(),cat=document.getElementById("pqe-cat").value,opts=document.getElementById("pqe-opts").value.split("\n").map(l=>{const [x,y]=l.split("|");return[(x||"").trim(),Math.max(0,parseInt(y)||0)]}).filter(o=>o[0]);
-    if(!text)return toast("Write the question.");if(opts.length<2)return toast("Add at least two answers.");
-    const E=UI.pqEdit,q={id:E.id||"pq"+uid().slice(0,6),text,cat,opts};if(E.idx!=null)Q[E.idx]=q;else Q.push(q);await pqSave(scope,Q);UI.pqEdit=null;render();return toast("Question saved")}
+  if(A==="save"){const E=UI.pqEdit,t=qType(E),text=(document.getElementById("pqe-text")?.value||E.text||"").trim(),cat=document.getElementById("pqe-cat")?.value||E.cat,req=!!document.getElementById("pqe-req")?.checked;
+    const opts=t==="paragraph"?[]:t==="yesno"?[["Oo",Math.max(0,+(E.opts?.[0]?.[1]??10))],["Hindi",Math.max(0,+(E.opts?.[1]?.[1]??0))]]:(E.opts||[]).map(o=>[String(o[0]).trim(),Math.max(0,parseInt(o[1])||0)]).filter(o=>o[0]);
+    if(!text)return toast("Write the question.");if((t==="choice"||t==="dropdown")&&opts.length<2)return toast("Add at least two answers.");
+    const q={id:E.id||"pq"+uid().slice(0,6),text,cat,type:t,req,opts};if(E.idx!=null)Q[E.idx]=q;else Q.push(q);await pqSave(scope,Q);UI.pqEdit=null;render();return toast("Question saved")}
   if(A==="copydef"){if(!confirm("Replace this campaign's questions with the default set?"))return;await pqSave(scope,clone(pqDefault()));render();return toast("Default questions applied")}
   if(A==="savedef"){await pqSave("default",clone(Q));render();return toast("Saved as default for new campaigns")}});
 document.addEventListener("change",e=>{if(e.target.matches("[data-pq-scope]")){UI.pqScope=e.target.value;UI.pqEdit=null;render()}});
@@ -3355,6 +3396,7 @@ document.addEventListener("click",async e=>{const b=e.target.closest("[data-act]
   if(!/^(cp|ap|sc)-/.test(A))return;e.preventDefault();
   switch(A){
    case"cp-copywalk":{await copyText(walkUrl(campById(id)));return toast("Walk-in link copied")}
+   case"cp-qedit":UI.editCamp=null;UI.bankTab="app";UI.pqScope=id;UI.pqEdit=null;return go("bank");
    case"cp-new":UI.editCamp=newCamp();render();return window.scrollTo(0,0);
    case"cp-fromjob":{const j=jobById(id);if(!j)return;UI.view="campaigns";const C=jobCamps(j),left=dayDiff(today(),j.neededBy);
      UI.editCamp=Object.assign(newCamp(),{jobId:j.id,name:`${j.client} – ${j.position}${C.length?" "+(C.length+1):""}`,position:j.position,jd:j.jd||"",reqs:j.reqs||"",perks:j.perks||"",
