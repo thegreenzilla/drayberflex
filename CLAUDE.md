@@ -24,6 +24,8 @@ Owner: Dennis (non-technical). Explain changes in plain language, confirm before
     `#app` applicant app (sign in with code + last 4 digits of mobile; `#status` opens the same page): next step, QR, reschedule once
     (≥12h before), cancel, upload NBI/medical later, progress + updates, Add to Home Screen. Landing page when no hash.
   - Test site only so far: `test/manifest.webmanifest`, `test/sw.js` (network-first, offline shell only), `test/icons/` – copy them to the root when going live.
+- Staff navigation (test site): side menu on desktop (`renderNav`: main pages, My queues open, Tools folded, Help → What's new),
+  ☰ slide-in menu on phones; full-screen screens (check-in desk, driving test mode) keep their own layout.
 - `supabase/sql/` – schema + dated update scripts (run manually in Supabase → SQL Editor; all idempotent).
 - `supabase/functions/notify` – email (Brevo or Resend) / SMS (Semaphore) when the desk approves/declines.
   `admin-users` – create user / reset password / delete (Admin only). Both deployed with **Verify JWT OFF**.
@@ -65,3 +67,9 @@ Owner: Dennis (non-technical). Explain changes in plain language, confirm before
 1. Check JS syntax of every `<script>` block.
 2. Test staff screens for every role and all public routes (no console errors, no "undefined/NaN" on screen).
 3. If a change needs SQL, add a new dated file in `supabase/sql/` (idempotent) and tell Dennis exactly what to paste.
+4. Add an entry at the top of `WHATSNEW` in the app (date, plain-English title and bullets, who it's for, `where:"test"` until it is copied to live,
+   then `"live"`). Staff see it on the What's new page; a red dot marks unseen updates.
+   On the test site, add its tests to `WN_TESTS` under the same title ([id, who, title, steps, should happen]); results go to the
+   `test_results` table and Dennis can paste them back with "Copy results for Claude".
+   Testers are non-technical: write steps in plain words; put any preparation in `WN_SETUP[id]`; after fixing a reported
+   problem add `WN_FIXED[id]="<ISO time>"` so the test comes back first as "please test again" (🧪 Tests button, one test at a time).

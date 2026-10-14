@@ -21,7 +21,7 @@
 if(window.APP_CONFIG&&APP_CONFIG.TEST){const m=document.createElement("meta");m.name="robots";m.content="noindex,nofollow";document.head.appendChild(m);
   document.addEventListener("DOMContentLoaded",()=>{const b=document.createElement("div");b.setAttribute("role","note");b.textContent="TEST SITE · practice data only · the real site is apply.drayberflex.com";
     b.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#c0392b;color:#fff;font:600 13px/1.2 system-ui,sans-serif;text-align:center;padding:7px 10px;letter-spacing:.02em;pointer-events:none";
-    document.body.appendChild(b);document.body.style.paddingBottom="32px"});
+    document.body.appendChild(b);document.body.style.paddingBottom="32px";document.body.classList.add("is-test")});
   new MutationObserver(()=>{if(!document.title.startsWith("[TEST] "))document.title="[TEST] "+document.title}).observe(document.querySelector("title")||document.head,{childList:true,subtree:true,characterData:true});document.title="[TEST] "+document.title}
 </script>
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
@@ -851,20 +851,121 @@ main#main:has(.reg-table){max-width:min(1680px,100%)}
 .reg-noph{margin-top:8px;padding:14px;border:1px dashed var(--line);border-radius:8px;color:var(--mute);font-size:13px;text-align:center}
 .reg-att{list-style:none;margin:0;padding:0}.reg-att li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .reg-attadd{gap:10px;margin-top:10px;flex-wrap:wrap}
+
+/* ---- v13 side menu (desktop) / slide-in menu (phone) ---- */
+.app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}
+nav.rail{position:sticky;top:0;height:100vh;flex-direction:column;align-items:stretch;gap:2px;padding:18px 12px 0;border-right:1px solid var(--line);border-bottom:0;overflow-y:auto;background:var(--panel);z-index:20}
+.sb-brand{font:800 20px/1 var(--display);letter-spacing:-.02em;margin:2px 10px 16px;color:var(--ink)}.sb-brand span{color:var(--go)}
+.rail .search{width:auto;margin:0 0 10px}
+#nav{flex-direction:column;align-items:stretch;gap:1px;overflow:visible;flex:none}
+#nav .navbtn{box-sizing:border-box;width:100%;padding:8px 12px;border-radius:8px;justify-content:flex-start;gap:10px;flex:none}
+#nav .navbtn .lbl{flex:1;text-align:left;white-space:normal;line-height:1.25}
+#nav .navbtn .ic{width:18px;text-align:center;opacity:.75;flex:none}
+#nav .navbtn .rdy{flex:none}
+.sb-sec{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:14px 12px 4px;display:flex;justify-content:space-between;align-items:center}
+details.sb-grp>summary{list-style:none;cursor:pointer;border-radius:6px}details.sb-grp>summary::-webkit-details-marker{display:none}
+details.sb-grp>summary::after{content:"▸";font-size:11px}details.sb-grp[open]>summary::after{content:"▾"}
+details.sb-grp>summary:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.sb-sub .navbtn{padding-left:40px!important;font-weight:500}
+.sb-new{width:8px;height:8px;border-radius:50%;background:var(--stop);flex:none}
+.rail-foot{margin-top:auto;padding:10px 0 14px;border-top:1px solid var(--line);position:sticky;bottom:0;background:var(--panel)}
+.rail-foot .userbtn{width:100%;justify-content:flex-start;gap:10px;text-align:left}.rail-foot .userbtn .who2{min-width:0;overflow:hidden;text-overflow:ellipsis}
+body.is-test .rail-foot{padding-bottom:46px}.userbtn .who2,.userbtn .who2 small{display:block}
+.sb-bar,.sb-scrim{display:none}
+body.full .app{display:block}body.full .sb-bar{display:none!important}
+@media (max-width:820px){
+ .app{display:block}
+ nav.rail{position:fixed;left:0;top:0;bottom:0;width:min(290px,86vw);height:auto;transform:translateX(-105%);transition:transform .2s ease;box-shadow:0 0 40px rgba(0,0,0,.25);z-index:60;padding-top:calc(18px + env(safe-area-inset-top,0px))}
+ body.sb-open nav.rail{transform:none}
+ body.sb-open .sb-scrim{display:block;position:fixed;inset:0;background:rgba(10,20,30,.35);z-index:55}
+ .sb-bar{display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:30;background:var(--panel);border-bottom:1px solid var(--line);padding:10px 16px}
+ .sb-bar b{font:800 18px var(--display);letter-spacing:-.02em}.sb-bar b span{color:var(--go)}
+ .sb-burger{display:inline-grid;place-items:center;width:42px;height:42px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);font-size:19px;cursor:pointer;position:relative}
+ .sb-burger .sb-new{position:absolute;top:7px;right:7px}
+ .rail-foot{display:block}.userbtn .who2{display:block!important}
+}
+@media (prefers-reduced-motion:reduce){nav.rail{transition:none}}
+#dropdown,#gres{z-index:70}
+/* What's new */
+.wn{display:grid;gap:18px;max-width:820px}
+.wn-day{display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px}
+.wn-date{font-weight:700;color:var(--mute);font-size:14px;padding-top:16px;font-variant-numeric:tabular-nums}
+.wn-list{display:grid;gap:10px}
+.wn-item{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.wn-item h3{margin:0 0 6px;font-size:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.wn-item ul{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14.5px}
+.wn-where{font-size:11.5px;font-weight:700;border-radius:99px;padding:2px 8px;background:var(--wait-soft);color:var(--wait)}
+.wn-where.live{background:var(--go-soft);color:var(--go)}
+.wn-for{font-size:12px;color:var(--mute);margin:6px 0 0}
+.wn-sum{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 16px;max-width:820px;margin-bottom:18px}
+.wn-sum .c{display:grid;line-height:1.1}.wn-sum .c b{font-size:22px;font-variant-numeric:tabular-nums}.wn-sum .c span{font-size:12px;color:var(--mute)}
+.wn-sum .c.p b{color:var(--go)}.wn-sum .c.f b{color:var(--stop)}.wn-sum .c.s b{color:var(--wait)}
+.wn-sum .acts{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.wn-filter{display:flex;gap:6px;flex-wrap:wrap;width:100%}
+details.wn-tests{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
+details.wn-tests>summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--brand,var(--go));list-style:none;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+details.wn-tests>summary::-webkit-details-marker{display:none}details.wn-tests>summary::before{content:"▸";font-size:11px}details.wn-tests[open]>summary::before{content:"▾"}
+.ts-sec{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:14px 0 2px}
+.ts{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}.ts:last-child{border-bottom:0}
+.ts.is-pass{box-shadow:inset 3px 0 0 var(--go);padding-left:10px}.ts.is-fail{box-shadow:inset 3px 0 0 var(--stop);padding-left:10px}.ts.is-skip{box-shadow:inset 3px 0 0 var(--wait);padding-left:10px}
+.ts h4{margin:0;font-size:14.5px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.ts h4 .tid{font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
+.ts .who{font-size:11px;font-weight:600;background:var(--sunk);border-radius:99px;padding:2px 8px}
+.ts ol{margin:6px 0 0;padding-left:18px;font-size:13.5px;display:grid;gap:2px}.ts .exp{margin:6px 0 0;font-size:13.5px}
+.ts .res{display:grid;gap:6px;align-content:start}
+.ts .seg{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.ts .seg button{border:0;border-left:1px solid var(--line);background:var(--panel);color:var(--ink);font-weight:600;font-size:13px;padding:7px 2px;cursor:pointer}.ts .seg button:first-child{border-left:0}
+.ts .seg button[aria-pressed="true"][data-v="pass"]{background:var(--go-soft);color:var(--go)}.ts .seg button[aria-pressed="true"][data-v="fail"]{background:var(--stop-soft);color:var(--stop)}.ts .seg button[aria-pressed="true"][data-v="skip"]{background:var(--wait-soft);color:var(--wait)}
+.ts textarea{width:100%;min-height:52px;resize:vertical;font:inherit;font-size:13.5px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);box-sizing:border-box}
+.ts .meta{font-size:12px;color:var(--mute);min-height:1em}
+@media (max-width:700px){.ts{grid-template-columns:1fr}}
+/* guided testing: floating Tests button, side panel, tests-only tab */
+.tg-fab{position:fixed;right:16px;bottom:calc(46px + env(safe-area-inset-bottom,0px));z-index:65;display:flex;align-items:center;gap:8px;border:0;border-radius:99px;padding:12px 18px;background:var(--ink);color:var(--panel);font:700 15px var(--body);box-shadow:0 8px 24px rgba(0,0,0,.25);cursor:pointer}
+.tg-fab .rdy{background:var(--signal,#f2b705);color:#1d2328}
+.tg-panel{position:fixed;top:0;right:0;bottom:0;width:min(440px,100vw);z-index:66;background:var(--panel);border-left:1px solid var(--line);box-shadow:-12px 0 40px rgba(0,0,0,.18);display:flex;flex-direction:column}
+.tg-panel[hidden]{display:none}
+.tg-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);padding-top:calc(12px + env(safe-area-inset-top,0px))}
+.tg-head b{flex:1;font-size:16px}
+.tg-x{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;min-width:40px;height:40px;cursor:pointer;font-size:15px;padding:0 10px}
+.tg-body{flex:1;overflow-y:auto;padding:16px 16px 60px}
+.tg-solo{max-width:640px;margin:0 auto;padding:20px 16px 80px}
+.tg-prog{height:8px;border-radius:99px;background:var(--sunk);overflow:hidden;margin:4px 0 14px}.tg-prog i{display:block;height:100%;background:var(--go)}
+.tg-card{display:grid;gap:12px}
+.tg-upd{font-size:12.5px;color:var(--mute)}
+.tg-card h2{margin:0;font-size:22px;line-height:1.2}
+.tg-where{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:13px;border-radius:99px;padding:5px 11px;background:var(--sunk);justify-self:start}
+.tg-setup{background:var(--wait-soft);color:var(--ink);border-radius:10px;padding:10px 12px;font-size:14px}
+.tg-fixed{background:var(--go-soft);border-radius:10px;padding:10px 12px;font-size:14px;font-weight:600}
+.tg-steps{margin:0;padding-left:22px;display:grid;gap:8px;font-size:16px;line-height:1.45}
+.tg-exp{background:var(--sunk);border-radius:10px;padding:12px;font-size:15px;line-height:1.45}
+.tg-btns{display:grid;gap:8px}
+.tg-btns button{min-height:52px;border-radius:12px;font:700 16px var(--body);cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.tg-btns .ok{background:var(--go);border-color:var(--go);color:#fff}.tg-btns .bad{border-color:var(--stop);color:var(--stop)}
+.tg-btns button[aria-pressed="true"]{outline:3px solid var(--focus);outline-offset:2px}
+.tg-card textarea{width:100%;min-height:90px;font:inherit;font-size:15px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);box-sizing:border-box}
+.tg-nav{display:flex;justify-content:space-between;gap:8px;margin-top:4px}
+.tg-saved{font-size:12.5px;color:var(--mute);min-height:1em}
+.tg-intro ul{margin:8px 0 0;padding-left:20px;display:grid;gap:6px;font-size:15px}
+body.tg-open .tg-fab{display:none}
+@media (min-width:821px){body.tg-open .mainwrap{margin-right:440px}}
+@media (max-width:640px){.wn-day{grid-template-columns:1fr;gap:4px}.wn-date{padding-top:0}}
 </style>
 </head>
 <body>
 <div class="app">
   <nav class="rail" id="rail" aria-label="Main">
+    <div class="sb-brand">Drayber<span>Flex</span></div>
     <div class="brand-sub">Driver acquisition<br><span>Pilot VF · 5 Oct 2026</span></div>
     <div class="road" aria-hidden="true"></div>
     <div class="search" role="search"><input id="gsearch" type="search" placeholder="Find applicant   /" autocomplete="off" aria-label="Find applicant"></div>
     <div id="nav"></div>
     <div class="rail-foot" id="me"></div>
   </nav>
-  <div class="mainwrap"><div id="offline"></div>
+  <div class="mainwrap"><div class="sb-bar"><button class="sb-burger" data-sb="toggle" aria-label="Open menu" aria-controls="rail" aria-expanded="false">☰<span class="sb-new" id="sb-dot" hidden></span></button><b>Drayber<span>Flex</span></b></div><div id="offline"></div>
   <main id="main"><p class="muted">Loading…</p></main></div>
 </div>
+<div class="sb-scrim" data-sb="close"></div>
+<button class="tg-fab" id="tg-fab" data-tg="open" hidden></button>
+<aside class="tg-panel" id="tg-panel" aria-label="Testing" hidden></aside>
 <div id="toast" class="toast" hidden></div>
 <div id="print"></div>
 <div id="ovl"></div>
@@ -1039,7 +1140,7 @@ function sha256js(str){const K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x39
 async function hashPw(pw,salt){let h=salt+"|"+pw;for(let i=0;i<2000;i++)h=sha256js(h);return h}
 async function checkPw(u,pw){return (await hashPw(pw,u.salt))===u.hash}
 async function makeAccount(name,username,pw,roles){const salt=uid()+uid();return{id:"u"+uid(),name,username:username.toLowerCase(),salt,hash:await hashPw(pw,salt),roles,active:true,mustChange:false,createdAt:new Date().toISOString()}}
-function startSession(u){S.uid=u.id;S.isAdmin=u.roles.includes("admin");S.viewAs="all";try{sessionStorage.setItem(SESS,JSON.stringify({uid:u.id,t:Date.now()}))}catch(e){}UI.view="pipeline";UI.auth=u.mustChange?"change":null;touch();render()}
+function startSession(u){S.uid=u.id;S.isAdmin=u.roles.includes("admin");S.viewAs="all";try{sessionStorage.setItem(SESS,JSON.stringify({uid:u.id,t:Date.now()}))}catch(e){}UI.view="pipeline";UI.auth=u.mustChange?"change":null;UI.solo=location.hash==="#tests"&&!!(window.APP_CONFIG&&APP_CONFIG.TEST);touch();render()}
 function logout(msg){if(SB){SB.auth.signOut().catch(()=>{});unsubscribe();S.applicants={};S.bank=null;S.jobs=null;S.accounts=[];_lastApp={};_mine={};_bstat={}}UI.signedUp=null;setTimeout(()=>{if(!S.uid&&UI.auth==="login"){UI.auth="landing";render()}},0);if(typeof closeCam==="function"&&$(".cam"))closeCam();S.uid=null;S.isAdmin=false;UI.auth="login";UI.view="pipeline";UI.id=null;try{sessionStorage.removeItem(SESS)}catch(e){}render();if(msg)toast(msg)}
 let lastAct=Date.now();function touch(){lastAct=Date.now();try{if(S.uid)sessionStorage.setItem(SESS,JSON.stringify({uid:S.uid,t:lastAct}))}catch(e){}}
 ["click","keydown","pointermove"].forEach(ev=>document.addEventListener(ev,()=>{if(Date.now()-lastAct>5000)touch()},{passive:true}));
@@ -1059,7 +1160,7 @@ const can=r=>{const m=myRoles();return m.includes(r)||m.includes("admin")};
 const VIEW_ROLES={team:["admin"],settings:["admin"],reports:["hr"],import:["marketing"],reminders:["marketing","verifier"],bank:["interviewer","marketing","tester"],
   trcal:["trainer","marketing","verifier"],campaigns:["marketing"],requests:["verifier"],jobs:["operations","marketing","hr"],checkin:["verifier"],scan:["verifier"],inform:["verifier"],
   orientation:["orientation"],interview:["interviewer"],drive:["tester"],ojt:["trainer"],offers:["hr"]};
-const canView=v=>{const R=VIEW_ROLES[v];if(R)return R.some(r=>can(r));return !opsOnly()||v==="pipeline"};
+const canView=v=>{const R=VIEW_ROLES[v];if(R)return R.some(r=>can(r));return !opsOnly()||v==="pipeline"||v==="whatsnew"};
 const opsOnly=()=>{const m=myRoles();return m.length>0&&m.every(r=>r==="operations")};
 // personal data: full IDs and document photos = Check-in, HR (+Admin); applicant details without IDs = also Marketing
 const seeIds=()=>can("verifier")||can("hr"),seeFile=()=>seeIds()||can("marketing");
@@ -1157,17 +1258,170 @@ function moreItems(){const m=[];if(can("marketing"))m.push(["import","Import boo
   if(can("interviewer")||can("marketing")||can("tester"))m.push(["bank","Question bank"]);if(can("trainer")||can("marketing")||can("verifier"))m.push(["trcal","Training calendar"]);if((can("marketing")||can("hr"))&&!can("operations"))m.push(["jobs","Job orders"]);if(can("admin"))m.push(["team","Accounts",S.accounts.filter(a=>a.pending).length],["settings","Rules & data"]);return m}
 function renderNav(){
   const cur=UI.view==="profile"?(UI.back||"applicants"):UI.view==="results"?"applicants":UI.view;
-  const btn=(v,l,n,isQ)=>`<button class="navbtn" data-go="${v}" aria-current="${cur===v}"><span>${l}</span>${n==null?"":isQ?(n?`<span class="rdy" aria-label="${n} ready">${n}</span>`:""):`<span class="n">${n}</span>`}</button>`;
-  const qs=myQueues(),more=moreItems();
-  const tools=[...(can("hr")?[["reports","Reports"]]:[]),...more];
-  const qTotal=qs.reduce((n,q)=>n+readyList(q).length,0),qCur=qs.some(q=>q.view===cur),tCur=tools.some(([v])=>v===cur);
-  const mbtn=(v,l,isCur,badge)=>`<button class="navbtn" data-act="menu" data-v="${v}" aria-haspopup="menu" aria-expanded="${UI.menu===v}" aria-current="${isCur}"><span>${l}</span>${badge?`<span class="rdy">${badge}</span>`:""}<span class="car" aria-hidden="true">▾</span></button>`;
+  const IC={pipeline:"⌂",applicants:"☰",jobs:"▤",campaigns:"◎",requests:"✉"};
+  const btn=(v,l,n,isQ)=>`<button class="navbtn" data-go="${v}" aria-current="${cur===v}"><span class="ic" aria-hidden="true">${IC[v]||"•"}</span><span class="lbl">${l}</span>${n==null?"":isQ?(n?`<span class="rdy" aria-label="${n} waiting">${n}</span>`:""):`<span class="n">${n}</span>`}</button>`;
+  const sub=(v,l,n)=>`<button class="navbtn" data-go="${v}" aria-current="${cur===v}"><span class="lbl">${l}</span>${n?`<span class="rdy" aria-label="${n} waiting">${n}</span>`:""}</button>`;
+  const grp=(k,t,items,badge)=>{const st=sbState()[k],open=st!=null?st:(k==="q"||items.some(x=>x[0]===cur));
+    return `<details class="sb-grp" data-k="${k}" ${open?"open":""}><summary class="sb-sec"><span>${t}${badge?` · ${badge}`:""}</span></summary><div class="sb-sub">${items.map(([v,l,n])=>sub(v,l,n)).join("")}</div></details>`};
+  const unseen=wnUnseen(),wn=`<div class="sb-sec" style="margin-top:14px"><span>Help</span></div><button class="navbtn" data-go="whatsnew" aria-current="${cur==="whatsnew"}"><span class="ic" aria-hidden="true">★</span><span class="lbl">What's new</span>${unseen?`<span class="sb-new" aria-label="New updates"></span>`:""}</button>`;
+  const dot=$("#sb-dot");if(dot)dot.hidden=!unseen;
   const srch=document.querySelector(".search");if(srch)srch.hidden=opsOnly();
-  if(opsOnly()){$("#nav").innerHTML=btn("pipeline","Home")+btn("jobs","Job orders");return renderUser()}
+  if(opsOnly()){$("#nav").innerHTML=btn("pipeline","Home")+btn("jobs","Job orders")+wn;return renderUser()}
+  const qs=myQueues(),tools=[...(can("hr")?[["reports","Reports"]]:[]),...moreItems()];
   let h=btn("pipeline","Home")+btn("applicants","Applicants",Object.keys(S.applicants).length);if(can("operations"))h+=btn("jobs","Job orders");if(can("marketing"))h+=btn("campaigns","Campaigns",jobsWaiting().length||null,true);if(can("verifier"))h+=btn("requests","Requests",Object.values(S.applicants).filter(x=>stage(x)==="requested").length,true);
-  if(qs.length)h+=mbtn("queues","My queues",qCur,qTotal);
-  if(tools.length)h+=mbtn("more","Tools",tCur,can("admin")?S.accounts.filter(a=>a.pending).length:0);
-  $("#nav").innerHTML=h;renderUser()}
+  if(qs.length)h+=grp("q","My queues",qs.map(q=>[q.view,q.label,readyList(q).length]));
+  if(tools.length)h+=grp("t","Tools",tools,can("admin")?S.accounts.filter(a=>a.pending).length:0);
+  $("#nav").innerHTML=h+wn;renderUser()}
+/* the side menu remembers which groups are open, per browser */
+function sbState(){try{return JSON.parse(localStorage.getItem("df_sb")||"{}")}catch(e){return{}}}
+document.addEventListener("toggle",e=>{const d=e.target;if(!d.matches||!d.matches("details.sb-grp"))return;const st=sbState();st[d.dataset.k]=d.open;try{localStorage.setItem("df_sb",JSON.stringify(st))}catch(err){}},true);
+function sbOpen(on){document.body.classList.toggle("sb-open",on);const b=document.querySelector(".sb-burger");if(b)b.setAttribute("aria-expanded",String(on))}
+document.addEventListener("click",e=>{const t=e.target.closest("[data-sb]");if(t){e.preventDefault();return sbOpen(t.dataset.sb==="toggle"?!document.body.classList.contains("sb-open"):false)}
+  if(document.body.classList.contains("sb-open")&&e.target.closest("#nav [data-go]"))sbOpen(false)});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.body.classList.contains("sb-open"))sbOpen(false)});
+/* ---- What's new: newest first. where: "test" = test site only so far, "live" = on apply.drayberflex.com ---- */
+const WHATSNEW=[
+ {d:"2026-10-14",where:"test",t:"Test checklists on What's new",for:"Everyone testing",i:["On the test site, tap the 🧪 Tests button (bottom right) to test one step at a time: follow the steps, then tap It worked or Something's wrong and say what you saw.","You only get the tests for your role, plus the applicant tests you can do on your phone. A short Before you start note explains what you need.","Tests that need something prepared first say so. Notes save while you type.","Open in new tab shows only the tests, so you can keep the site and the tests side by side.","Each update on What's new also lists its tests and everyone's results. Copy results for Claude puts every problem and note on the clipboard."]},
+ {d:"2026-10-14",where:"test",t:"Side menu and What's new",for:"Everyone",i:["The menu moved from the top to the left side. Your queues and their waiting numbers are always visible; Tools folds away.","On a phone, tap ☰ at the top left to open the menu.","This What's new page lists every update. A red dot shows when there is something you haven't seen."]},
+ {d:"2026-10-14",where:"test",t:"Watermark without staff names",for:"Everyone",i:["The faint watermark on applicant pages now shows “DrayberFlex · Confidential”, the date and time, and a short account code instead of your name."]},
+ {d:"2026-10-14",where:"test",t:"Applicant app: document upload fixed",for:"Applicants",i:["The photo button for the NBI clearance and medical certificate opens the camera or photo picker again."]},
+ {d:"2026-10-14",where:"test",t:"Operations accounts",for:"Admin",i:["New account in Accounts can create Operations accounts (the role used to be dropped). On the real site this works once the account tool is updated in Supabase.","On the test site, New account and setting a temporary password work now too."]},
+ {d:"2026-10-13",where:"test",t:"Applicant app",for:"Applicants, Check-in, Trainer",i:["Applicants sign in at /#app with their reference code and the last 4 digits of their mobile.","They see their QR ticket, next step, progress and updates; can move the interview once (up to 12 hours before) or cancel it; and can upload their NBI and medical later.","They can add the app to their phone's home screen.","Staff see “No NBI or medical uploaded yet” on Requests, the check-in desk and the profile.","An expired NBI or older medical is accepted for the interview (“Verified · older copy”). A valid copy is needed before training, and the Accredited button waits until then. Use “Use new copy” when the applicant uploads one."]},
+ {d:"2026-10-13",where:"test",t:"Application question types",for:"Marketing, Admin",i:["Application questions can be multiple choice, a dropdown, yes/no, or a paragraph answer (up to 500 characters, not scored)."]},
+ {d:"2026-10-13",where:"test",t:"Data privacy protections",for:"Everyone",i:["A Privacy Notice for applicants, with the Data Protection Officer: Hiedilyn Suarez, dpo@thegreenzilla.com.","Registry details: the full applicant file for roles allowed to see it; ID numbers are masked for other roles.","Viewing an applicant's file is recorded in their activity.","A watermark on applicant pages to discourage screenshots.","Desk accounts sign out by themselves after 5 minutes without use."]},
+ {d:"2026-10-13",where:"live",t:"Test site",for:"Admin",i:["apply.drayberflex.com/test/ is a practice copy with its own data. New features appear there first. A red banner shows you are on the test site."]},
+ {d:"2026-10-09",where:"live",t:"Walk-ins use the online application",for:"Check-in, Marketing",i:["Each campaign has a Walk-in QR. Walk-ins scan it, apply on their phone and get today's interview time, or see when walk-in interviews run."]},
+ {d:"2026-10-09",where:"live",t:"One person = one driver's license",for:"Everyone",i:["The license number and photo are required.","One active application per license. After a Failed result the person waits the months set in Rules & data, or is blocked for serious cases (an Admin can allow them)."]},
+ {d:"2026-10-09",where:"live",t:"Ad spend and budgets",for:"Marketing, Admin",i:["Record ad spend per campaign and set an ad budget. Campaigns and dashboards show budget used and cost per accredited driver."]},
+ {d:"2026-10-09",where:"live",t:"Job orders and the Operations role",for:"Operations, Marketing, HR",i:["Operations adds job orders (client, position, drivers needed, needed by at least 20 days ahead). Marketing turns them into campaigns."]},
+ {d:"2026-10-09",where:"live",t:"Campaigns with targets and dates",for:"Marketing",i:["Set drivers needed, a start date and how many days it runs. Campaigns close by themselves when filled or after the last day, and are never deleted."]},
+ {d:"2026-10-09",where:"live",t:"Dashboards for each role",for:"Everyone",i:["Home shows a dashboard for your role, with a period and campaign filter. Each page is only open to the roles that need it."]},
+ {d:"2026-10-09",where:"live",t:"Scores kept private",for:"Everyone",i:["Interview and driving test scores are only shown to the roles that need them. Driving test items moved into the Question bank."]},
+ {d:"2026-10-09",where:"live",t:"Start fresh",for:"Admin",i:["Rules & data → Start fresh clears test applicants, job orders and ad spend after a backup, and keeps the campaigns you tick."]},
+ {d:"2026-10-08",where:"live",t:"New web address",for:"Everyone",i:["The system moved to apply.drayberflex.com. The old address forwards here."]},
+ {d:"2026-10-07",where:"live",t:"Registry and photos",for:"Check-in, Admin",i:["Applicant registry, and photos when adding an applicant by hand."]}];
+/* ---- test checklists (test site only): results in table test_results, shared by everyone testing ---- */
+const WN_TESTS={"Applicant app": [["A1", "Applicant", "Apply to get a code", ["On your phone open apply.drayberflex.com/test/ and tap Mag-apply.", "Fill in all steps. Skip the NBI and medical uploads. Pick an interview at least 2 days away.", "Write down the code (MB-…)."], "You get a QR ticket and a code. The tip under it mentions “application mo” as a link."], ["A2", "Applicant", "Sign in", ["Open apply.drayberflex.com/test/#app.", "Enter your code and the last 4 digits of your mobile. Tap Sign in."], "Your home screen opens: “Hi, [name] · MB-…” at the top."], ["A3", "Applicant", "Wrong digits", ["Log out. Sign in with the right code but wrong last 4 digits."], "It says “Hindi tugma ang code at mobile number…” and does not sign you in."], ["A4", "Applicant", "Lock after 5 wrong tries", ["Try wrong digits 5 times in a row, then the right digits."], "After the 5th try it says “Masyadong maraming maling subok…”. Even the right digits are refused for 1 hour."], ["A5", "Applicant", "Stays signed in", ["Sign in (use a different code if A4 locked yours). Close the browser, open #app again."], "You are still signed in. Log out asks “Mag-log out sa phone na 'to?” and returns to the sign-in page."], ["A6", "Applicant", "Old status link", ["On the landing page tap “Ang application ko” (top) and the link under Mag-apply ngayon."], "Both open the same sign-in page."], ["B1", "Applicant", "Ticket and QR", ["Look at the top card on the home screen."], "“Booked ka na” with your QR code, date, time, place and code."], ["B2", "Applicant", "Progress and updates", ["Scroll to Ang progress mo."], "Nag-apply and Interview booked are ticked; Interview at screening is the current step. Mga update shows “Nag-apply ka at nag-book ng interview.”"], ["B3", "Applicant + Check-in", "Pending booking", ["Apply with a new license number and answer the questions poorly, then sign in to #app with that code."], "The card says the request is being reviewed. After Check-in approves it in Requests and you reload, the QR appears and Mga update shows “Na-approve ang interview mo.”"], ["C1", "Applicant", "Move the interview", ["Tap Ilipat ang petsa o oras. Pick a day and time, tap Ilipat dito, confirm."], "A green message says it was moved. The ticket shows the new time. Mga update shows “Inilipat mo ang interview…”."], ["C2", "Applicant", "Only once", ["Look at Ayusin ang interview after C1."], "The move button is gone. It says you already moved it once."], ["C3", "Applicant", "Not within 12 hours", ["Apply for an interview less than 12 hours away (e.g. later today) and sign in to #app."], "There is no move button; it explains it's less than 12 hours. Cancel is still there."], ["C4", "Check-in", "Staff see the move", ["As Check-in or Admin, open that applicant. Open Activity."], "Interview time is the new one. Activity has “Applicant moved the interview from … to … (applicant app)”."], ["C5", "Applicant", "Cancel", ["Tap I-cancel ang interview and confirm."], "The card says “Na-cancel ang interview mo” with a Mag-apply ulit button. The move and cancel buttons are gone."], ["C6", "Applicant + Check-in", "Cancelled seat is free", ["Set a campaign to 1 seat per slot. Book that slot, cancel it in the app, then book the same slot with another license."], "The second booking goes through. Staff see the first applicant as cancelled, with “Applicant cancelled the interview (applicant app)” in Activity."], ["D1", "Applicant", "Missing documents prompt", ["Sign in to #app with a code that has no NBI or medical."], "Mga dokumento shows “Wala pa. I-upload bago ang interview.” with I-upload buttons, and says older or expired copies are OK."], ["D2", "Applicant", "Upload NBI", ["Tap I-upload next to NBI clearance. Take a photo (an old or expired one is fine). Add the clearance number and date if you have them. Tap I-upload."], "Message “Na-upload na ang NBI clearance mo.” The row says “Na-upload na. Titingnan sa check-in.” with a Palitan button."], ["D3", "Applicant", "Upload medical", ["Do the same for the medical certificate."], "Same result for Medical certificate."], ["D4", "Check-in", "Staff see the upload", ["As Check-in open that applicant → Check-in & documents (after Showed up)."], "The NBI and medical have the photo and details the applicant entered. Activity says “NBI clearance uploaded (applicant app)”."], ["E1", "Check-in", "Flag on booking requests", ["Open Requests with a pending applicant who did not upload NBI or medical."], "Next to the name: “No NBI or medical uploaded yet”."], ["E2", "Check-in", "Flag on the check-in desk", ["On the phone check-in desk, open Today's list."], "Applicants without uploads show “Not arrived yet · ⚠ No NBI or medical uploaded yet”."], ["E3", "Check-in", "Flag on the profile", ["Open that applicant's profile."], "A yellow tag under the name: “⚠ No NBI or medical uploaded yet”. It disappears after check-in."], ["E4", "Check-in", "Photo at the desk", ["Tap Showed up, then take photos of the NBI and medical from the desk."], "Staff can still add the photos and verify; nothing blocks check-in."], ["F1", "Check-in", "Expired NBI accepted", ["For a checked-in applicant enter an NBI “Valid until” date in the past. Fill the rest of the checklist."], "The checklist shows “! Expired: OK for the interview, a valid one is needed before training”. Verify is allowed. The NBI shows “Verified · older copy”."], ["F2", "Check-in", "Older medical accepted", ["Enter a medical issue date more than 6 months ago and verify."], "Same as F1 for the medical. The profile shows “⚠ Valid NBI and medical needed before training”."], ["F3", "Applicant", "Applicant is asked for valid copies", ["Sign in to #app with that applicant."], "Mga dokumento says a valid NBI and new medical are needed before training, with I-upload ang bago buttons."], ["F4", "Trainer", "Trainer sees the flag", ["Move the applicant through to a booked training day. As Trainer open 1-day training."], "The Documents column says “Valid NBI and medical needed before training”."], ["F5", "Check-in", "Accredited waits", ["After the trainer marks Pass, open Results to give."], "Instead of the Accredited button it shows “Valid NBI and medical needed before training”."], ["F6", "Applicant + Check-in", "Use the new copy", ["The applicant uploads a valid NBI in the app.", "Check-in opens the profile → NBI and taps Use new copy. Repeat for the medical."], "The flag goes away and the Accredited button appears in Results to give. (Or tap Not acceptable: the applicant is asked to upload again.)"], ["F7", "Check-in", "Fix by hand", ["Instead of an upload, change the NBI “Valid until” to a future date on the profile and tap Mark as valid."], "The NBI shows Verified (no longer older copy)."], ["G1", "Applicant", "Android", ["In Chrome on Android open #app. Tap I-add on the card (or Chrome menu → Add to Home screen)."], "A Drayber Flex icon (DF) appears on the home screen and opens the app full screen."], ["G2", "Applicant", "iPhone", ["In Safari open #app. Tap Share → Add to Home Screen."], "The card explains the steps. The icon opens the app and you are still signed in."], ["G3", "Applicant", "Dismiss the card", ["Tap ✕ on the Add to Home Screen card."], "It doesn't come back on that phone."]], "Application question types": [["H1", "Marketing", "Question types", ["Tools → Question bank → Application questions. Add one question of each type: multiple choice, dropdown, yes/no, paragraph."], "The application page shows each the right way. A paragraph answer is limited to 500 characters and isn't scored."]], "Data privacy protections": [["H2", "Applicant", "Privacy notice", ["On step 3 tap the Privacy Notice link."], "It opens the notice with the DPO name Hiedilyn Suarez and dpo@thegreenzilla.com."], ["H3", "Admin", "Registry details", ["Open Registry Details as Admin, then preview as Marketing."], "Admin sees full details; numbers are masked for roles that shouldn't see them."], ["H4", "Check-in", "Auto sign-out", ["Sign in on a desk account and leave it untouched for 5 minutes."], "It signs out by itself."]], "Side menu and What's new": [["S1", "Everyone", "Side menu on a computer", ["Sign in on a computer. Look at the left side."], "The menu is on the left: Home, Applicants and your other pages; My queues open with waiting numbers; Tools folded; What's new under Help; your name at the bottom."], ["S2", "Everyone", "Menu remembers open and closed", ["Open Tools, close My queues. Refresh the page."], "Tools stays open and My queues stays closed."], ["S3", "Everyone", "Menu on a phone", ["Sign in on your phone. Tap ☰ at the top left. Tap a page."], "The menu slides in; tapping a page opens it and closes the menu. Tapping outside the menu also closes it."], ["S4", "Everyone", "Red dot for new updates", ["Look for a red dot next to What's new. Open What's new."], "The dot disappears after you open the page and stays gone after a refresh."], ["S5", "Check-in", "Check-in desk keeps its own screen", ["Open My queues → Check-in & documents."], "The check-in desk opens full screen without the side menu, as before."], ["S6", "Admin", "Only your own pages", ["Use Preview the app as (your name at the bottom) and pick Driving instructor, then Operations."], "Each sees only their own pages in the menu. Operations sees Home, Job orders and What's new."]], "Watermark without staff names": [["W1", "Everyone", "Watermark text", ["Open any applicant's profile and look at the faint diagonal text."], "It says “DrayberFlex · Confidential”, the date and time, and a short code. Your name is not shown."]], "Applicant app: document upload fixed": [["U1", "Applicant", "Photo button opens the camera", ["Sign in to the applicant app (/test/#app) on your phone. Tap I-upload next to NBI clearance, then tap 📷 Kunan ng photo o pumili."], "The camera or photo picker opens. After choosing a photo and tapping I-upload it says “Na-upload na ang NBI clearance mo.”"]], "Operations accounts": [["O1", "Admin", "Create an Operations account", ["Tools → Accounts → New account. Fill in name, email, a temporary password, tick only Operations. Save."], "It says “Account created”. The person signs in with the temporary password, is asked to change it, and sees only Home, Job orders and What's new."], ["O2", "Admin", "Set a temporary password", ["Tools → Accounts → edit an account, type a new temporary password, save."], "The person can sign in with it and is asked to change it."]], "Test checklists on What's new": [["T1", "Everyone", "Record a result", ["Open What's new. Under any update open Test this, tap Pass, Fail or Skip and write a note."], "The result shows your name and the time. A colleague who opens What's new sees the same result."], ["T3", "Everyone", "Test one step at a time", ["Tap 🧪 Tests at the bottom right. Read Before you start and tap Start testing.", "Do the first test and tap It worked or Something's wrong."], "The next test appears by itself. The number on the Tests button goes down."], ["T4", "Everyone", "Tests in a new tab", ["In the testing panel tap New tab ↗."], "A new tab opens with only the tests, and you are still signed in there and in the first tab."], ["T2", "Admin", "Copy results for Claude", ["Tap Copy results for Claude at the top and paste them into the chat with Claude."], "The pasted text lists every failed test with its note, then the counts."]]};
+const WN_SECS={"A": "Sign in", "B": "Home screen", "C": "Move or cancel the interview", "D": "Upload NBI and medical later", "E": "Check-in desk flags", "F": "Older documents and training", "G": "Add to Home Screen", "H": "Also going live: questions and privacy"};
+const TR={map:{},loaded:false,loading:false,err:""};
+const isTestSite=()=>!!(window.APP_CONFIG&&APP_CONFIG.TEST);
+function tsAll(){return Object.entries(WN_TESTS).flatMap(([g,L])=>L.map(t=>({g,t})))}
+async function tsLoad(){if(!SB||TR.loading)return;TR.loading=true;const {data,error}=await SB.from("test_results").select("*");TR.loading=false;TR.loaded=true;
+  TR.err=error?(/relation|does not exist|schema cache/i.test(error.message||"")?"setup":"load"):"";TR.map={};(data||[]).forEach(r=>TR.map[r.id]=r);if(UI.view==="whatsnew"||UI.solo)render();tgPaint()}
+async function tsSave(id,patch,quiet){const cur=TR.map[id]||{status:"",note:""},row=Object.assign({id,status:cur.status||"",note:cur.note||""},patch,{by:S.uid,by_name:me(),at:new Date().toISOString()});
+  TR.map[id]=row;if(!quiet){if(UI.view==="whatsnew"&&!UI.solo)render();tgPaint()}const {error}=await SB.from("test_results").upsert(row);if(error){toast(/relation|does not exist|schema cache/i.test(error.message||"")?"Results can't be saved yet: run the test-results SQL in the test project first.":"Couldn't save: "+error.message);await tsLoad()}}
+function tsCounts(){const c={pass:0,fail:0,skip:0,left:0};tsAll().forEach(({t})=>{const s=TR.map[t[0]]?.status;c[s||"left"]++});return c}
+function tsShow(id){const f=UI.wnF||"all",s=TR.map[id]?.status||"";return f==="all"||(f==="mine"&&tsMineId(id))||(f==="left"&&!s)||(f==="fail"&&s==="fail")}
+function tsRow(t){const [id,who,title,steps,exp]=t,r=TR.map[id]||{},s=r.status||"";
+  return `<div class="ts ${s?"is-"+s:""}"><div style="min-width:0"><h4><span class="tid">${esc(id)}</span>${esc(title)}<span class="who">${esc(who)}</span></h4>
+   <ol>${steps.map(x=>`<li>${esc(x)}</li>`).join("")}</ol><p class="exp"><b>Should happen:</b> ${esc(exp)}</p></div>
+   <div class="res"><div class="seg" role="group" aria-label="Result for ${esc(id)}">${[["pass","Worked"],["fail","Problem"],["skip","Skip"]].map(([k,l])=>`<button data-act="ts-set" data-id="${esc(id)}" data-v="${k}" aria-pressed="${s===k}">${l}</button>`).join("")}</div>
+   <textarea id="ts-note-${esc(id)}" data-tsnote="${esc(id)}" placeholder="What did you see? (optional)" aria-label="Note for ${esc(id)}">${esc(r.note||"")}</textarea>
+   <div class="meta">${r.at&&(s||r.note)?`${s?{pass:"Worked",fail:"Problem",skip:"Skipped"}[s]:"Note"} · ${esc(r.by_name||"Someone")} · ${fmtDT(r.at)}`:""}</div></div></div>`}
+function tsBlock(title){const L=WN_TESTS[title];if(!L||!isTestSite())return"";
+  const done=L.filter(t=>TR.map[t[0]]?.status).length,fail=L.filter(t=>TR.map[t[0]]?.status==="fail").length,vis=L.filter(t=>tsShow(t[0]));
+  if((UI.wnF||"all")!=="all"&&!vis.length)return"";
+  const open=(UI.wnF||"all")!=="all"||(UI.wnOpen||{})[title];let last="",rows="";
+  vis.forEach(t=>{const sec=L.length>6?t[0][0]:"";if(sec&&sec!==last&&WN_SECS[sec]){rows+=`<div class="ts-sec">${esc(sec)} · ${esc(WN_SECS[sec])}</div>`;last=sec}rows+=tsRow(t)});
+  return `<details class="wn-tests" data-wn="${esc(title)}" ${open?"open":""}><summary>Test this <span class="small muted" style="font-weight:500">${done} of ${L.length} done${fail?` · <span style="color:var(--stop)">${fail} failed</span>`:""}</span></summary>${rows}</details>`}
+function tsSummary(){if(!isTestSite())return"";if(!TR.loaded&&!TR.loading)tsLoad();
+  if(TR.err==="setup")return `<div class="banner warn" style="max-width:820px;margin-bottom:18px"><div><b>Test results aren't set up yet.</b> An Admin needs to run <code>supabase/sql/2026-10-14_test_results.sql</code> in the test project's SQL editor. You can still read the tests below.</div></div>`;
+  if(!UI.wnF)UI.wnF=S.isAdmin&&S.viewAs==="all"?"all":"mine";const c=tsCounts(),f=UI.wnF,chip=(k,l)=>`<button class="btn sm${f===k?" primary":""}" data-act="ts-filter" data-v="${k}" aria-pressed="${f===k}">${l}</button>`;
+  return `<div class="wn-sum" aria-live="polite"><div class="c p"><b>${c.pass}</b><span>Passed</span></div><div class="c f"><b>${c.fail}</b><span>Failed</span></div><div class="c s"><b>${c.skip}</b><span>Skipped</span></div><div class="c"><b>${c.left}</b><span>Not tested</span></div>
+   <div class="acts"><button class="btn sm primary" data-tg="open">Start testing</button><button class="btn sm" data-tg="tab">Open in new tab</button><button class="btn sm" data-act="ts-copy">Copy results for Claude</button><button class="btn sm" data-act="ts-dl">Download</button><button class="btn sm" data-act="ts-reload">Refresh</button></div>
+   <div class="wn-filter">${chip("mine","My tests")}${chip("all","All tests")}${chip("left","Not tested yet")}${chip("fail","Problems")}</div></div>`}
+function tsReport(){const c=tsCounts(),A=tsAll(),line=({g,t})=>{const r=TR.map[t[0]]||{};return `- ${t[0]} ${t[2]} (${g})${r.note?": "+r.note.replace(/\s+/g," "):""}${r.by_name?` [${r.by_name}, ${fmtDT(r.at)}]`:""}`};
+  const by=s=>A.filter(x=>(TR.map[x.t[0]]?.status||"")===s);
+  return [`DrayberFlex test results (test site), ${new Date().toLocaleString()}`,`Passed ${c.pass}, Failed ${c.fail}, Skipped ${c.skip}, Not tested ${c.left} (of ${A.length})`,"",
+    "FAILED:",...(by("fail").map(line).length?by("fail").map(line):["- none"]),"","SKIPPED:",...(by("skip").map(line).length?by("skip").map(line):["- none"]),"",
+    "PASSED: "+(by("pass").map(x=>x.t[0]).join(", ")||"none"),"NOT TESTED: "+(by("").map(x=>x.t[0]).join(", ")||"none"),"",
+    "Notes on passed tests:",...(by("pass").filter(x=>TR.map[x.t[0]]?.note).map(line).length?by("pass").filter(x=>TR.map[x.t[0]]?.note).map(line):["- none"])].join("\n")}
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-act^='ts-']");if(!b||UI.view!=="whatsnew")return;e.preventDefault();e.stopPropagation();const A=b.dataset.act;
+  if(A==="ts-filter"){UI.wnF=b.dataset.v;return render()}
+  if(A==="ts-reload"){await tsLoad();return toast("Results refreshed")}
+  if(A==="ts-set"){const id=b.dataset.id,cur=TR.map[id]?.status,ta=document.getElementById("ts-note-"+id);return tsSave(id,{status:cur===b.dataset.v?"":b.dataset.v,note:ta?ta.value.slice(0,2000):(TR.map[id]?.note||"")})}
+  if(A==="ts-copy"){await tsLoad();const t=tsReport();try{await navigator.clipboard.writeText(t);toast("Copied. Paste it into the chat with Claude.")}catch(err){saveFile(`test-results-${today()}.txt`,t);toast("Couldn't copy here, so the results were downloaded as a file instead.")}return}
+  if(A==="ts-dl"){await tsLoad();saveFile(`test-results-${today()}.txt`,tsReport());return toast("Downloaded")}},true);
+const _tsT={};document.addEventListener("input",e=>{const t=e.target;if(!t.dataset||t.dataset.tsnote==null)return;const id=t.dataset.tsnote;clearTimeout(_tsT[id]);UI.typing=true;
+  _tsT[id]=setTimeout(()=>{UI.typing=false;const v=t.value.slice(0,2000);if(v!==(TR.map[id]?.note||""))tsSave(id,{note:v},true).then(()=>{const m=t.closest(".ts,.tg-card")?.querySelector(".meta,.tg-saved");if(m)m.textContent="Note saved · "+fmtDT(new Date().toISOString())})},900)});
+document.addEventListener("toggle",e=>{const d=e.target;if(!d.matches||!d.matches("details.wn-tests")||(UI.wnF||"all")!=="all")return;UI.wnOpen=Object.assign(UI.wnOpen||{},{[d.dataset.wn]:d.open})},true);
+/* ---- guided testing for non-technical testers: one test at a time, big plain buttons ---- */
+/* tests that need something prepared first */
+const WN_SETUP={A4:"This locks the code for 1 hour. Use a spare test code, not the one you use for the other tests.",B3:"Someone with Check-in needs to approve the request in Requests.",
+  C3:"You need an interview that starts within the next 12 hours (book one for later today).",C6:"Ask an Admin to set a campaign to 1 seat per time slot first.",
+  F4:"Do F1–F3 first, then take that applicant through to a booked training day.",F5:"Do this after F4.",H3:"Admin only.",H4:"Needs a Check-in desk account.",S6:"Admin only.",O1:"Admin only.",O2:"Admin only.",T2:"Admin only."};
+/* tests fixed after someone reported a problem: [test id, fixed at] — they come back first, marked "please test again" */
+const WN_FIXED={};
+const TG_ROLE={"check-in":"verifier",trainer:"trainer",admin:"admin",marketing:"marketing",operations:"operations","driving instructor":"tester",interviewer:"interviewer",hr:"hr",orientation:"orientation"};
+function tsMine(t){const who=t[1].toLowerCase();if(S.isAdmin&&S.viewAs==="all")return true;if(/everyone|applicant/.test(who))return true;return Object.entries(TG_ROLE).some(([w,r])=>who.includes(w)&&can(r))}
+function tsMineId(id){const x=tsAll().find(({t})=>t[0]===id);return !!x&&tsMine(x.t)}
+function tgRetest(id){const f=WN_FIXED[id],r=TR.map[id];return !!f&&r&&r.status==="fail"&&r.at<f}
+function tgList(){const L=tsAll().filter(({t})=>tsMine(t));return [...L.filter(x=>tgRetest(x.t[0])),...L.filter(x=>!tgRetest(x.t[0]))]}
+function tgLeft(){return tgList().filter(x=>!TR.map[x.t[0]]?.status||tgRetest(x.t[0])).length}
+const TG={i:null};
+function tgStart(){const L=tgList(),k=L.findIndex(x=>!TR.map[x.t[0]]?.status||tgRetest(x.t[0]));TG.i=k<0?L.length:k}
+function tgIntroSeen(){try{return !!localStorage.getItem("df_tg_intro")}catch(e){return true}}
+function tgHtml(){const L=tgList();if(TR.err==="setup")return `<div class="tg-setup"><b>Testing isn't set up yet.</b> An Admin needs to run the test-results SQL in the test project first.</div>`;
+  if(!tgIntroSeen())return `<div class="tg-card tg-intro"><h2>Before you start</h2>
+   <ul><li><b>You need:</b> your phone 📱, this computer 💻, and your login for this test site.</li>
+   <li>We show you <b>one test at a time</b>. Follow the steps, then tap <b>It worked</b> or <b>Something's wrong</b>.</li>
+   <li>If something's wrong, write what you saw in your own words. That's all we need.</li>
+   <li>Start with the first test: it gets you a <b>test code</b> that you'll use in later tests. Write it down.</li>
+   <li>This is a practice site. No real applicant gets an email or SMS, so you can't break anything.</li></ul>
+   <div class="tg-btns" style="margin-top:8px"><button class="ok" data-tg="intro-ok">Start testing</button></div></div>`;
+  if(TG.i==null)tgStart();
+  const done=L.filter(x=>TR.map[x.t[0]]?.status&&!tgRetest(x.t[0])).length,pct=L.length?Math.round(done/L.length*100):100;
+  const prog=`<div class="small muted">${done} of ${L.length} done</div><div class="tg-prog" aria-hidden="true"><i style="width:${pct}%"></i></div>`;
+  if(TG.i>=L.length){const c=tsCounts();return `${prog}<div class="tg-card"><h2>${tgLeft()?"You've reached the end":"All done. Thank you!"}</h2>
+   <p style="margin:0">${tgLeft()?`${tgLeft()} test${tgLeft()>1?"s are":" is"} still open. Tap Back to the first open test to finish them.`:"Every test for you has a result. Tell Dennis you're finished."}</p>
+   <div class="tg-exp">Worked ${c.pass} · Problems ${c.fail} · Skipped ${c.skip}</div>
+   <div class="tg-btns">${tgLeft()?`<button class="ok" data-tg="first">Back to the first open test</button>`:""}<button data-tg="prev">‹ Go back one test</button>${S.isAdmin?`<button data-act-tg="copy" data-tg="copy">Copy results for Claude</button>`:""}</div></div>`}
+  const {g,t}=L[TG.i],[id,who,title,steps,exp]=t,r=TR.map[id]||{},st=tgRetest(id)?"":(r.status||""),phone=/applicant/i.test(who),setup=WN_SETUP[id];
+  return `${prog}<div class="tg-card" data-id="${esc(id)}">
+   <div class="tg-upd">Test ${TG.i+1} of ${L.length} · ${esc(g)} · ${esc(id)}</div>
+   ${tgRetest(id)?`<div class="tg-fixed">We fixed this. Please try it again.</div>`:""}
+   <h2>${esc(title)}</h2>
+   <span class="tg-where">${phone?"📱 On your phone":"💻 On the computer"}${/\+/.test(who)?" (and the computer)":""}</span>
+   ${setup?`<div class="tg-setup"><b>Before you start:</b> ${esc(setup)}</div>`:""}
+   <ol class="tg-steps">${steps.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>
+   <div class="tg-exp"><b>What should happen:</b><br>${esc(exp)}</div>
+   <div class="tg-btns"><button class="ok" data-tg="set" data-v="pass" aria-pressed="${st==="pass"}">✓ It worked</button><button class="bad" data-tg="set" data-v="fail" aria-pressed="${st==="fail"}">✕ Something's wrong</button><button data-tg="set" data-v="skip" aria-pressed="${st==="skip"}">Skip: I can't do this now</button></div>
+   ${st==="fail"||TG.note===id?`<label for="ts-note-tg-${esc(id)}"><b>What happened?</b> Write what you saw, in your own words.</label><textarea id="ts-note-tg-${esc(id)}" data-tsnote="${esc(id)}" placeholder="Example: I tapped the photo button but nothing opened.">${esc(r.note||"")}</textarea>
+    <div class="tg-btns"><button class="ok" data-tg="next">Save and go to the next test</button></div>`:`<button class="ap-link" data-tg="addnote" style="justify-self:start">Add a note</button>`}
+   <div class="tg-saved">${r.at&&(r.status||r.note)?`${r.status?{pass:"Worked",fail:"Problem",skip:"Skipped"}[r.status]:"Note"} · ${esc(r.by_name||"Someone")} · ${fmtDT(r.at)}`:""}</div>
+   <div class="tg-nav"><button class="btn" data-tg="prev" ${TG.i?"":"disabled"}>‹ Previous</button><button class="btn" data-tg="next">Next ›</button></div></div>`}
+function tgPaint(){const fab=$("#tg-fab"),pn=$("#tg-panel");if(!fab||!pn)return;const on=isTestSite()&&!!S.uid&&UI.auth!=="change"&&!UI.solo;
+  if(!on){fab.hidden=true;pn.hidden=true;document.body.classList.remove("tg-open");return}
+  if(!TR.loaded&&!TR.loading)tsLoad();const left=tgLeft();
+  fab.innerHTML=`🧪 Tests${left?` <span class="rdy">${left}</span>`:""}`;fab.hidden=false;fab.setAttribute("aria-label",`Open testing panel${left?`, ${left} left`:""}`);
+  if(UI.tgOpen){pn.hidden=false;document.body.classList.add("tg-open");const keep=document.activeElement&&pn.contains(document.activeElement)&&document.activeElement.tagName==="TEXTAREA";if(keep&&UI.typing)return;
+    pn.innerHTML=`<div class="tg-head"><b>Testing</b><button class="tg-x" data-tg="tab" title="Open in a new tab">New tab ↗</button><button class="tg-x" data-tg="close" aria-label="Close testing panel">✕</button></div><div class="tg-body">${tgHtml()}</div>`}
+  else{pn.hidden=true;document.body.classList.remove("tg-open")}}
+function vTestsSolo(){if(!TR.loaded&&!TR.loading)tsLoad();return `<div class="tg-solo"><div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px"><b style="font-size:18px">DrayberFlex testing</b><span class="small muted">${esc(me())} · <button class="ap-link" data-tg="full">Open the full site</button></span></div>${tgHtml()}</div>`}
+function tgRepaint(){if(UI.solo)render();else tgPaint()}
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-tg]");if(!b)return;e.preventDefault();e.stopPropagation();const A=b.dataset.tg,L=tgList();
+  if(A==="open"){UI.tgOpen=true;TG.i=null;tgPaint();return}
+  if(A==="close"){UI.tgOpen=false;tgPaint();return}
+  if(A==="full"){UI.solo=false;history.replaceState(null,"",location.pathname);render();return}
+  if(A==="tab"){try{localStorage.setItem("df_handoff",JSON.stringify({uid:S.uid,t:Date.now()}))}catch(err){}const w=window.open(location.pathname+"#tests","_blank");if(!w)toast("Your browser blocked the new tab. Allow pop-ups for this site and try again.");return}
+  if(A==="intro-ok"){try{localStorage.setItem("df_tg_intro","1")}catch(err){}TG.i=null;return tgRepaint()}
+  if(A==="addnote"){TG.note=b.closest(".tg-card")?.dataset.id;tgRepaint();setTimeout(()=>{const t=document.getElementById("ts-note-tg-"+TG.note);if(t)t.focus()},50);return}
+  if(A==="prev"){TG.i=Math.max(0,(TG.i??0)-1);TG.note=null;tgRepaint();return}
+  if(A==="first"){tgStart();TG.note=null;tgRepaint();return}
+  if(A==="copy"){await tsLoad();const t=tsReport();try{await navigator.clipboard.writeText(t);toast("Copied. Paste it into the chat with Claude.")}catch(err){saveFile(`test-results-${today()}.txt`,t)}return}
+  if(A==="next"){const card=b.closest(".tg-card"),ta=card&&card.querySelector("textarea");if(ta){const id=card.dataset.id,v=ta.value.slice(0,2000);clearTimeout(_tsT[id]);UI.typing=false;if(v!==(TR.map[id]?.note||""))await tsSave(id,{note:v},true)}
+    TG.i=Math.min(L.length,(TG.i??0)+1);TG.note=null;tgRepaint();const body=document.querySelector(".tg-body");if(body)body.scrollTop=0;if(UI.solo)window.scrollTo(0,0);return}
+  if(A==="set"){const card=b.closest(".tg-card"),id=card.dataset.id,v=b.dataset.v,ta=card.querySelector("textarea"),note=ta?ta.value.slice(0,2000):(TR.map[id]?.note||"");
+    await tsSave(id,{status:v,note},true);
+    if(v==="fail"){TG.note=id;tgRepaint();setTimeout(()=>{const t=document.getElementById("ts-note-tg-"+id);if(t)t.focus()},50);return}
+    TG.i=Math.min(L.length,(TG.i??0)+1);TG.note=null;tgRepaint();const body=document.querySelector(".tg-body");if(body)body.scrollTop=0;if(UI.solo)window.scrollTo(0,0);return}},true);
+const WN_KEY="df_wn_seen";
+function wnLatest(){return WHATSNEW.reduce((m,x)=>x.d>m?x.d:m,"")}
+function wnUnseen(){try{return (localStorage.getItem(WN_KEY)||"")<wnLatest()}catch(e){return false}}
+function vWhatsNew(){try{localStorage.setItem(WN_KEY,wnLatest())}catch(e){}setTimeout(renderNav,0);
+  const TEST=!!(window.APP_CONFIG&&APP_CONFIG.TEST),days=[...new Set(WHATSNEW.map(x=>x.d))];
+  return `<div class="head"><div><h1>What's new</h1><p>Every update to the hiring system, newest first.${TEST?" “Test site” items are only here for now; they move to the real site after they are tried. Open Test this under an update to try it and record the result.":""}</p></div></div>
+  ${tsSummary()}<div class="wn">${days.map(d=>`<div class="wn-day"><div class="wn-date">${fmtD(d+"T12:00")}</div><div class="wn-list">${WHATSNEW.filter(x=>x.d===d).map(x=>`<article class="wn-item"><h3>${esc(x.t)}${x.where==="test"?`<span class="wn-where">Test site</span>`:""}</h3><ul>${x.i.map(t=>`<li>${esc(t)}</li>`).join("")}</ul><p class="wn-for">For: ${esc(x.for)}</p>${tsBlock(x.t)}</article>`).join("")}</div></div>`).join("")}</div>`}
 function renderUser(){
   const ini=me().split(" ").map(x=>x[0]).slice(0,2).join("").toUpperCase();$("#me").innerHTML=`<button class="navbtn userbtn" data-act="menu" data-v="user" aria-haspopup="menu"><span class="avatar">${esc(ini)}</span><span class="who2"><b>${esc(me())}</b><small>${S.isAdmin?(S.viewAs==="all"?"Admin":"Previewing: "+ROLES[S.viewAs]):myRoles().map(r=>ROLES[r]).join(", ")||"No role yet"}</small></span></button>`;
   const lb=S.settings&&S.settings.lastBackup,stale=!lb||Date.now()-new Date(lb)>7*864e5;
@@ -1797,7 +2051,7 @@ function fileBody(a){const ap=a.application||{},id=a.id,L=a.docs?.license||{},N=
    ${full?`<div style="margin-top:14px">${regAttachments(a)}</div>`:""}
    <div class="row" style="justify-content:space-between;margin-top:14px"><span class="small muted">🔒 Opening this file, showing ID numbers and viewing photos are recorded. Screenshots carry your name.</span>${can("admin")?`<button class="btn sm noprint" data-act="print">Print file</button>`:""}</div>`}
 function watermark(on){let w=document.getElementById("wm");if(!on){if(w)w.remove();return}
-  const txt=`${me()} · ${new Date().toLocaleString(undefined,{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"})}`;
+  const txt=`DrayberFlex · Confidential · ${new Date().toLocaleString(undefined,{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"})} · ${String(S.uid||"").replace(/[^a-z0-9]/gi,"").slice(-5).toUpperCase()}`;
   if(!w){w=document.createElement("div");w.id="wm";w.setAttribute("aria-hidden","true");document.body.appendChild(w)}
   if(w.dataset.t===txt)return;w.dataset.t=txt;const dark=matchMedia("(prefers-color-scheme: dark)").matches&&document.documentElement.dataset.theme!=="light"||document.documentElement.dataset.theme==="dark";
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="460" height="200"><text x="20" y="120" transform="rotate(-22 230 100)" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="600" fill="${dark?"rgba(255,255,255,.07)":"rgba(35,33,94,.075)"}">${txt.replace(/[&<>]/g,"")}</text></svg>`;
@@ -2260,9 +2514,10 @@ function render(){
   if(typeof qbMerge==="function")qbMerge();
   
   if(PUB.route){document.body.classList.add("full");$("#offline").hidden=true;$("#dropdown").hidden=true;$("#main").style.padding="0";$("#main").innerHTML=vPublic();document.title=(campById(PUB.id)?.position||"Drayber Flex")+" · Apply";return}
-  const authing=!S.uid||UI.auth==="change",full=authing||!!UI.testMode||!!UI.mci;document.body.classList.toggle("full",full);$("#offline").hidden=full;
+  const authing=!S.uid||UI.auth==="change",full=authing||!!UI.testMode||!!UI.mci||!!UI.solo;tgPaint();document.body.classList.toggle("full",full);$("#offline").hidden=full;
   if(full){UI.menu=null;$("#dropdown").hidden=true;$("#gres").hidden=true}
   if(!authing&&UI.mci){document.body.classList.add("full");$("#main").style.padding="0";$("#main").innerHTML=vMci();hydratePhotos();scanAfterRender();return}
+  if(!authing&&UI.solo){$("#main").style.padding="0";$("#main").innerHTML=vTestsSolo();return}
   if(!authing&&UI.testMode){const act=document.activeElement;if(UI.typing&&act&&act.tagName==="TEXTAREA")return;$("#main").style.padding="0";$("#main").innerHTML=vTestMode();return}
   if(authing){$("#main").style.padding="0";$("#main").innerHTML=vAuth();const f=$("#main input");if(f&&!document.activeElement?.closest?.("#main"))f.focus();return}
   $("#main").style.padding="";
@@ -2271,7 +2526,7 @@ function render(){
   document.documentElement.style.setProperty("--hh",$("#rail").offsetHeight+"px");
   const noRole=!S.isAdmin&&!myRoles().length;if(!canView(UI.view)&&UI.view!=="profile")UI.view="pipeline";if(UI.view==="profile"&&opsOnly())UI.view="pipeline";
   const V={pipeline:vDash,applicants:vApplicants,results:vResults,checkin:vCheckin,orientation:vOrientation,interview:vInterview,bank:vBank,
-    import:vImport,drive:vDrive,jobs:vJobs,registry:vRegistry,trcal:vTrCal,ojt:vOjt,offers:vOffers,inform:vInform,team:vTeam,settings:vSettings,profile:vProfile,reports:vReports,reminders:vReminders,campaigns:vCampaigns,scan:vScan,requests:vRequests};
+    import:vImport,drive:vDrive,jobs:vJobs,registry:vRegistry,trcal:vTrCal,ojt:vOjt,offers:vOffers,inform:vInform,team:vTeam,settings:vSettings,profile:vProfile,reports:vReports,reminders:vReminders,campaigns:vCampaigns,scan:vScan,requests:vRequests,whatsnew:vWhatsNew};
   const act=document.activeElement,keep=act&&act.dataset&&act.dataset.act&&["INPUT","TEXTAREA"].includes(act.tagName)?{a:act.dataset.act,id:act.dataset.id,k:act.dataset.k,f:act.dataset.f,i:act.dataset.i,pos:act.selectionStart}:null;
   if(keep&&UI.typing)return; // don't repaint under someone mid-typing
   $("#main").innerHTML=(noRole&&UI.view==="pipeline"?vNoAccess()+"<div style='height:16px'></div>":"")+(V[UI.view]||vPipeline)();
@@ -3663,7 +3918,8 @@ async function boot(){
   if(!SB){$("#main").innerHTML=`<div class="auth"><div class="authcard"><div class="brandline">DrayberFlex</div><h1>Not connected</h1><p class="muted">Open <b>config.js</b> and paste your Supabase Project URL and anon public key, then reload.</p></div></div>`;return}
   if(PUB.route){await publicLoad();if(PUB.route==="ticket")await loadTicket(PUB.id);if(PUB.route==="app")await appLoad();S.ready=true;render()}
   const {data:{session}}=await SB.auth.getSession();
-  if(session){let ok=false;try{const ss=JSON.parse(sessionStorage.getItem(SESS)||"null");ok=ss&&ss.uid===session.user.id&&Date.now()-ss.t<(DEFAULT_SETTINGS.idleMinutes||30)*60000}catch(e){}
+  if(session){let ok=false;try{const ss=JSON.parse(sessionStorage.getItem(SESS)||"null");ok=ss&&ss.uid===session.user.id&&Date.now()-ss.t<(DEFAULT_SETTINGS.idleMinutes||30)*60000;
+      if(!ok){const h=JSON.parse(localStorage.getItem("df_handoff")||"null");localStorage.removeItem("df_handoff");if(h&&h.uid===session.user.id&&Date.now()-h.t<60000){ok=true;sessionStorage.setItem(SESS,JSON.stringify({uid:h.uid,t:Date.now()}))}}}catch(e){}
     if(ok){const msg=await enterSession(session.user);if(!msg)return}else await SB.auth.signOut()}
   if(!PUB.route){if(!S.settings)await publicLoad();S.ready=true;UI.auth=null;render()}}
 window.addEventListener("scroll",()=>document.body.classList.toggle("lp-scrolled",scrollY>420),{passive:true});
