@@ -3003,7 +3003,7 @@ function vApp(){if(!SB)return pubShell(`<div class="ap-card ap-narrow"><h1>Hindi
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();APP.bip=e;if(PUB.route==="app")render()});
 document.addEventListener("change",async e=>{const t=e.target;if(t.dataset.act!=="app-file"||!t.files||!t.files[0])return;APP.err="";
   try{APP.doc.img=await shrinkImage(t.files[0])}catch(err){APP.err="Hindi mabasa ang photo. Subukan ang ibang photo."}render()});
-document.addEventListener("click",async e=>{const b=e.target.closest("[data-act^='app-']");if(!b||!PUB.route)return;e.preventDefault();e.stopPropagation();
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-act^='app-']");if(!b||!PUB.route||b.tagName==="INPUT")return;e.preventDefault();e.stopPropagation();
   const A=b.dataset.act,a=APP.me,keep=()=>{["ref","expiry","date","clinic"].forEach(k=>{const el=document.getElementById("app-"+k);if(el)APP.doc[k]=el.value.trim()})},done=async m=>{APP.view=null;APP.r=null;APP.doc={};APP.err="";APP.msg=m;clearTimeout(APP.msgT);APP.msgT=setTimeout(()=>{if(APP.msg===m){APP.msg="";if(PUB.route==="app")render()}},8000);await appLoad();await loadSlots();render();window.scrollTo(0,0)};
   if(A==="app-login"){const code=($("#app-code").value||"").trim().toUpperCase().replace(/\s+/g,""),last4=($("#app-last4").value||"").replace(/\D/g,"");APP.lf={code,last4};APP.lerr="";
     if(!/^MB-?[A-Z0-9]{6}$/.test(code)){APP.lerr="Paki-check ang code. Ganito ang itsura: MB-7K2Q9P.";return render()}
