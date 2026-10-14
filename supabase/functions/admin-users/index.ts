@@ -9,7 +9,7 @@ const cors = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 const json = (b: unknown) => new Response(JSON.stringify(b), { headers: { ...cors, "Content-Type": "application/json" } });
-const ROLES = ["admin", "marketing", "verifier", "orientation", "interviewer", "tester", "trainer", "hr"];
+const ROLES = ["admin", "marketing", "verifier", "orientation", "interviewer", "tester", "trainer", "hr", "operations"];
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });

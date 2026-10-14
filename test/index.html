@@ -997,7 +997,7 @@ async function enterSession(user){
   try{await dbLoad()}catch(e){console.error(e);await SB.auth.signOut();return "Couldn't load data: "+e.message}
   subscribe();SB.from("profiles").update({last_login:new Date().toISOString()}).eq("id",user.id).then(()=>{});
   S.ready=true;startSession(account()||profToAcc(p));sweepStale();autoCloseCamps();return null}
-async function adminUsers(body){const {data,error}=await SB.functions.invoke("admin-users",{body});if(error)return{error:"The admin-users function isn't reachable. Check it's deployed."};return data||{}}
+async function adminUsers(body){const {data,error}=await SB.functions.invoke("admin-users",{body});if(error)return{error:window.APP_CONFIG&&APP_CONFIG.TEST?"Creating accounts and setting passwords isn't set up on the test site. Ask the person to tap Request access on the staff sign-in, then approve them here and tick their roles.":"The admin-users function isn't reachable. Check it's deployed."};return data||{}}
 const FIL_BY_TEXT=Object.fromEntries(STARTER_BANK.map(q=>[q.text,q.fil]));
 function addFilipino(){if(!S.bank||!S.bank.questions)return;let ch=false;S.bank.questions.forEach(q=>{if(!q.fil&&FIL_BY_TEXT[q.text]){q.fil=FIL_BY_TEXT[q.text];ch=true}});if(ch)localSave()}
 function syncProfiles(){S.profiles={sample:{name:"Sample"},applicant:{name:"Applicant"}};S.accounts.forEach(u=>S.profiles[u.id]={name:u.name})}
