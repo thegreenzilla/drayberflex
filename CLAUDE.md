@@ -54,6 +54,8 @@ Owner: Dennis (non-technical). Explain changes in plain language, confirm before
 - One person = one driver's license number (letter + 10 digits, compared without spaces/dashes). One active application per license;
   after a "Failed" result they wait the months in Rules & data, or are blocked for good (red flag, NBI hit, fake document,
   critical driving fail twice) unless Admin allows. Enforced in `submit_application` / `check_license` (SQL) and set when Check-in taps Failed.
+- Admin "Preview the app as" (test site): a role or a person (`S.preview`, `inPreview()`); look-only: `setDoc`/`saveApp`/`saveCfg`
+  and direct Supabase writes (tables except `test_results`, storage, functions) are refused while previewing.
 - Who sees what: interview results = Interviewer, Check-in, HR, Admin; driving results = Check-in, HR, Admin. Page access per role is `VIEW_ROLES`.
 - Campaigns close by themselves (never deleted) when accredited drivers reach the target or after the last day; dates are also enforced in SQL.
 
