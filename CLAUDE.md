@@ -71,3 +71,5 @@ Owner: Dennis (non-technical). Explain changes in plain language, confirm before
    then `"live"`). Staff see it on the What's new page; a red dot marks unseen updates.
    On the test site, add its tests to `WN_TESTS` under the same title ([id, who, title, steps, should happen]); results go to the
    `test_results` table and Dennis can paste them back with "Copy results for Claude".
+   Testers are non-technical: write steps in plain words; put any preparation in `WN_SETUP[id]`; after fixing a reported
+   problem add `WN_FIXED[id]="<ISO time>"` so the test comes back first as "please test again" (🧪 Tests button, one test at a time).
