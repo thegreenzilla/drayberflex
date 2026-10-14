@@ -69,3 +69,5 @@ Owner: Dennis (non-technical). Explain changes in plain language, confirm before
 3. If a change needs SQL, add a new dated file in `supabase/sql/` (idempotent) and tell Dennis exactly what to paste.
 4. Add an entry at the top of `WHATSNEW` in the app (date, plain-English title and bullets, who it's for, `where:"test"` until it is copied to live,
    then `"live"`). Staff see it on the What's new page; a red dot marks unseen updates.
+   On the test site, add its tests to `WN_TESTS` under the same title ([id, who, title, steps, should happen]); results go to the
+   `test_results` table and Dennis can paste them back with "Copy results for Claude".
