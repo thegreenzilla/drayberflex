@@ -21,7 +21,7 @@
 if(window.APP_CONFIG&&APP_CONFIG.TEST){const m=document.createElement("meta");m.name="robots";m.content="noindex,nofollow";document.head.appendChild(m);
   document.addEventListener("DOMContentLoaded",()=>{const b=document.createElement("div");b.setAttribute("role","note");b.textContent="TEST SITE · practice data only · the real site is apply.drayberflex.com";
     b.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#c0392b;color:#fff;font:600 13px/1.2 system-ui,sans-serif;text-align:center;padding:7px 10px;letter-spacing:.02em;pointer-events:none";
-    document.body.appendChild(b);document.body.style.paddingBottom="32px"});
+    document.body.appendChild(b);document.body.style.paddingBottom="32px";document.body.classList.add("is-test")});
   new MutationObserver(()=>{if(!document.title.startsWith("[TEST] "))document.title="[TEST] "+document.title}).observe(document.querySelector("title")||document.head,{childList:true,subtree:true,characterData:true});document.title="[TEST] "+document.title}
 </script>
 <script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
@@ -851,20 +851,69 @@ main#main:has(.reg-table){max-width:min(1680px,100%)}
 .reg-noph{margin-top:8px;padding:14px;border:1px dashed var(--line);border-radius:8px;color:var(--mute);font-size:13px;text-align:center}
 .reg-att{list-style:none;margin:0;padding:0}.reg-att li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .reg-attadd{gap:10px;margin-top:10px;flex-wrap:wrap}
+
+/* ---- v13 side menu (desktop) / slide-in menu (phone) ---- */
+.app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}
+nav.rail{position:sticky;top:0;height:100vh;flex-direction:column;align-items:stretch;gap:2px;padding:18px 12px 0;border-right:1px solid var(--line);border-bottom:0;overflow-y:auto;background:var(--panel);z-index:20}
+.sb-brand{font:800 20px/1 var(--display);letter-spacing:-.02em;margin:2px 10px 16px;color:var(--ink)}.sb-brand span{color:var(--go)}
+.rail .search{width:auto;margin:0 0 10px}
+#nav{flex-direction:column;align-items:stretch;gap:1px;overflow:visible;flex:none}
+#nav .navbtn{box-sizing:border-box;width:100%;padding:8px 12px;border-radius:8px;justify-content:flex-start;gap:10px;flex:none}
+#nav .navbtn .lbl{flex:1;text-align:left;white-space:normal;line-height:1.25}
+#nav .navbtn .ic{width:18px;text-align:center;opacity:.75;flex:none}
+#nav .navbtn .rdy{flex:none}
+.sb-sec{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:14px 12px 4px;display:flex;justify-content:space-between;align-items:center}
+details.sb-grp>summary{list-style:none;cursor:pointer;border-radius:6px}details.sb-grp>summary::-webkit-details-marker{display:none}
+details.sb-grp>summary::after{content:"▸";font-size:11px}details.sb-grp[open]>summary::after{content:"▾"}
+details.sb-grp>summary:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.sb-sub .navbtn{padding-left:40px!important;font-weight:500}
+.sb-new{width:8px;height:8px;border-radius:50%;background:var(--stop);flex:none}
+.rail-foot{margin-top:auto;padding:10px 0 14px;border-top:1px solid var(--line);position:sticky;bottom:0;background:var(--panel)}
+.rail-foot .userbtn{width:100%;justify-content:flex-start;gap:10px;text-align:left}.rail-foot .userbtn .who2{min-width:0;overflow:hidden;text-overflow:ellipsis}
+body.is-test .rail-foot{padding-bottom:46px}.userbtn .who2,.userbtn .who2 small{display:block}
+.sb-bar,.sb-scrim{display:none}
+body.full .app{display:block}body.full .sb-bar{display:none!important}
+@media (max-width:820px){
+ .app{display:block}
+ nav.rail{position:fixed;left:0;top:0;bottom:0;width:min(290px,86vw);height:auto;transform:translateX(-105%);transition:transform .2s ease;box-shadow:0 0 40px rgba(0,0,0,.25);z-index:60;padding-top:calc(18px + env(safe-area-inset-top,0px))}
+ body.sb-open nav.rail{transform:none}
+ body.sb-open .sb-scrim{display:block;position:fixed;inset:0;background:rgba(10,20,30,.35);z-index:55}
+ .sb-bar{display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:30;background:var(--panel);border-bottom:1px solid var(--line);padding:10px 16px}
+ .sb-bar b{font:800 18px var(--display);letter-spacing:-.02em}.sb-bar b span{color:var(--go)}
+ .sb-burger{display:inline-grid;place-items:center;width:42px;height:42px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);font-size:19px;cursor:pointer;position:relative}
+ .sb-burger .sb-new{position:absolute;top:7px;right:7px}
+ .rail-foot{display:block}.userbtn .who2{display:block!important}
+}
+@media (prefers-reduced-motion:reduce){nav.rail{transition:none}}
+#dropdown,#gres{z-index:70}
+/* What's new */
+.wn{display:grid;gap:18px;max-width:820px}
+.wn-day{display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px}
+.wn-date{font-weight:700;color:var(--mute);font-size:14px;padding-top:16px;font-variant-numeric:tabular-nums}
+.wn-list{display:grid;gap:10px}
+.wn-item{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.wn-item h3{margin:0 0 6px;font-size:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.wn-item ul{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14.5px}
+.wn-where{font-size:11.5px;font-weight:700;border-radius:99px;padding:2px 8px;background:var(--wait-soft);color:var(--wait)}
+.wn-where.live{background:var(--go-soft);color:var(--go)}
+.wn-for{font-size:12px;color:var(--mute);margin:6px 0 0}
+@media (max-width:640px){.wn-day{grid-template-columns:1fr;gap:4px}.wn-date{padding-top:0}}
 </style>
 </head>
 <body>
 <div class="app">
   <nav class="rail" id="rail" aria-label="Main">
+    <div class="sb-brand">Drayber<span>Flex</span></div>
     <div class="brand-sub">Driver acquisition<br><span>Pilot VF · 5 Oct 2026</span></div>
     <div class="road" aria-hidden="true"></div>
     <div class="search" role="search"><input id="gsearch" type="search" placeholder="Find applicant   /" autocomplete="off" aria-label="Find applicant"></div>
     <div id="nav"></div>
     <div class="rail-foot" id="me"></div>
   </nav>
-  <div class="mainwrap"><div id="offline"></div>
+  <div class="mainwrap"><div class="sb-bar"><button class="sb-burger" data-sb="toggle" aria-label="Open menu" aria-controls="rail" aria-expanded="false">☰<span class="sb-new" id="sb-dot" hidden></span></button><b>Drayber<span>Flex</span></b></div><div id="offline"></div>
   <main id="main"><p class="muted">Loading…</p></main></div>
 </div>
+<div class="sb-scrim" data-sb="close"></div>
 <div id="toast" class="toast" hidden></div>
 <div id="print"></div>
 <div id="ovl"></div>
@@ -1059,7 +1108,7 @@ const can=r=>{const m=myRoles();return m.includes(r)||m.includes("admin")};
 const VIEW_ROLES={team:["admin"],settings:["admin"],reports:["hr"],import:["marketing"],reminders:["marketing","verifier"],bank:["interviewer","marketing","tester"],
   trcal:["trainer","marketing","verifier"],campaigns:["marketing"],requests:["verifier"],jobs:["operations","marketing","hr"],checkin:["verifier"],scan:["verifier"],inform:["verifier"],
   orientation:["orientation"],interview:["interviewer"],drive:["tester"],ojt:["trainer"],offers:["hr"]};
-const canView=v=>{const R=VIEW_ROLES[v];if(R)return R.some(r=>can(r));return !opsOnly()||v==="pipeline"};
+const canView=v=>{const R=VIEW_ROLES[v];if(R)return R.some(r=>can(r));return !opsOnly()||v==="pipeline"||v==="whatsnew"};
 const opsOnly=()=>{const m=myRoles();return m.length>0&&m.every(r=>r==="operations")};
 // personal data: full IDs and document photos = Check-in, HR (+Admin); applicant details without IDs = also Marketing
 const seeIds=()=>can("verifier")||can("hr"),seeFile=()=>seeIds()||can("marketing");
@@ -1157,17 +1206,54 @@ function moreItems(){const m=[];if(can("marketing"))m.push(["import","Import boo
   if(can("interviewer")||can("marketing")||can("tester"))m.push(["bank","Question bank"]);if(can("trainer")||can("marketing")||can("verifier"))m.push(["trcal","Training calendar"]);if((can("marketing")||can("hr"))&&!can("operations"))m.push(["jobs","Job orders"]);if(can("admin"))m.push(["team","Accounts",S.accounts.filter(a=>a.pending).length],["settings","Rules & data"]);return m}
 function renderNav(){
   const cur=UI.view==="profile"?(UI.back||"applicants"):UI.view==="results"?"applicants":UI.view;
-  const btn=(v,l,n,isQ)=>`<button class="navbtn" data-go="${v}" aria-current="${cur===v}"><span>${l}</span>${n==null?"":isQ?(n?`<span class="rdy" aria-label="${n} ready">${n}</span>`:""):`<span class="n">${n}</span>`}</button>`;
-  const qs=myQueues(),more=moreItems();
-  const tools=[...(can("hr")?[["reports","Reports"]]:[]),...more];
-  const qTotal=qs.reduce((n,q)=>n+readyList(q).length,0),qCur=qs.some(q=>q.view===cur),tCur=tools.some(([v])=>v===cur);
-  const mbtn=(v,l,isCur,badge)=>`<button class="navbtn" data-act="menu" data-v="${v}" aria-haspopup="menu" aria-expanded="${UI.menu===v}" aria-current="${isCur}"><span>${l}</span>${badge?`<span class="rdy">${badge}</span>`:""}<span class="car" aria-hidden="true">▾</span></button>`;
+  const IC={pipeline:"⌂",applicants:"☰",jobs:"▤",campaigns:"◎",requests:"✉"};
+  const btn=(v,l,n,isQ)=>`<button class="navbtn" data-go="${v}" aria-current="${cur===v}"><span class="ic" aria-hidden="true">${IC[v]||"•"}</span><span class="lbl">${l}</span>${n==null?"":isQ?(n?`<span class="rdy" aria-label="${n} waiting">${n}</span>`:""):`<span class="n">${n}</span>`}</button>`;
+  const sub=(v,l,n)=>`<button class="navbtn" data-go="${v}" aria-current="${cur===v}"><span class="lbl">${l}</span>${n?`<span class="rdy" aria-label="${n} waiting">${n}</span>`:""}</button>`;
+  const grp=(k,t,items,badge)=>{const st=sbState()[k],open=st!=null?st:(k==="q"||items.some(x=>x[0]===cur));
+    return `<details class="sb-grp" data-k="${k}" ${open?"open":""}><summary class="sb-sec"><span>${t}${badge?` · ${badge}`:""}</span></summary><div class="sb-sub">${items.map(([v,l,n])=>sub(v,l,n)).join("")}</div></details>`};
+  const unseen=wnUnseen(),wn=`<div class="sb-sec" style="margin-top:14px"><span>Help</span></div><button class="navbtn" data-go="whatsnew" aria-current="${cur==="whatsnew"}"><span class="ic" aria-hidden="true">★</span><span class="lbl">What's new</span>${unseen?`<span class="sb-new" aria-label="New updates"></span>`:""}</button>`;
+  const dot=$("#sb-dot");if(dot)dot.hidden=!unseen;
   const srch=document.querySelector(".search");if(srch)srch.hidden=opsOnly();
-  if(opsOnly()){$("#nav").innerHTML=btn("pipeline","Home")+btn("jobs","Job orders");return renderUser()}
+  if(opsOnly()){$("#nav").innerHTML=btn("pipeline","Home")+btn("jobs","Job orders")+wn;return renderUser()}
+  const qs=myQueues(),tools=[...(can("hr")?[["reports","Reports"]]:[]),...moreItems()];
   let h=btn("pipeline","Home")+btn("applicants","Applicants",Object.keys(S.applicants).length);if(can("operations"))h+=btn("jobs","Job orders");if(can("marketing"))h+=btn("campaigns","Campaigns",jobsWaiting().length||null,true);if(can("verifier"))h+=btn("requests","Requests",Object.values(S.applicants).filter(x=>stage(x)==="requested").length,true);
-  if(qs.length)h+=mbtn("queues","My queues",qCur,qTotal);
-  if(tools.length)h+=mbtn("more","Tools",tCur,can("admin")?S.accounts.filter(a=>a.pending).length:0);
-  $("#nav").innerHTML=h;renderUser()}
+  if(qs.length)h+=grp("q","My queues",qs.map(q=>[q.view,q.label,readyList(q).length]));
+  if(tools.length)h+=grp("t","Tools",tools,can("admin")?S.accounts.filter(a=>a.pending).length:0);
+  $("#nav").innerHTML=h+wn;renderUser()}
+/* the side menu remembers which groups are open, per browser */
+function sbState(){try{return JSON.parse(localStorage.getItem("df_sb")||"{}")}catch(e){return{}}}
+document.addEventListener("toggle",e=>{const d=e.target;if(!d.matches||!d.matches("details.sb-grp"))return;const st=sbState();st[d.dataset.k]=d.open;try{localStorage.setItem("df_sb",JSON.stringify(st))}catch(err){}},true);
+function sbOpen(on){document.body.classList.toggle("sb-open",on);const b=document.querySelector(".sb-burger");if(b)b.setAttribute("aria-expanded",String(on))}
+document.addEventListener("click",e=>{const t=e.target.closest("[data-sb]");if(t){e.preventDefault();return sbOpen(t.dataset.sb==="toggle"?!document.body.classList.contains("sb-open"):false)}
+  if(document.body.classList.contains("sb-open")&&e.target.closest("#nav [data-go]"))sbOpen(false)});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.body.classList.contains("sb-open"))sbOpen(false)});
+/* ---- What's new: newest first. where: "test" = test site only so far, "live" = on apply.drayberflex.com ---- */
+const WHATSNEW=[
+ {d:"2026-10-14",where:"test",t:"Side menu and What's new",for:"Everyone",i:["The menu moved from the top to the left side. Your queues and their waiting numbers are always visible; Tools folds away.","On a phone, tap ☰ at the top left to open the menu.","This What's new page lists every update. A red dot shows when there is something you haven't seen."]},
+ {d:"2026-10-14",where:"test",t:"Watermark without staff names",for:"Everyone",i:["The faint watermark on applicant pages now shows “DrayberFlex · Confidential”, the date and time, and a short account code instead of your name."]},
+ {d:"2026-10-14",where:"test",t:"Applicant app: document upload fixed",for:"Applicants",i:["The photo button for the NBI clearance and medical certificate opens the camera or photo picker again."]},
+ {d:"2026-10-14",where:"test",t:"Operations accounts",for:"Admin",i:["New account in Accounts can create Operations accounts (the role used to be dropped). On the real site this works once the account tool is updated in Supabase.","On the test site, New account and setting a temporary password work now too."]},
+ {d:"2026-10-13",where:"test",t:"Applicant app",for:"Applicants, Check-in, Trainer",i:["Applicants sign in at /#app with their reference code and the last 4 digits of their mobile.","They see their QR ticket, next step, progress and updates; can move the interview once (up to 12 hours before) or cancel it; and can upload their NBI and medical later.","They can add the app to their phone's home screen.","Staff see “No NBI or medical uploaded yet” on Requests, the check-in desk and the profile.","An expired NBI or older medical is accepted for the interview (“Verified · older copy”). A valid copy is needed before training, and the Accredited button waits until then. Use “Use new copy” when the applicant uploads one."]},
+ {d:"2026-10-13",where:"test",t:"Application question types",for:"Marketing, Admin",i:["Application questions can be multiple choice, a dropdown, yes/no, or a paragraph answer (up to 500 characters, not scored)."]},
+ {d:"2026-10-13",where:"test",t:"Data privacy protections",for:"Everyone",i:["A Privacy Notice for applicants, with the Data Protection Officer: Hiedilyn Suarez, dpo@thegreenzilla.com.","Registry details: the full applicant file for roles allowed to see it; ID numbers are masked for other roles.","Viewing an applicant's file is recorded in their activity.","A watermark on applicant pages to discourage screenshots.","Desk accounts sign out by themselves after 5 minutes without use."]},
+ {d:"2026-10-13",where:"live",t:"Test site",for:"Admin",i:["apply.drayberflex.com/test/ is a practice copy with its own data. New features appear there first. A red banner shows you are on the test site."]},
+ {d:"2026-10-09",where:"live",t:"Walk-ins use the online application",for:"Check-in, Marketing",i:["Each campaign has a Walk-in QR. Walk-ins scan it, apply on their phone and get today's interview time, or see when walk-in interviews run."]},
+ {d:"2026-10-09",where:"live",t:"One person = one driver's license",for:"Everyone",i:["The license number and photo are required.","One active application per license. After a Failed result the person waits the months set in Rules & data, or is blocked for serious cases (an Admin can allow them)."]},
+ {d:"2026-10-09",where:"live",t:"Ad spend and budgets",for:"Marketing, Admin",i:["Record ad spend per campaign and set an ad budget. Campaigns and dashboards show budget used and cost per accredited driver."]},
+ {d:"2026-10-09",where:"live",t:"Job orders and the Operations role",for:"Operations, Marketing, HR",i:["Operations adds job orders (client, position, drivers needed, needed by at least 20 days ahead). Marketing turns them into campaigns."]},
+ {d:"2026-10-09",where:"live",t:"Campaigns with targets and dates",for:"Marketing",i:["Set drivers needed, a start date and how many days it runs. Campaigns close by themselves when filled or after the last day, and are never deleted."]},
+ {d:"2026-10-09",where:"live",t:"Dashboards for each role",for:"Everyone",i:["Home shows a dashboard for your role, with a period and campaign filter. Each page is only open to the roles that need it."]},
+ {d:"2026-10-09",where:"live",t:"Scores kept private",for:"Everyone",i:["Interview and driving test scores are only shown to the roles that need them. Driving test items moved into the Question bank."]},
+ {d:"2026-10-09",where:"live",t:"Start fresh",for:"Admin",i:["Rules & data → Start fresh clears test applicants, job orders and ad spend after a backup, and keeps the campaigns you tick."]},
+ {d:"2026-10-08",where:"live",t:"New web address",for:"Everyone",i:["The system moved to apply.drayberflex.com. The old address forwards here."]},
+ {d:"2026-10-07",where:"live",t:"Registry and photos",for:"Check-in, Admin",i:["Applicant registry, and photos when adding an applicant by hand."]}];
+const WN_KEY="df_wn_seen";
+function wnLatest(){return WHATSNEW.reduce((m,x)=>x.d>m?x.d:m,"")}
+function wnUnseen(){try{return (localStorage.getItem(WN_KEY)||"")<wnLatest()}catch(e){return false}}
+function vWhatsNew(){try{localStorage.setItem(WN_KEY,wnLatest())}catch(e){}setTimeout(renderNav,0);
+  const TEST=!!(window.APP_CONFIG&&APP_CONFIG.TEST),days=[...new Set(WHATSNEW.map(x=>x.d))];
+  return `<div class="head"><div><h1>What's new</h1><p>Every update to the hiring system, newest first.${TEST?" “Test site” items are only here for now; they move to the real site after they are tried.":""}</p></div></div>
+  <div class="wn">${days.map(d=>`<div class="wn-day"><div class="wn-date">${fmtD(d+"T12:00")}</div><div class="wn-list">${WHATSNEW.filter(x=>x.d===d).map(x=>`<article class="wn-item"><h3>${esc(x.t)}${x.where==="test"?`<span class="wn-where">Test site</span>`:""}</h3><ul>${x.i.map(t=>`<li>${esc(t)}</li>`).join("")}</ul><p class="wn-for">For: ${esc(x.for)}</p></article>`).join("")}</div></div>`).join("")}</div>`}
 function renderUser(){
   const ini=me().split(" ").map(x=>x[0]).slice(0,2).join("").toUpperCase();$("#me").innerHTML=`<button class="navbtn userbtn" data-act="menu" data-v="user" aria-haspopup="menu"><span class="avatar">${esc(ini)}</span><span class="who2"><b>${esc(me())}</b><small>${S.isAdmin?(S.viewAs==="all"?"Admin":"Previewing: "+ROLES[S.viewAs]):myRoles().map(r=>ROLES[r]).join(", ")||"No role yet"}</small></span></button>`;
   const lb=S.settings&&S.settings.lastBackup,stale=!lb||Date.now()-new Date(lb)>7*864e5;
@@ -1797,7 +1883,7 @@ function fileBody(a){const ap=a.application||{},id=a.id,L=a.docs?.license||{},N=
    ${full?`<div style="margin-top:14px">${regAttachments(a)}</div>`:""}
    <div class="row" style="justify-content:space-between;margin-top:14px"><span class="small muted">🔒 Opening this file, showing ID numbers and viewing photos are recorded. Screenshots carry your name.</span>${can("admin")?`<button class="btn sm noprint" data-act="print">Print file</button>`:""}</div>`}
 function watermark(on){let w=document.getElementById("wm");if(!on){if(w)w.remove();return}
-  const txt=`${me()} · ${new Date().toLocaleString(undefined,{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"})}`;
+  const txt=`DrayberFlex · Confidential · ${new Date().toLocaleString(undefined,{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"})} · ${String(S.uid||"").replace(/[^a-z0-9]/gi,"").slice(-5).toUpperCase()}`;
   if(!w){w=document.createElement("div");w.id="wm";w.setAttribute("aria-hidden","true");document.body.appendChild(w)}
   if(w.dataset.t===txt)return;w.dataset.t=txt;const dark=matchMedia("(prefers-color-scheme: dark)").matches&&document.documentElement.dataset.theme!=="light"||document.documentElement.dataset.theme==="dark";
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="460" height="200"><text x="20" y="120" transform="rotate(-22 230 100)" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="600" fill="${dark?"rgba(255,255,255,.07)":"rgba(35,33,94,.075)"}">${txt.replace(/[&<>]/g,"")}</text></svg>`;
@@ -2271,7 +2357,7 @@ function render(){
   document.documentElement.style.setProperty("--hh",$("#rail").offsetHeight+"px");
   const noRole=!S.isAdmin&&!myRoles().length;if(!canView(UI.view)&&UI.view!=="profile")UI.view="pipeline";if(UI.view==="profile"&&opsOnly())UI.view="pipeline";
   const V={pipeline:vDash,applicants:vApplicants,results:vResults,checkin:vCheckin,orientation:vOrientation,interview:vInterview,bank:vBank,
-    import:vImport,drive:vDrive,jobs:vJobs,registry:vRegistry,trcal:vTrCal,ojt:vOjt,offers:vOffers,inform:vInform,team:vTeam,settings:vSettings,profile:vProfile,reports:vReports,reminders:vReminders,campaigns:vCampaigns,scan:vScan,requests:vRequests};
+    import:vImport,drive:vDrive,jobs:vJobs,registry:vRegistry,trcal:vTrCal,ojt:vOjt,offers:vOffers,inform:vInform,team:vTeam,settings:vSettings,profile:vProfile,reports:vReports,reminders:vReminders,campaigns:vCampaigns,scan:vScan,requests:vRequests,whatsnew:vWhatsNew};
   const act=document.activeElement,keep=act&&act.dataset&&act.dataset.act&&["INPUT","TEXTAREA"].includes(act.tagName)?{a:act.dataset.act,id:act.dataset.id,k:act.dataset.k,f:act.dataset.f,i:act.dataset.i,pos:act.selectionStart}:null;
   if(keep&&UI.typing)return; // don't repaint under someone mid-typing
   $("#main").innerHTML=(noRole&&UI.view==="pipeline"?vNoAccess()+"<div style='height:16px'></div>":"")+(V[UI.view]||vPipeline)();
