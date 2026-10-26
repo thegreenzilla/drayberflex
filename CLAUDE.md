@@ -23,8 +23,8 @@ Owner: Dennis (non-technical). Explain changes in plain language, confirm before
   - `#apply/<campaignId>` application (5 steps), `#ticket/<id>` applicant status/QR/results/training booking,
     `#app` applicant app (sign in with code + last 4 digits of mobile; `#status` opens the same page): next step, QR, reschedule once
     (≥12h before), cancel, upload NBI/medical later, progress + updates, Add to Home Screen. Landing page when no hash.
-  - Test site only so far: `test/manifest.webmanifest`, `test/sw.js` (network-first, offline shell only), `test/icons/` – copy them to the root when going live.
-- Staff navigation (test site): side menu on desktop (`renderNav`: main pages, My queues open, Tools folded, Help → What's new),
+  - Installable applicant app files: `manifest.webmanifest`, `sw.js` (network-first, offline shell only), `icons/` – same copies under `test/`.
+- Staff navigation: side menu on desktop (`renderNav`: main pages, My queues open, Tools folded, Help → What's new),
   ☰ slide-in menu on phones; full-screen screens (check-in desk, driving test mode) keep their own layout.
 - `supabase/sql/` – schema + dated update scripts (run manually in Supabase → SQL Editor; all idempotent).
 - `supabase/functions/notify` – email (Brevo or Resend) / SMS (Semaphore) when the desk approves/declines.
@@ -36,7 +36,7 @@ Owner: Dennis (non-technical). Explain changes in plain language, confirm before
 - `profiles` – staff accounts, `roles` text[]: admin, marketing, verifier (Check-in & documents), orientation, interviewer, tester (driving instructor), trainer, hr, operations (job orders only, no applicant details).
 - Storage bucket `docs` (private): photos `<pid>.jpg`, attachments `att/<applicantId>/<fileId>.<ext>` (images + PDF, 10 MB).
 - Public RPCs (anon): `submit_application`, `check_license`, `slot_counts`, `get_ticket`, `lookup_ticket`, `training_counts`, `training_respond`, `book_training`,
-  applicant app: `app_login` (5 wrong tries/hour locks the code), `app_me`, `app_reschedule`, `app_cancel`, `app_add_doc`, `app_logout`
+  applicant app (live since 2026-10-26): `app_login` (5 wrong tries/hour locks the code), `app_me`, `app_reschedule`, `app_cancel`, `app_add_doc`, `app_logout`
   (sessions in `applicant_sessions`, hashed key, 30 days; no direct table access).
 - RLS: staff (active profile) read/write applicants; anon only through RPCs.
 
@@ -54,7 +54,7 @@ Owner: Dennis (non-technical). Explain changes in plain language, confirm before
 - One person = one driver's license number (letter + 10 digits, compared without spaces/dashes). One active application per license;
   after a "Failed" result they wait the months in Rules & data, or are blocked for good (red flag, NBI hit, fake document,
   critical driving fail twice) unless Admin allows. Enforced in `submit_application` / `check_license` (SQL) and set when Check-in taps Failed.
-- Admin "Preview the app as" (test site): a role or a person (`S.preview`, `inPreview()`); look-only: `setDoc`/`saveApp`/`saveCfg`
+- Admin "Preview the app as": a role or a person (`S.preview`, `inPreview()`); look-only: `setDoc`/`saveApp`/`saveCfg`
   and direct Supabase writes (tables except `test_results`, storage, functions) are refused while previewing.
 - Who sees what: interview results = Interviewer, Check-in, HR, Admin; driving results = Check-in, HR, Admin. Page access per role is `VIEW_ROLES`.
 - Campaigns close by themselves (never deleted) when accredited drivers reach the target or after the last day; dates are also enforced in SQL.
