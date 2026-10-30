@@ -29,6 +29,10 @@ Owner: Dennis (non-technical). Explain changes in plain language, confirm before
 - `supabase/sql/` – schema + dated update scripts (run manually in Supabase → SQL Editor; all idempotent).
 - `supabase/functions/notify` – email (Brevo or Resend) / SMS (Semaphore) when the desk approves/declines.
   `admin-users` – create user / reset password / delete (Admin only). Both deployed with **Verify JWT OFF**.
+  `gz-sync` – link with GreenZilla's GZWorkforce (Verify JWT OFF; checks callers itself): GZ job orders arrive as job orders with
+  `gz:{no,…}` (client GreenZilla); a Passed result for an applicant in a campaign of such a job order, and a new campaign for it,
+  are sent to GZ's `partner-sync`. Secrets: `PARTNER_SYNC_SECRET` (same in GZ), `GZ_SYNC_URL`, `SB_SECRET_KEY`. Only passed
+  applicants are sent (name, mobile, email, birthday, license no./expiry); consent text says so (consentVersion 2026-10b).
 
 ## Data model (Supabase)
 - `applicants(id, code unique, data jsonb, notified_at)` – whole applicant record in `data`.
