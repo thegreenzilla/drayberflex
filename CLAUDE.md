@@ -42,6 +42,9 @@ Owner: Dennis (non-technical). Explain changes in plain language, confirm before
 - Public RPCs (anon): `submit_application`, `check_license`, `slot_counts`, `get_ticket`, `lookup_ticket`, `training_counts`, `training_respond`, `book_training`,
   applicant app (live since 2026-10-26): `app_login` (5 wrong tries/hour locks the code), `app_me`, `app_reschedule`, `app_cancel`, `app_add_doc`, `app_logout`
   (sessions in `applicant_sessions`, hashed key, 30 days; no direct table access).
+- Hiring report / follow-ups (2026-11-03 SQL): `apply_events` (step numbers per visit, anon RPC `track_apply_step`, staff read) and
+  `apply_leads` (name + mobile only when the applicant ticks the opt-in on step 2 "License & Contact"; anon RPC `save_apply_lead`;
+  Marketing/Admin read; deleted after 360 days). No-show follow-ups are saved on the applicant (`data.follow`); the no-show offer text is `settings.noshowOffer`.
 - RLS: staff (active profile) read/write applicants; anon only through RPCs.
 
 ## Key business rules
