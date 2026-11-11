@@ -37,7 +37,7 @@ Owner: Dennis (non-technical). Explain changes in plain language, confirm before
 ## Data model (Supabase)
 - `applicants(id, code unique, data jsonb, notified_at)` – whole applicant record in `data`.
 - `app_config(key in ('settings','bank','jobs'))` – settings (campaigns `camps`, `training` calendar, `driveItems`, rules; **readable by the public**), question bank, and `jobs` (staff-only: job orders, ad spend, ad budgets – keep anything private here, never in settings).
-- `profiles` – staff accounts, `roles` text[]: admin, marketing, verifier (Check-in & documents), orientation, interviewer, tester (driving instructor), trainer, hr, operations (job orders only, no applicant details).
+- `profiles` – staff accounts, `roles` text[]: admin, marketing, verifier (Check-in & documents), orientation, interviewer, tester (driving instructor), trainer, hr, operations (job orders, Deployments, Hub check-in, Drivers: drivers' names and phones only, no other applicant details).
 - Storage bucket `docs` (private): photos `<pid>.jpg`, attachments `att/<applicantId>/<fileId>.<ext>` (images + PDF, 10 MB).
 - Public RPCs (anon): `submit_application`, `check_license`, `slot_counts`, `get_ticket`, `lookup_ticket`, `training_counts`, `training_respond`, `book_training`,
   applicant app (live since 2026-10-26): `app_login` (5 wrong tries/hour locks the code), `app_me`, `app_reschedule`, `app_cancel`, `app_add_doc`, `app_logout`
@@ -45,6 +45,10 @@ Owner: Dennis (non-technical). Explain changes in plain language, confirm before
 - Hiring report / follow-ups (2026-11-03 SQL): `apply_events` (step numbers per visit, anon RPC `track_apply_step`, staff read) and
   `apply_leads` (name + mobile only when the applicant ticks the opt-in on step 2 "License & Contact"; anon RPC `save_apply_lead`;
   Marketing/Admin read; deleted after 360 days). No-show follow-ups are saved on the applicant (`data.follow`); the no-show offer text is `settings.noshowOffer`.
+- Driver app + Deployments (2026-11-12 SQL): accredited applicants use #app as a work app (English): `driver_auth` (salted PIN hash; `app_login` returns
+  `pin` once set → `drv_login`), `driver_days` (availability), `dep_jobs` / `dep_bookings` (Operations writes; staff read). Driver RPCs `drv_me`,
+  `drv_set_days`, `drv_take`, `drv_cancel`, `drv_set_pin`; staff RPCs `dep_scan` (time in), `dep_reset_pin`, `drv_standing` (strikes, pauses).
+  Accounts a driver is trained for: `applicants.data.accounts`; account/hub lists: `settings.depAccounts` / `depHubs` / `depPhone`.
 - RLS: staff (active profile) read/write applicants; anon only through RPCs.
 
 ## Key business rules
