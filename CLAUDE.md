@@ -49,6 +49,11 @@ Owner: Dennis (non-technical). Explain changes in plain language, confirm before
   `pin` once set → `drv_login`), `driver_days` (availability), `dep_jobs` / `dep_bookings` (Operations writes; staff read). Driver RPCs `drv_me`,
   `drv_set_days`, `drv_take`, `drv_cancel`, `drv_set_pin`; staff RPCs `dep_scan` (time in), `dep_reset_pin`, `drv_standing` (strikes, pauses).
   Accounts a driver is trained for: `applicants.data.accounts`; account/hub lists: `settings.depAccounts` / `depHubs` / `depPhone`.
+- Orders + dispatch (2026-11-13 SQL): `dep_orders` (client, account, hub, call time, drivers/day, ISO days, from–to); `dep_dispatch` makes one
+  `dep_jobs` row per day with `sent_at` = Friday 8 AM before that week (`dep_send_now`, `dep_ask_all` = "Are you free?", `dep_cancel_order`).
+  Drivers: `drv_accept` (several days; full → `waitlist`, moved up by trigger on cancel), `drv_decline` (reason; available days removed;
+  `dep_declines`; 3 in 30 days → `delay_until`, offers 1 h later for 2 weeks), `drv_set_limit` (`driver_prefs.max_week`); eligibility in `drv_can`;
+  reliability `drv_stats` (inside `drv_standing`). Report time = 15 min before call.
 - RLS: staff (active profile) read/write applicants; anon only through RPCs.
 
 ## Key business rules
